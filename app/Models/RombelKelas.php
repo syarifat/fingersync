@@ -6,5 +6,5 @@ use Illuminate\Database\Eloquent\Model;
 
 class RombelKelas extends Model
 {
-    //
+    protected $table = 'rombel_kelas';
 }
