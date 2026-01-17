@@ -13,16 +13,17 @@ return new class extends Migration
     {
         Schema::create('guru', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('user_id')->constrained('users')->onDelete('cascade'); // Relasi ke users
             $table->string('nidn')->unique();
             $table->string('nama');
             $table->string('gender');
             $table->text('alamat');
-            $table->string('username')->unique(); // Login via username
-            $table->string('password');
+            $table->string('username')->unique();
+            $table->string('password'); // Tetap ada sesuai permintaan Anda
             $table->string('nohp');
             $table->boolean('is_bk')->default(false);
             $table->string('image')->nullable();
-            $table->string('status'); // Aktif/Nonaktif
+            $table->string('status'); 
             $table->timestamps();
         });
     }
