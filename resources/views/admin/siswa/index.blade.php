@@ -1,6 +1,6 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-2xl text-gray-800 leading-tight">
+        <h2 class="font-semibold text-2xl text-gray-800 leading-tight italic">
             {{ __('Manajemen Data Siswa') }}
         </h2>
     </x-slot>
@@ -39,20 +39,24 @@
                         <table class="w-full text-left">
                             <thead>
                                 <tr class="text-gray-400 text-xs uppercase tracking-widest border-b border-gray-100">
-                                    <th class="pb-4 font-semibold">Identitas Siswa</th>
+                                    <th class="pb-4 font-semibold pl-4">Identitas Siswa</th>
                                     <th class="pb-4 font-semibold text-center">Jurusan</th>
                                     <th class="pb-4 font-semibold text-center">Biometric ID</th>
                                     <th class="pb-4 font-semibold text-center">Status</th>
-                                    <th class="pb-4 font-semibold text-right">Aksi</th>
+                                    <th class="pb-4 font-semibold text-right pr-4">Aksi</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-gray-50">
                                 @forelse ($siswa as $s)
                                 <tr class="group hover:bg-gray-50/50 transition-colors">
-                                    <td class="py-5">
+                                    <td class="py-5 pl-4">
                                         <div class="flex items-center gap-4">
-                                            <div class="h-10 w-10 rounded-full bg-orange-50 flex items-center justify-center text-orange-600 font-bold text-sm">
-                                                {{ substr($s->nama, 0, 1) }}
+                                            <div class="h-12 w-12 rounded-full overflow-hidden border-2 border-orange-100 shadow-sm flex-shrink-0 bg-gray-100 flex items-center justify-center">
+                                                @if($s->image)
+                                                    <img src="{{ asset('img/siswa/'.$s->image) }}" alt="{{ $s->nama }}" class="w-full h-full object-cover">
+                                                @else
+                                                    <span class="text-orange-600 font-bold text-lg">{{ substr($s->nama, 0, 1) }}</span>
+                                                @endif
                                             </div>
                                             <div>
                                                 <div class="text-sm font-bold text-gray-900">{{ $s->nama }}</div>
@@ -85,7 +89,7 @@
                                             </span>
                                         @endif
                                     </td>
-                                    <td class="py-5 text-right">
+                                    <td class="py-5 text-right pr-4">
                                         <div class="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                                             <a href="{{ route('admin.siswa.edit', $s->id) }}" class="p-2 text-gray-400 hover:text-orange-600 hover:bg-orange-50 rounded-lg transition-colors" title="Edit Data">
                                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
