@@ -16,13 +16,13 @@ return new class extends Migration
             $table->string('nidn')->unique();
             $table->string('nama');
             $table->string('gender');
-            $table->text('alamat')->nullable();
-            $table->string('username')->unique();
+            $table->text('alamat');
+            $table->string('username')->unique(); // Login via username
             $table->string('password');
             $table->string('nohp');
             $table->boolean('is_bk')->default(false);
             $table->string('image')->nullable();
-            $table->string('status');
+            $table->string('status'); // Aktif/Nonaktif
             $table->timestamps();
         });
     }
