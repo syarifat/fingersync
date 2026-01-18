@@ -4,6 +4,7 @@ use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Admin\AdminController;
 use App\Http\Controllers\Admin\SiswaController;
+use App\Http\Controllers\Admin\KelasController;
 use App\Http\Controllers\Guru\GuruController;
 
 Route::get('/', function () {
@@ -24,12 +25,11 @@ Route::middleware('auth')->group(function () {
 Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::get('/admin/dashboard', [AdminController::class, 'index'])->name('admin.dashboard');
     Route::resource('/admin/siswa', SiswaController::class)->names('admin.siswa');
-    // Route::resource('devices', DeviceController::class); // Kelola Perangkat
+    Route::resource('kelas', KelasController::class)->names('admin.kelas');
 });
 
 // Role Guru
 Route::middleware(['auth', 'role:guru'])->group(function () {
     Route::get('/guru/dashboard', [GuruController::class, 'index'])->name('guru.dashboard');
-    // Route::get('/presensi', [PresensiController::class, 'index']); // Kelola Absensi
 });
 require __DIR__.'/auth.php';
