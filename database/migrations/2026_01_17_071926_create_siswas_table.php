@@ -15,18 +15,18 @@ return new class extends Migration
             $table->id();
             $table->string('nis')->unique();
             $table->string('nama');
-            $table->integer('fingerprint_id')->unique(); // ID Biometrik
+            $table->integer('fingerprint_id')->unique(); // ID 1-127 di sensor
             $table->foreignId('id_jurusan')->constrained('jurusan');
             $table->string('gender');
-            $table->string('agama');
-            $table->text('alamat');
-            $table->string('nohp_siswa');
-            $table->string('nohp_ortu'); // Untuk WhatsApp Gateway
+            $table->string('agama')->nullable();
+            $table->text('alamat')->nullable();
+            $table->string('nohp_siswa')->nullable();
+            $table->string('nohp_ortu')->nullable(); // WA Gateway target
             $table->string('email')->nullable();
-            $table->string('nama_ayah');
-            $table->string('nama_ibu');
+            $table->string('nama_ayah')->nullable();
+            $table->string('nama_ibu')->nullable();
             $table->string('image')->nullable();
-            $table->string('status');
+            $table->string('status')->default('Aktif');
             $table->timestamps();
         });
     }

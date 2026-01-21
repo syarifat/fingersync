@@ -11,12 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('device', function (Blueprint $table) {
+        Schema::create('ruangan', function (Blueprint $table) {
             $table->id();
-            $table->string('id_device')->unique()->comment('Serial Number ESP32');
-            // Device terikat ke ruangan fisik
-            $table->foreignId('id_ruangan')->constrained('ruangan')->onDelete('cascade');
-            $table->string('status')->default('Offline'); // Online/Offline
+            $table->string('nama_ruangan'); // Contoh: Lab Komputer 1
+            $table->string('keterangan')->nullable(); // Contoh: Gedung B Lt 2
             $table->timestamps();
         });
     }
@@ -26,6 +24,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('devices');
+        Schema::dropIfExists('ruangans');
     }
 };

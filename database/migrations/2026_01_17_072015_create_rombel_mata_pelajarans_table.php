@@ -13,9 +13,9 @@ return new class extends Migration
     {
         Schema::create('rombel_mata_pelajaran', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('id_kelas')->constrained('kelas');
+            $table->foreignId('id_kelas')->constrained('kelas')->onDelete('cascade');
             $table->foreignId('id_mata_pelajaran')->constrained('mata_pelajaran');
-            $table->foreignId('id_guru')->constrained('guru');
+            $table->foreignId('id_guru')->constrained('guru'); // Guru Pengampu
             $table->foreignId('id_tahun_ajar')->constrained('tahun_ajar');
             $table->timestamps();
         });

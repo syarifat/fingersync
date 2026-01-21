@@ -13,17 +13,18 @@ return new class extends Migration
     {
         Schema::create('guru', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->constrained('users')->onDelete('cascade'); // Relasi ke users
+            // Relasi ke tabel users (untuk login)
+            $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
             $table->string('nidn')->unique();
             $table->string('nama');
             $table->string('gender');
-            $table->text('alamat');
+            $table->text('alamat')->nullable();
             $table->string('username')->unique();
-            $table->string('password'); // Tetap ada sesuai permintaan Anda
-            $table->string('nohp');
+            $table->string('password'); // Disimpan juga disini sesuai request
+            $table->string('nohp')->nullable();
             $table->boolean('is_bk')->default(false);
             $table->string('image')->nullable();
-            $table->string('status'); 
+            $table->string('status')->default('Aktif'); 
             $table->timestamps();
         });
     }

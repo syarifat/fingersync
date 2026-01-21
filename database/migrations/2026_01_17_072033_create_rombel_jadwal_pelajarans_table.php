@@ -13,11 +13,12 @@ return new class extends Migration
     {
         Schema::create('rombel_jadwal_pelajaran', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('id_rombel_mata_pelajaran')->constrained('rombel_mata_pelajaran');
-            $table->string('hari');
+            $table->foreignId('id_rombel_mata_pelajaran')->constrained('rombel_mata_pelajaran')->onDelete('cascade');
+            $table->string('hari'); // Senin, Selasa, dst
             $table->time('jam_mulai');
             $table->time('jam_selesai');
-            $table->foreignId('id_device')->constrained('device');
+            // KUNCI: Jadwal ini berlangsung di ruangan mana?
+            $table->foreignId('id_ruangan')->constrained('ruangan'); 
             $table->timestamps();
         });
     }

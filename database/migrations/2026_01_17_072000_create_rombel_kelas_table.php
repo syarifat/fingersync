@@ -13,8 +13,8 @@ return new class extends Migration
     {
         Schema::create('rombel_kelas', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('id_kelas')->constrained('kelas');
-            $table->foreignId('id_siswa')->constrained('siswa');
+            $table->foreignId('id_kelas')->constrained('kelas')->onDelete('cascade');
+            $table->foreignId('id_siswa')->constrained('siswa')->onDelete('cascade');
             $table->foreignId('id_guru_wali_kelas')->constrained('guru');
             $table->foreignId('id_guru_bk')->constrained('guru');
             $table->foreignId('id_tahun_ajar')->constrained('tahun_ajar');
