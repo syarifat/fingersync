@@ -94,6 +94,7 @@
                 <span :class="sidebarOpen ? 'opacity-100 ml-4' : 'opacity-0 w-0'" class="font-medium transition-all duration-300 overflow-hidden whitespace-nowrap">Data Device</span>
             </a>
 
+            
         </div>
         @endif
 
