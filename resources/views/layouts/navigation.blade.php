@@ -78,6 +78,14 @@
                 <span :class="sidebarOpen ? 'opacity-100 ml-4' : 'opacity-0 w-0'" class="font-medium transition-all duration-300 overflow-hidden whitespace-nowrap">Mata Pelajaran</span>
             </a>
 
+            <a href="{{ route('admin.tahun-ajar.index') }}" 
+                class="flex items-center p-3 rounded-xl transition-colors group {{ request()->routeIs('admin.tahun-ajar.*') ? 'bg-orange-700 shadow-inner' : 'hover:bg-orange-500' }}">
+                <svg class="w-6 h-6 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+                <span :class="sidebarOpen ? 'opacity-100 ml-4' : 'opacity-0 w-0'" class="font-medium transition-all duration-300 overflow-hidden whitespace-nowrap">Tahun Ajar</span>
+            </a>
+
         </div>
         @endif
 

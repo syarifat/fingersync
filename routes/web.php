@@ -11,6 +11,7 @@ use App\Http\Controllers\Admin\GuruController as AdminGuruController;
 use App\Http\Controllers\Auth\AktivasiGuruController;
 use App\Http\Controllers\Admin\JurusanController;
 use App\Http\Controllers\Admin\MataPelajaranController;
+use App\Http\Controllers\Admin\TahunAjarController;
 
 
 Route::get('/', function () {
@@ -41,6 +42,7 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->as('admin.')->group(
     Route::resource('guru', AdminGuruController::class);
     Route::resource('jurusan', JurusanController::class);
     Route::resource('mata-pelajaran', MataPelajaranController::class);
+    Route::resource('tahun-ajar', TahunAjarController::class);
 });
 
 // Role Guru
