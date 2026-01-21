@@ -6,6 +6,7 @@ use App\Http\Controllers\Admin\AdminController;
 use App\Http\Controllers\Admin\SiswaController;
 use App\Http\Controllers\Admin\KelasController;
 use App\Http\Controllers\Guru\GuruController;
+use App\Http\Controllers\Admin\RuanganController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -26,6 +27,7 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::get('/admin/dashboard', [AdminController::class, 'index'])->name('admin.dashboard');
     Route::resource('/admin/siswa', SiswaController::class)->names('admin.siswa');
     Route::resource('kelas', KelasController::class)->names('admin.kelas');
+    Route::resource('ruangan', RuanganController::class)->names('admin.ruangan');
 });
 
 // Role Guru

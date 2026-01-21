@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('nama');
             $table->string('username')->unique(); // Login utama untuk Breeze
-            $table->string('password');
+            $table->string('password')->nullable();;
             $table->enum('role', ['admin', 'guru']); // Pembeda akses di level autentikasi
             $table->rememberToken();
             $table->timestamps();

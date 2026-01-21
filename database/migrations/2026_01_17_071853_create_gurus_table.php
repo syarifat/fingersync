@@ -20,7 +20,7 @@ return new class extends Migration
             $table->string('gender');
             $table->text('alamat')->nullable();
             $table->string('username')->unique();
-            $table->string('password'); // Disimpan juga disini sesuai request
+            $table->string('password')->nullable();; // Disimpan juga disini sesuai request
             $table->string('nohp')->nullable();
             $table->boolean('is_bk')->default(false);
             $table->string('image')->nullable();
