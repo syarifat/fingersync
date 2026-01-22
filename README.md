@@ -45,16 +45,91 @@ Aplikasi ini dibangun menggunakan teknologi modern untuk memastikan performa dan
 
 ## 🚀 Cara Instalasi (Localhost)
 
-Ikuti langkah-langkah berikut untuk menjalankan proyek di komputer lokal Anda:
+Ikuti langkah-langkah berikut secara berurutan untuk menjalankan proyek di komputer lokal Anda:
 
-### 1. Prasyarat
-Pastikan Anda sudah menginstal:
-* PHP >= 8.2
-* Composer
-* Node.js & NPM
-* MySQL
+### 1. Prasyarat Sistem
+Pastikan komputer Anda sudah terinstal aplikasi berikut:
+* **PHP** >= 8.2
+* **Composer**
+* **Node.js** & **NPM**
+* **MySQL** (via XAMPP, Laragon, atau Docker)
 
 ### 2. Clone Repository
+Unduh source code proyek dan masuk ke dalam direktorinya:
+
 ```bash
-git clone [https://github.com/syarifat/fingersync.git](https://github.com/syarifat/fingersync.git)
+git clone https://github.com/syarifat/fingersync.git
 cd fingersync
+```
+
+### 3. Install Dependencies
+Install seluruh library yang dibutuhkan untuk Backend (Laravel) dan Frontend:
+
+```bash
+# Install library PHP
+composer install
+
+# Install library JavaScript
+npm install
+```
+
+### 4. Konfigurasi Environment (.env)
+Duplikat file contoh konfigurasi menjadi file `.env` aktif:
+
+**Windows:**
+```bash
+copy .env.example .env
+```
+
+**Mac/Linux:**
+```bash
+cp .env.example .env
+```
+
+⚠️ **PENTING:** Buka file `.env` dengan text editor, lalu sesuaikan konfigurasi database.
+Pastikan Anda sudah membuat database kosong bernama `fingersync` di MySQL/phpMyAdmin.
+
+```env
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=fingersync
+DB_USERNAME=root
+DB_PASSWORD=
+```
+
+*(Sesuaikan DB_USERNAME dan DB_PASSWORD dengan settingan lokal Anda)*
+
+### 5. Generate Application Key
+Buat kunci enkripsi unik untuk aplikasi:
+
+```bash
+php artisan key:generate
+```
+
+### 6. Setup Database (Migrate & Seed)
+Jalankan perintah ini untuk membuat tabel database dan mengisi data awal (Admin default, dll):
+
+```bash
+php artisan migrate:fresh --seed
+```
+
+### 7. Jalankan Aplikasi
+Buka **dua terminal** berbeda agar fungsi backend dan frontend berjalan bersamaan:
+
+**Terminal 1 (Server Laravel):**
+```bash
+php artisan serve
+```
+
+**Terminal 2 (Vite / Frontend):**
+```bash
+npm run dev
+```
+
+### 8. Akses Aplikasi
+Buka browser dan kunjungi alamat berikut:
+
+```
+http://localhost:8000
+```
