@@ -90,4 +90,21 @@ class TahunAjarController extends Controller
         return redirect()->route('admin.tahun-ajar.index')
             ->with('success', 'Tahun ajar berhasil dihapus.');
     }
+
+    public function switch(Request $request)
+    {
+        $request->validate([
+            'id_tahun_ajar' => 'required|exists:tahun_ajar,id',
+        ]);
+
+        $tahun = TahunAjar::find($request->id_tahun_ajar);
+
+        // Update Session
+        session([
+            'tahun_ajar_id' => $tahun->id,
+            'tahun_ajar_nama' => $tahun->tahun . ' - ' . $tahun->semester
+        ]);
+
+        return back()->with('success', 'Konteks Tahun Ajar berhasil diubah ke: ' . $tahun->tahun . ' (' . $tahun->semester . ')');
+    }
 }

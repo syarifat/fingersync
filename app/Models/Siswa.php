@@ -21,4 +21,9 @@ class Siswa extends Model
     {
         return $this->belongsTo(Jurusan::class, 'id_jurusan');
     }
+
+    public function rombelKelas()
+    {
+        return $this->hasOne(RombelKelas::class, 'id_siswa');
+    }
 }

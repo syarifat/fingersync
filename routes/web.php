@@ -13,6 +13,9 @@ use App\Http\Controllers\Admin\JurusanController;
 use App\Http\Controllers\Admin\MataPelajaranController;
 use App\Http\Controllers\Admin\TahunAjarController;
 use App\Http\Controllers\Admin\DeviceController;
+use App\Http\Controllers\Admin\RombelKelasController;
+use App\Http\Controllers\Admin\RombelMataPelajaranController;
+use App\Http\Controllers\Admin\RombelJadwalPelajaranController;
 
 
 Route::get('/', function () {
@@ -45,6 +48,12 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->as('admin.')->group(
     Route::resource('mata-pelajaran', MataPelajaranController::class);
     Route::resource('tahun-ajar', TahunAjarController::class);
     Route::resource('device', DeviceController::class);
+    Route::post('tahun-ajar/switch', [TahunAjarController::class, 'switch'])->name('tahun-ajar.switch');
+
+    // Rombel
+    Route::resource('rombel-kelas', RombelKelasController::class);
+    Route::resource('rombel-mata-pelajaran', RombelMataPelajaranController::class);
+    Route::resource('rombel-jadwal', RombelJadwalPelajaranController::class);
 });
 
 // Role Guru
