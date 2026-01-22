@@ -1,6 +1,8 @@
 # 🛡️ FingerSync - Smart Presence System
 
-![FingerSync Banner](public/img/logo.png)
+<p align="center">
+  <img src="public/img/logo.png" alt="FingerSync Logo" width="50">
+</p>
 
 **FingerSync** adalah sistem manajemen presensi sekolah modern yang mengintegrasikan teknologi biometrik (sidik jari) dan IoT dengan platform berbasis Cloud. Dirancang untuk mempermudah sekolah dalam memantau kehadiran siswa, guru, dan staf secara *real-time*, akurat, dan anti-titip absen.
 
@@ -32,9 +34,9 @@ Aplikasi ini dibangun menggunakan teknologi modern untuk memastikan performa dan
 
 | Kategori | Teknologi |
 | :--- | :--- |
-| **Backend Framework** | Laravel 10/11 |
+| **Backend Framework** | Laravel 12 |
 | **Frontend** | Blade Templates, Alpine.js |
-| **Styling** | Tailwind CSS (Orange Phoenix Theme) |
+| **Styling** | Tailwind CSS |
 | **Database** | MySQL |
 | **Build Tool** | Vite |
 | **Authentication** | Laravel Breeze |
@@ -54,5 +56,5 @@ Pastikan Anda sudah menginstal:
 
 ### 2. Clone Repository
 ```bash
-git clone [https://github.com/username-anda/fingersync.git](https://github.com/username-anda/fingersync.git)
+git clone [https://github.com/syarifat/fingersync.git](https://github.com/syarifat/fingersync.git)
 cd fingersync
