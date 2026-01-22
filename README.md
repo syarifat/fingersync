@@ -49,7 +49,7 @@ Ikuti langkah-langkah berikut untuk menjalankan proyek di komputer lokal Anda:
 
 ### 1. Prasyarat
 Pastikan Anda sudah menginstal:
-* PHP >= 8.1
+* PHP >= 8.2
 * Composer
 * Node.js & NPM
 * MySQL
