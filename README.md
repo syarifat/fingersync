@@ -1,7 +1,7 @@
 # 🛡️ FingerSync - Smart Presence System
 
 <p align="center">
-  <img src="public/img/logo.png" alt="FingerSync Logo" width="50">
+  <img src="public/img/logo.png" alt="FingerSync Logo" width="150">
 </p>
 
 **FingerSync** adalah sistem manajemen presensi sekolah modern yang mengintegrasikan teknologi biometrik (sidik jari) dan IoT dengan platform berbasis Cloud. Dirancang untuk mempermudah sekolah dalam memantau kehadiran siswa, guru, dan staf secara *real-time*, akurat, dan anti-titip absen.
