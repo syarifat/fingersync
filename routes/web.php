@@ -66,26 +66,52 @@ Route::middleware(['auth', 'role:guru'])->prefix('guru')->as('guru.')->group(fun
     Route::get('/dashboard', [GuruGuruController::class, 'index'])->name('dashboard');
 });
 
-Route::get('/test-db', function () {
-    try {
-        // Cek koneksi DB
-        $dbName = DB::connection()->getDatabaseName();
-        $tables = DB::select('SHOW TABLES');
-        
+
+// =============================================================
+//  🔥 FIRE GROUP (API Workaround untuk Vercel)
+//  Nanti tinggal pindahkan blok ini ke routes/api.php kalau sudah di hosting
+// =============================================================
+
+Route::prefix('fire')->group(function () {
+
+    // Akses: /fire/ping
+    Route::get('/ping', function () {
         return response()->json([
-            'status' => 'connected',
-            'server' => 'Vercel (Web Route)',
-            'database' => $dbName,
-            'tables_count' => count($tables),
-            'message' => 'Alhamdulillah tembus! Koneksi TiDB Aman.'
+            'status' => 'ON FIRE',
+            'message' => 'Jalur Vercel Web Route aman terkendali!',
+            'waktu' => now()->toDateTimeString()
         ]);
-    } catch (\Exception $e) {
-        return response()->json([
-            'status' => 'error',
-            'message' => 'Masih error bang',
-            'error_detail' => $e->getMessage()
-        ], 500);
-    }
+    });
+
+    // Akses: /fire/test-db
+    Route::get('/test-db', function () {
+        try {
+            // Cek koneksi fisik ke Database
+            $pdo = DB::connection()->getPdo();
+            $dbName = DB::connection()->getDatabaseName();
+            
+            // Cek versi database sekalian
+            $version = DB::select('select version() as ver')[0]->ver;
+
+            return response()->json([
+                'status' => 'BERHASIL',
+                'pesan' => 'Alhamdulillah, Database TiDB Konek!',
+                'info' => [
+                    'database' => $dbName,
+                    'versi' => $version,
+                    'driver' => 'mysql (ssl)',
+                ],
+                'server_time' => now()->toDateTimeString(),
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'GAGAL',
+                'pesan' => 'Koneksi Database Error',
+                'error_detail' => $e->getMessage()
+            ], 500);
+        }
+    });
+
 });
 
 require __DIR__.'/auth.php';
