@@ -7,10 +7,10 @@
 
     <div class="py-12 bg-gray-50 min-h-screen">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            
+
             <div class="bg-white overflow-hidden shadow-sm rounded-2xl border border-gray-100">
                 <div class="p-8">
-                    
+
                     <div class="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
                         <div>
                             <h3 class="text-lg font-bold text-gray-900">Daftar Siswa Aktif</h3>
@@ -27,12 +27,12 @@
                     </div>
 
                     @if (session('success'))
-                        <div class="mb-6 p-4 bg-emerald-50 border border-emerald-200 rounded-xl flex items-center text-emerald-700">
-                            <svg class="w-5 h-5 mr-3" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
-                            </svg>
-                            <span class="text-sm font-medium">{{ session('success') }}</span>
-                        </div>
+                    <div class="mb-6 p-4 bg-emerald-50 border border-emerald-200 rounded-xl flex items-center text-emerald-700">
+                        <svg class="w-5 h-5 mr-3" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                        </svg>
+                        <span class="text-sm font-medium">{{ session('success') }}</span>
+                    </div>
                     @endif
 
                     <div class="overflow-x-auto">
@@ -53,9 +53,9 @@
                                         <div class="flex items-center gap-4">
                                             <div class="h-12 w-12 rounded-full overflow-hidden border-2 border-orange-100 shadow-sm flex-shrink-0 bg-gray-100 flex items-center justify-center">
                                                 @if($s->image)
-                                                    <img src="{{ asset('img/siswa/'.$s->image) }}" alt="{{ $s->nama }}" class="w-full h-full object-cover">
+                                                <img src="{{ asset('img/siswa/'.$s->image) }}" alt="{{ $s->nama }}" class="w-full h-full object-cover">
                                                 @else
-                                                    <span class="text-orange-600 font-bold text-lg">{{ substr($s->nama, 0, 1) }}</span>
+                                                <span class="text-orange-600 font-bold text-lg">{{ substr($s->nama, 0, 1) }}</span>
                                                 @endif
                                             </div>
                                             <div>
@@ -79,27 +79,27 @@
                                     </td>
                                     <td class="py-5 text-center">
                                         @if($s->status == 'Aktif')
-                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800">
-                                                <span class="w-1.5 h-1.5 mr-1.5 rounded-full bg-emerald-500"></span>
-                                                Aktif
-                                            </span>
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800">
+                                            <span class="w-1.5 h-1.5 mr-1.5 rounded-full bg-emerald-500"></span>
+                                            Aktif
+                                        </span>
                                         @else
-                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-                                                {{ $s->status }}
-                                            </span>
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                                            {{ $s->status }}
+                                        </span>
                                         @endif
                                     </td>
                                     <td class="py-5 text-right pr-4">
-                                        <div class="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                            <a href="{{ route('admin.siswa.edit', $s->id) }}" class="p-2 text-gray-400 hover:text-orange-600 hover:bg-orange-50 rounded-lg transition-colors" title="Edit Data">
-                                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <div class="flex justify-end gap-3">
+                                            <a href="{{ route('admin.siswa.edit', $s->id) }}" class="p-2 bg-orange-100 text-orange-600 rounded-lg hover:bg-orange-600 hover:text-white transition-all shadow-sm" title="Edit Data">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path>
                                                 </svg>
                                             </a>
                                             <form action="{{ route('admin.siswa.destroy', $s->id) }}" method="POST" onsubmit="return confirm('Hapus data siswa {{ $s->nama }}?')">
                                                 @csrf @method('DELETE')
-                                                <button type="submit" class="p-2 text-gray-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors" title="Hapus Data">
-                                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <button type="submit" class="p-2 bg-red-100 text-red-600 rounded-lg hover:bg-red-500 hover:text-white transition-all shadow-sm" title="Hapus Data">
+                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
                                                     </svg>
                                                 </button>

@@ -20,9 +20,9 @@
                     </div>
 
                     @if (session('success'))
-                        <div class="mb-6 p-4 bg-emerald-50 border border-emerald-200 rounded-2xl text-emerald-700 text-sm font-bold">
-                            {{ session('success') }}
-                        </div>
+                    <div class="mb-6 p-4 bg-emerald-50 border border-emerald-200 rounded-2xl text-emerald-700 text-sm font-bold">
+                        {{ session('success') }}
+                    </div>
                     @endif
 
                     <div class="overflow-x-auto">
@@ -44,11 +44,19 @@
                                         </span>
                                     </td>
                                     <td class="py-5 px-4 text-right">
-                                        <div class="flex justify-end gap-3 opacity-0 group-hover:opacity-100 transition-opacity">
-                                            <a href="{{ route('admin.kelas.edit', $k->id) }}" class="text-orange-600 font-bold text-xs uppercase hover:underline">Edit</a>
+                                        <div class="flex justify-end gap-3">
+                                            <a href="{{ route('admin.kelas.edit', $k->id) }}" class="p-2 bg-orange-100 text-orange-600 rounded-lg hover:bg-orange-600 hover:text-white transition-all shadow-sm" title="Edit">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                                                </svg>
+                                            </a>
                                             <form action="{{ route('admin.kelas.destroy', $k->id) }}" method="POST" onsubmit="return confirm('Hapus kelas ini?')">
                                                 @csrf @method('DELETE')
-                                                <button type="submit" class="text-red-600 font-bold text-xs uppercase hover:underline">Hapus</button>
+                                                <button type="submit" class="p-2 bg-red-100 text-red-600 rounded-lg hover:bg-red-500 hover:text-white transition-all shadow-sm" title="Hapus">
+                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-3a1 1 0 00-1 1v3M4 7h16"></path>
+                                                    </svg>
+                                                </button>
                                             </form>
                                         </div>
                                     </td>
