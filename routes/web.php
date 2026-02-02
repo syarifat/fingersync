@@ -16,6 +16,7 @@ use App\Http\Controllers\Admin\DeviceController;
 use App\Http\Controllers\Admin\RombelKelasController;
 use App\Http\Controllers\Admin\RombelMataPelajaranController;
 use App\Http\Controllers\Admin\RombelJadwalPelajaranController;
+use App\Http\Controllers\Admin\PresensiController;
 
 
 Route::get('/', function () {
@@ -54,6 +55,9 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->as('admin.')->group(
     Route::resource('rombel-kelas', RombelKelasController::class);
     Route::resource('rombel-mata-pelajaran', RombelMataPelajaranController::class);
     Route::resource('rombel-jadwal', RombelJadwalPelajaranController::class);
+
+    Route::get('/presensi', [PresensiController::class, 'index'])->name('presensi.index');
+    Route::post('/presensi', [PresensiController::class, 'store'])->name('presensi.store');
 });
 
 // Role Guru
