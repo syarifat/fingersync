@@ -31,7 +31,7 @@
                             <x-input-label for="id_rombel_mata_pelajaran" value="Pilih Kelas & Mata Pelajaran" class="font-bold text-gray-700" />
 
                             {{-- Tambahkan conditional class border-red-500 jika error --}}
-                            <select name="id_rombel_mata_pelajaran" class="w-full border-gray-200 rounded-xl mt-2 focus:ring-orange-500 @error('id_rombel_mata_pelajaran') border-red-500 text-red-900 @enderror" required>
+                            <select name="id_rombel_mata_pelajaran" class="w-full rounded-xl mt-2 focus:ring-orange-500 {{ $errors->has('id_rombel_mata_pelajaran') ? 'border-red-500 text-red-900' : 'border-gray-200' }}" required>
                                 <option value="">-- Pilih Plotting --</option>
                                 @foreach($rombelMapel as $rm)
                                 <option value="{{ $rm->id }}" {{ old('id_rombel_mata_pelajaran') == $rm->id ? 'selected' : '' }}>
@@ -51,7 +51,7 @@
                         {{-- 2. HARI --}}
                         <div>
                             <x-input-label for="hari" value="Hari" class="font-bold text-gray-700" />
-                            <select name="hari" class="w-full rounded-xl mt-2 focus:ring-orange-500 @error('hari') border-red-500 @else border-gray-200 @enderror" required>
+                            <select name="hari" class="w-full rounded-xl mt-2 focus:ring-orange-500 {{ $errors->has('hari') ? 'border-red-500' : 'border-gray-200' }}" required>
                                 <option value="">-- Pilih Hari --</option>
                                 @foreach(['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'] as $h)
                                 <option value="{{ $h }}" {{ old('hari') == $h ? 'selected' : '' }}>{{ $h }}</option>
@@ -67,7 +67,7 @@
                             <div>
                                 <x-input-label for="jam_mulai" value="Jam Mulai" class="font-bold text-gray-700" />
                                 {{-- Tambahkan value="{{ old('jam_mulai') }}" agar tidak hilang saat error --}}
-                                <x-text-input type="time" name="jam_mulai" class="mt-2 block w-full rounded-xl @error('jam_mulai') border-red-500 @else border-gray-200 @enderror" value="{{ old('jam_mulai') }}" required />
+                                <x-text-input type="time" name="jam_mulai" class="mt-2 block w-full rounded-xl {{ $errors->has('jam_mulai') ? 'border-red-500' : 'border-gray-200' }}" value="{{ old('jam_mulai') }}" required />
 
                                 {{-- Pesan Error Khusus (Misal: Kelas Bentrok) --}}
                                 @error('jam_mulai')
@@ -76,7 +76,7 @@
                             </div>
                             <div>
                                 <x-input-label for="jam_selesai" value="Jam Selesai" class="font-bold text-gray-700" />
-                                <x-text-input type="time" name="jam_selesai" class="mt-2 block w-full rounded-xl @error('jam_selesai') border-red-500 @else border-gray-200 @enderror" value="{{ old('jam_selesai') }}" required />
+                                <x-text-input type="time" name="jam_selesai" class="mt-2 block w-full rounded-xl {{ $errors->has('jam_selesai') ? 'border-red-500' : 'border-gray-200' }}" value="{{ old('jam_selesai') }}" required />
                                 @error('jam_selesai')
                                 <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                                 @enderror
@@ -86,7 +86,7 @@
                         {{-- 4. RUANGAN --}}
                         <div>
                             <x-input-label for="id_ruangan" value="Ruangan" class="font-bold text-gray-700" />
-                            <select name="id_ruangan" class="w-full rounded-xl mt-2 focus:ring-orange-500 @error('id_ruangan') border-red-500 text-red-900 @else border-gray-200 @enderror" required>
+                            <select name="id_ruangan" class="w-full rounded-xl mt-2 focus:ring-orange-500 {{ $errors->has('id_ruangan') ? 'border-red-500 text-red-900' : 'border-gray-200' }}" required>
                                 <option value="">-- Pilih Ruangan --</option>
                                 @foreach($ruangan as $r)
                                 <option value="{{ $r->id }}" {{ old('id_ruangan') == $r->id ? 'selected' : '' }}>{{ $r->nama_ruangan }}</option>
