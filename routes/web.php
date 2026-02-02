@@ -73,44 +73,7 @@ Route::middleware(['auth', 'role:guru'])->prefix('guru')->as('guru.')->group(fun
 // =============================================================
 
 Route::prefix('fire')->group(function () {
-
-    // Akses: /fire/ping
-    Route::get('/ping', function () {
-        return response()->json([
-            'status' => 'ON FIRE',
-            'message' => 'Jalur Vercel Web Route aman terkendali!',
-            'waktu' => now()->toDateTimeString()
-        ]);
-    });
-
-    // Akses: /fire/test-db
-    Route::get('/test-db', function () {
-        try {
-            // Cek koneksi fisik ke Database
-            $pdo = DB::connection()->getPdo();
-            $dbName = DB::connection()->getDatabaseName();
-            
-            // Cek versi database sekalian
-            $version = DB::select('select version() as ver')[0]->ver;
-
-            return response()->json([
-                'status' => 'BERHASIL',
-                'pesan' => 'Alhamdulillah, Database TiDB Konek!',
-                'info' => [
-                    'database' => $dbName,
-                    'versi' => $version,
-                    'driver' => 'mysql (ssl)',
-                ],
-                'server_time' => now()->toDateTimeString(),
-            ]);
-        } catch (\Exception $e) {
-            return response()->json([
-                'status' => 'GAGAL',
-                'pesan' => 'Koneksi Database Error',
-                'error_detail' => $e->getMessage()
-            ], 500);
-        }
-    });
+    Route::post('/scan', [DeviceController::class, 'scan']);
 
 });
 
