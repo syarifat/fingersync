@@ -12,7 +12,7 @@
 
                     <div class="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
                         <div>
-                            <h3 class="text-lg font-bold text-gray-900 text-orange-600 uppercase tracking-tighter">Lokasi & Ruangan</h3>
+                            <h3 class="text-lg font-bold text-orange-600 uppercase tracking-tighter">Lokasi & Ruangan</h3>
                             <p class="text-sm text-gray-500">Kelola lokasi fisik penempatan perangkat IoT.</p>
                         </div>
                         <a href="{{ route('admin.ruangan.create') }}" class="inline-flex items-center px-6 py-3 bg-orange-600 text-white rounded-2xl font-bold text-xs uppercase tracking-widest hover:bg-orange-700 transition-all shadow-lg shadow-orange-100 hover:-translate-y-0.5">

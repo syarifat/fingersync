@@ -13,7 +13,7 @@
 
                     <div class="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
                         <div>
-                            <h3 class="text-lg font-bold text-gray-900">Daftar Siswa Aktif</h3>
+                            <h3 class="text-lg font-bold text-orange-600 uppercase tracking-tighter">Daftar Siswa Aktif</h3>
                             <p class="text-sm text-gray-500">Kelola informasi siswa dan sinkronisasi biometrik perangkat.</p>
                         </div>
                         <div class="flex items-center gap-3">
