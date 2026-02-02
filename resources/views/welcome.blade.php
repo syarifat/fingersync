@@ -5,8 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>FingerSync - Sistem Presensi Cerdas</title>
     
-    <link rel="icon" href="{{ asset('img/logo.png') }}?v=1" type="image/png">
-    <link rel="shortcut icon" href="{{ asset('img/logo.png') }}?v=1" type="image/png">
+    <link rel="icon" href="{{ asset('logo.png') }}?v=2" type="image/png">
+    <link rel="shortcut icon" href="{{ asset('logo.png') }}?v=2" type="image/png">
 
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=figtree:400,500,600,700,800&display=swap" rel="stylesheet" />
@@ -19,7 +19,7 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between items-center h-20">
                 <div class="flex items-center gap-3">
-                    <img src="{{ asset('img/logo.png') }}" alt="FingerSync Logo" class="h-10 w-10 drop-shadow-sm">
+                    <img src="{{ asset('logo.png') }}" alt="FingerSync Logo" class="h-10 w-10 drop-shadow-sm">
                     <span class="font-extrabold text-2xl tracking-tight text-gray-800">
                         FINGER<span class="text-orange-600">SYNC</span>
                     </span>
@@ -191,7 +191,7 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex flex-col md:flex-row justify-between items-center gap-6">
                 <div class="flex items-center gap-3">
-                    <img src="{{ asset('img/logo.png') }}" alt="Logo" class="w-8 h-8 grayscale opacity-80">
+                    <img src="{{ asset('logo.png') }}" alt="Logo" class="w-8 h-8 grayscale opacity-80">
                     <span class="font-bold text-xl tracking-wider">FINGER<span class="text-orange-500">SYNC</span></span>
                 </div>
                 <div class="text-gray-400 text-sm">

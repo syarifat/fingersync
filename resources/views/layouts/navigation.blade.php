@@ -14,7 +14,7 @@
     <div class="flex items-center justify-center h-20 bg-orange-700 overflow-hidden shrink-0 shadow-sm z-10">
         <a href="{{ route('dashboard') }}" class="flex items-center transition-all duration-300">
             
-            <img src="{{ asset('img/logo.png') }}" alt="Logo" 
+            <img src="{{ asset('logo.png') }}" alt="Logo" 
                  class="w-10 h-10 object-contain drop-shadow-md transform hover:scale-110 transition-transform duration-300">
 
             <span :class="sidebarOpen ? 'opacity-100 w-auto ml-3' : 'opacity-0 w-0 ml-0'" 

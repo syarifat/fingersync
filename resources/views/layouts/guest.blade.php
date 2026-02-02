@@ -23,7 +23,7 @@
             <div class="lg:w-1/2 flex flex-col items-center lg:items-start text-center lg:text-left text-white space-y-6">
                 
                 <a href="/" class="group">
-                    <img src="{{ asset('img/logo.png') }}" 
+                    <img src="{{ asset('logo.png') }}" 
                          alt="FingerSync Logo" 
                          class="w-24 h-24 lg:w-32 lg:h-32 mb-6 drop-shadow-2xl filter brightness-110 transform group-hover:scale-110 transition-transform duration-300 object-contain mx-auto lg:mx-0">
                     
