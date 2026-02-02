@@ -6,6 +6,7 @@ use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\Facades\Schema;
 use App\Models\TahunAjar;
+use Illuminate\Support\Facades\URL;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -38,6 +39,10 @@ class AppServiceProvider extends ServiceProvider
         } catch (\Exception $e) {
             // Jika error (misal database belum siap), kirim array kosong
             View::share('globalTahunAjar', []);
+        }
+
+        if ($this->app->environment('production')) {
+            URL::forceScheme('https');
         }
     }
 }

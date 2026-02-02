@@ -24,6 +24,11 @@ return Application::configure(basePath: dirname(__DIR__))
     // Masukkan ke grup 'web' agar berjalan SETELAH session start
         $middleware->appendToGroup('web', SetTahunAjar::class);
     })
+    ->withMiddleware(function (Middleware $middleware) {
+        $middleware->trustProxies(at: [
+            '*', // Mempercayai semua proxy (Load Balancer Cloud)
+        ]);
+    })
     ->withExceptions(function (Exceptions $exceptions): void {
         //
     })->create();
