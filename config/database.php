@@ -1,7 +1,6 @@
 <?php
 
 use Illuminate\Support\Str;
-use PDO;
 
 return [
 
@@ -60,8 +59,8 @@ return [
             'strict' => true,
             'engine' => null,
             'options' => array_filter([
-                PDO::MYSQL_ATTR_SSL_CA => base_path('storage/certs/isrgrootx1.pem'),
-                PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT => true, // Set false kadang membantu di local dev
+                \PDO::MYSQL_ATTR_SSL_CA => base_path('storage/certs/isrgrootx1.pem'),
+                \PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT => true, // Set false kadang membantu di local dev
             ]),
         ],
 
