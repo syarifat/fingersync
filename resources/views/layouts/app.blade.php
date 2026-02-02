@@ -8,8 +8,8 @@
 
     <!-- <title>{{ config('app.name', 'FingerSync') }}</title> -->
     <title>FingerSync</title>
-    <link rel="icon" href="{{ asset('img/logo.png') }}?v=1" type="image/png">
-    <link rel="shortcut icon" href="{{ asset('img/logo.png') }}?v=1" type="image/png">
+    <link rel="icon" href="{{ asset('logo.png') }}?v=2" type="image/png">
+    <link rel="shortcut icon" href="{{ asset('logo.png') }}?v=2" type="image/png">
 
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
