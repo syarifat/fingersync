@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Admin\AdminController;
 use App\Http\Controllers\Admin\SiswaController;
 use App\Http\Controllers\Admin\KelasController;
@@ -64,4 +65,27 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->as('admin.')->group(
 Route::middleware(['auth', 'role:guru'])->prefix('guru')->as('guru.')->group(function () {
     Route::get('/dashboard', [GuruGuruController::class, 'index'])->name('dashboard');
 });
+
+Route::get('/api/test-db', function () {
+    try {
+        // Cek koneksi DB
+        $dbName = DB::connection()->getDatabaseName();
+        $tables = DB::select('SHOW TABLES');
+        
+        return response()->json([
+            'status' => 'connected',
+            'server' => 'Vercel (Web Route)',
+            'database' => $dbName,
+            'tables_count' => count($tables),
+            'message' => 'Alhamdulillah tembus! Koneksi TiDB Aman.'
+        ]);
+    } catch (\Exception $e) {
+        return response()->json([
+            'status' => 'error',
+            'message' => 'Masih error bang',
+            'error_detail' => $e->getMessage()
+        ], 500);
+    }
+});
+
 require __DIR__.'/auth.php';
