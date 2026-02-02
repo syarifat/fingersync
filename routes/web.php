@@ -66,7 +66,7 @@ Route::middleware(['auth', 'role:guru'])->prefix('guru')->as('guru.')->group(fun
     Route::get('/dashboard', [GuruGuruController::class, 'index'])->name('dashboard');
 });
 
-Route::get('/api/test-db', function () {
+Route::get('/test-db', function () {
     try {
         // Cek koneksi DB
         $dbName = DB::connection()->getDatabaseName();
