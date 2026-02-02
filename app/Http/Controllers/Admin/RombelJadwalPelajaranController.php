@@ -8,6 +8,7 @@ use App\Models\RombelMataPelajaran;
 use App\Models\Ruangan;
 use Illuminate\Http\Request;
 use Illuminate\Database\QueryException; // <--- Wajib Import
+use App\Http\Requests\StoreJadwalRequest;
 
 class RombelJadwalPelajaranController extends Controller
 {
@@ -43,19 +44,16 @@ class RombelJadwalPelajaranController extends Controller
         return view('admin.rombel-jadwal.create', compact('rombelMapel', 'ruangan'));
     }
 
-    public function store(Request $request)
+    public function store(StoreJadwalRequest $request)
     {
-        $request->validate([
-            'id_rombel_mata_pelajaran' => 'required|exists:rombel_mata_pelajaran,id',
-            'hari' => 'required',
-            'jam_mulai' => 'required',
-            'jam_selesai' => 'required|after:jam_mulai',
-            'id_ruangan' => 'required|exists:ruangan,id',
-        ]);
+        // VALIDASI MANUAL DIHAPUS
+        // Laravel otomatis menjalankan logic 'StoreJadwalRequest' sebelum masuk sini.
+        // Jika bentrok, user otomatis dikembalikan ke form dengan pesan error.
 
         RombelJadwalPelajaran::create($request->all());
 
-        return redirect()->route('admin.rombel-jadwal.index')->with('success', 'Jadwal pelajaran berhasil ditambahkan.');
+        return redirect()->route('admin.rombel-jadwal.index')
+            ->with('success', 'Jadwal pelajaran berhasil ditambahkan.');
     }
 
     public function edit($id)
@@ -71,20 +69,15 @@ class RombelJadwalPelajaranController extends Controller
         return view('admin.rombel-jadwal.edit', compact('jadwal', 'rombelMapel', 'ruangan'));
     }
 
-    public function update(Request $request, $id)
+    public function update(StoreJadwalRequest $request, $id)
     {
-        $request->validate([
-            'id_rombel_mata_pelajaran' => 'required',
-            'hari' => 'required',
-            'jam_mulai' => 'required',
-            'jam_selesai' => 'required|after:jam_mulai',
-            'id_ruangan' => 'required',
-        ]);
-
+        // VALIDASI MANUAL DIHAPUS
+        
         $jadwal = RombelJadwalPelajaran::findOrFail($id);
         $jadwal->update($request->all());
 
-        return redirect()->route('admin.rombel-jadwal.index')->with('success', 'Jadwal berhasil diperbarui.');
+        return redirect()->route('admin.rombel-jadwal.index')
+            ->with('success', 'Jadwal berhasil diperbarui.');
     }
 
     public function destroy($id)
