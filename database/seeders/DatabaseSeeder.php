@@ -49,6 +49,7 @@ class DatabaseSeeder extends Seeder
         ]);
 
         // Ruangan + Device (Setiap ruangan punya 1 perangkat)
+        // TOTAL ADA 9 RUANGAN (Pas untuk 9 Kelas)
         $ruangans = ['Lab TKJ 1', 'Lab TKJ 2', 'Lab TKJ 3', 'Lab TKJ 4', 'Ruang 32', 'Ruang 33', 'Ruang 34', 'Ruang 35', 'Ruang 36'];
         $ruanganIds = []; 
         $deviceIds = []; // Mapping RuanganID => DeviceID
@@ -60,7 +61,7 @@ class DatabaseSeeder extends Seeder
                 'keterangan' => str_contains($namaRuang, 'Lab') ? 'Lantai 2 Gedung B' : 'Lantai 3 Gedung A',
                 'created_at' => now(), 'updated_at' => now()
             ]);
-            $ruanganIds[] = $rId;
+            $ruanganIds[] = $rId; // Index 0-8
 
             // Insert Device untuk Ruangan ini
             $devId = DB::table('device')->insertGetId([
@@ -136,10 +137,8 @@ class DatabaseSeeder extends Seeder
         }
 
         // ==========================================
-        // 5. KELAS, JADWAL, & ROMBEL PELAJARAN
+        // 5. KELAS, JADWAL, & ROMBEL PELAJARAN (ANTI TABRAKAN)
         // ==========================================
-        // Kita butuh menyimpan ID jadwal untuk generate presensi nanti
-        // Struktur: $jadwalData[Hari][KelasID] = [List Jadwal IDs]
         $jadwalData = []; 
         $hariSekolah = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat'];
         $jamPelajaran = [
@@ -149,9 +148,12 @@ class DatabaseSeeder extends Seeder
             ['13:00:00', '14:30:00']
         ];
 
-        $kelasIds = []; // Simpan ID kelas untuk distribusi siswa
+        $kelasIds = []; 
         $levels = ['X', 'XI', 'XII'];
         
+        // Counter global untuk index kelas (0 sampai 8) karena total ada 9 kelas
+        $globalClassIndex = 0; 
+
         foreach ($levels as $lvl) {
             $targetMapel = ($lvl == 'X') ? $mapelX : (($lvl == 'XI') ? $mapelXI : $mapelXII);
             
@@ -162,16 +164,14 @@ class DatabaseSeeder extends Seeder
                 ]);
                 $kelasIds[] = $kelasId;
 
-                // Create Rombel Mapel & Jadwal
-                // Kita acak 11 mapel ini ke 5 hari kerja
+                // Shuffle mapel per kelas
                 $shuffledMapel = $targetMapel;
                 shuffle($shuffledMapel);
                 $mapelIndex = 0;
 
-                foreach ($hariSekolah as $hari) {
-                    // Sehari ada 2-3 mapel
+                foreach ($hariSekolah as $hIndex => $hari) {
                     for ($j=0; $j<count($jamPelajaran); $j++) {
-                        if ($mapelIndex >= count($shuffledMapel)) $mapelIndex = 0; // Ulang mapel kalo habis
+                        if ($mapelIndex >= count($shuffledMapel)) $mapelIndex = 0; 
                         
                         $namaM = $shuffledMapel[$mapelIndex];
                         $mapelIndex++;
@@ -185,10 +185,16 @@ class DatabaseSeeder extends Seeder
                             'created_at' => now(), 'updated_at' => now()
                         ]);
 
-                        // 2. Insert Jadwal Pelajaran (PENTING UNTUK PRESENSI)
-                        // Pilih ruangan acak untuk pelajaran ini
-                        $ruangId = $faker->randomElement($ruanganIds);
+                        // --- LOGIKA ANTI BENTROK (SMART SEEDER) ---
+                        // Total Kelas = 9, Total Ruangan = 9.
+                        // Agar tidak bentrok di jam yang sama ($j), kita rotasi ruangan berdasarkan index kelas.
+                        // Rumus: (IndexKelas + IndexJam + IndexHari) % TotalRuangan
+                        // Ini menjamin setiap kelas mendapatkan ruangan unik di jam tersebut.
                         
+                        $totalRuangan = count($ruanganIds);
+                        $roomIndex = ($globalClassIndex + $j + $hIndex) % $totalRuangan;
+                        $ruangId = $ruanganIds[$roomIndex];
+
                         $jadwalId = DB::table('rombel_jadwal_pelajaran')->insertGetId([
                             'id_rombel_mata_pelajaran' => $rombelMapelId,
                             'hari' => $hari,
@@ -198,17 +204,18 @@ class DatabaseSeeder extends Seeder
                             'created_at' => now(), 'updated_at' => now()
                         ]);
 
-                        // Simpan data jadwal untuk generate presensi
-                        // Format: $allSchedules[] = [id, hari, jam_mulai, id_device, id_kelas]
                         $jadwalData[] = [
                             'id' => $jadwalId,
                             'hari' => $hari,
                             'jam_mulai' => $jamPelajaran[$j][0],
-                            'id_device' => $deviceIds[$ruangId], // Ambil device yg nempel di ruangan tsb
+                            'id_device' => $deviceIds[$ruangId],
                             'id_kelas' => $kelasId
                         ];
                     }
                 }
+                
+                // Increment index kelas untuk rotasi ruangan kelas berikutnya
+                $globalClassIndex++;
             }
         }
 
@@ -217,11 +224,10 @@ class DatabaseSeeder extends Seeder
         // ==========================================
         echo "👨‍🎓 Membuat 300 Siswa & Distribusi Kelas...\n";
         
-        $studentsPerClass = []; // [KelasID => [SiswaID, SiswaID...]]
+        $studentsPerClass = []; 
 
         for ($i=1; $i<=300; $i++) {
             $gender = $faker->randomElement(['L', 'P']);
-            // Trik agar nama tidak ada gelar: Gunakan firstName + lastName manual
             $namaSiswa = $faker->firstName($gender == 'L' ? 'male' : 'female') . ' ' . $faker->lastName;
             
             $siswaId = DB::table('siswa')->insertGetId([
@@ -242,8 +248,6 @@ class DatabaseSeeder extends Seeder
                 'created_at' => now(), 'updated_at' => now()
             ]);
 
-            // Assign ke Kelas (Distribusi Merata)
-            // Rumus: (Index Siswa - 1) % Total Kelas
             $targetKelasId = $kelasIds[($i - 1) % count($kelasIds)];
             
             DB::table('rombel_kelas')->insert([
@@ -263,17 +267,12 @@ class DatabaseSeeder extends Seeder
         // ==========================================
         echo "📅 Generating Presensi 30 Hari Terakhir (Sabar ya, agak lama)...\n";
 
-        // Ambil periode 30 hari ke belakang dari hari ini
         $period = \Carbon\CarbonPeriod::create(now()->subDays(30), now());
-        
-        // Batch insert biar cepat (max 500 record per insert)
         $presensiBatch = [];
 
         foreach ($period as $date) {
-            // Skip jika Sabtu atau Minggu
             if ($date->isWeekend()) continue;
 
-            // Mapping nama hari Inggris ke Indonesia
             $hariInggris = $date->format('l');
             $hariIndo = match($hariInggris) {
                 'Monday' => 'Senin', 'Tuesday' => 'Selasa', 'Wednesday' => 'Rabu', 
@@ -282,23 +281,18 @@ class DatabaseSeeder extends Seeder
 
             if (empty($hariIndo)) continue;
 
-            // Cari jadwal yang aktif di hari ini
             $jadwalHariIni = array_filter($jadwalData, fn($j) => $j['hari'] == $hariIndo);
 
             foreach ($jadwalHariIni as $jadwal) {
-                // Ambil semua siswa di kelas yang punya jadwal ini
                 $siswaDiKelas = $studentsPerClass[$jadwal['id_kelas']] ?? [];
 
                 foreach ($siswaDiKelas as $sid) {
-                    // Tentukan Status Kehadiran (Weighted Random)
-                    // 85% Hadir, 5% Terlambat, 3% Sakit, 2% Izin, 5% Alpha
                     $rand = rand(1, 100);
                     $status = 'Hadir';
-                    $jamScan = $jadwal['jam_mulai']; // Default tepat waktu
+                    $jamScan = $jadwal['jam_mulai'];
 
                     if ($rand > 85 && $rand <= 90) {
                         $status = 'Terlambat';
-                        // Telat 15-45 menit
                         $jamScan = Carbon::parse($jadwal['jam_mulai'])->addMinutes(rand(16, 45))->format('H:i:s');
                     } elseif ($rand > 90 && $rand <= 93) {
                         $status = 'Sakit'; $jamScan = '00:00:00';
@@ -307,7 +301,6 @@ class DatabaseSeeder extends Seeder
                     } elseif ($rand > 95) {
                         $status = 'Alpha'; $jamScan = '00:00:00';
                     } else {
-                        // Hadir (Datang 0-15 menit sebelum atau max 10 menit setelah)
                         $jamScan = Carbon::parse($jadwal['jam_mulai'])->addMinutes(rand(-15, 10))->format('H:i:s');
                     }
 
@@ -323,7 +316,6 @@ class DatabaseSeeder extends Seeder
                         'updated_at' => $date->format('Y-m-d H:i:s')
                     ];
 
-                    // Insert jika batch sudah 500 biar memori aman
                     if (count($presensiBatch) >= 500) {
                         DB::table('presensi')->insert($presensiBatch);
                         $presensiBatch = [];
@@ -332,16 +324,15 @@ class DatabaseSeeder extends Seeder
             }
         }
 
-        // Insert sisa batch
         if (count($presensiBatch) > 0) {
             DB::table('presensi')->insert($presensiBatch);
         }
 
         echo "✅ SEEDING SELESAI! \n";
         echo "=======================================\n";
-        echo "Admin    : admin / password \n";
+        echo "Admin     : admin / password \n";
         $guruSample = DB::table('users')->where('role', 'guru')->first();
-        echo "Guru     : " . $guruSample->username . " / password \n";
+        echo "Guru      : " . $guruSample->username . " / password \n";
         echo "=======================================\n";
     }
 }

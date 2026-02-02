@@ -30,4 +30,9 @@ class RombelJadwalPelajaran extends Model
     { 
         return $this->belongsTo(Ruangan::class, 'id_ruangan'); 
     }
+
+    public function rombelMataPelajaran()
+    {
+        return $this->belongsTo(RombelMataPelajaran::class, 'id_rombel_mata_pelajaran');
+    }
 }
