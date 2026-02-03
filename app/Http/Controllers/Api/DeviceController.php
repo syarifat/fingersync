@@ -17,7 +17,7 @@ class DeviceController extends Controller
         // ---------------------------------------------------------
         // MODE TESTING (Ubah jadi false jika sudah mau dipasang di sekolah)
         // ---------------------------------------------------------
-        $isTestMode = true; 
+        $isTestMode = false; 
 
         try {
             // 1. Validasi Input
