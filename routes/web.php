@@ -67,17 +67,4 @@ Route::middleware(['auth', 'role:guru'])->prefix('guru')->as('guru.')->group(fun
     Route::get('/dashboard', [GuruGuruController::class, 'index'])->name('dashboard');
 });
 
-
-// =============================================================
-//  🔥 FIRE GROUP (API Workaround untuk Vercel)
-//  Nanti tinggal pindahkan blok ini ke routes/api.php kalau sudah di hosting
-// =============================================================
-Route::prefix('fire')->group(function () {
-    // Route::post('/scan', [ApiDeviceController::class, 'scan']);
-    Route::get('/clear-cache', function () {
-        Artisan::call('route:clear');
-        Artisan::call('config:clear');
-        return "Cache Cleared!";
-    });
-});
 require __DIR__ . '/auth.php';
