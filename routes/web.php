@@ -13,7 +13,7 @@ use App\Http\Controllers\Auth\AktivasiGuruController;
 use App\Http\Controllers\Admin\JurusanController;
 use App\Http\Controllers\Admin\MataPelajaranController;
 use App\Http\Controllers\Admin\TahunAjarController;
-use App\Http\Controllers\Admin\DeviceController;
+use App\Http\Controllers\Api\DeviceController;
 use App\Http\Controllers\Admin\RombelKelasController;
 use App\Http\Controllers\Admin\RombelMataPelajaranController;
 use App\Http\Controllers\Admin\RombelJadwalPelajaranController;
@@ -71,5 +71,7 @@ Route::middleware(['auth', 'role:guru'])->prefix('guru')->as('guru.')->group(fun
 //  🔥 FIRE GROUP (API Workaround untuk Vercel)
 //  Nanti tinggal pindahkan blok ini ke routes/api.php kalau sudah di hosting
 // =============================================================
-
+Route::prefix('fire')->group(function () {
+    Route::post('/scan', [DeviceController::class, 'scan']);
+});
 require __DIR__.'/auth.php';
