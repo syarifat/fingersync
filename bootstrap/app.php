@@ -29,14 +29,6 @@ return Application::configure(basePath: dirname(__DIR__))
             '*', // Mempercayai semua proxy (Load Balancer Cloud)
         ]);
     })
-    ->withMiddleware(function (Middleware $middleware) {
-        
-        // Matikan CSRF khusus untuk jalur /fire/*
-        $middleware->validateCsrfTokens(except: [
-            'fire/*', // Apapun yang diawali /fire/ bebas dari CSRF
-        ]);
-
-    })
     ->withExceptions(function (Exceptions $exceptions): void {
         //
     })->create();

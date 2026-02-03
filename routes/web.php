@@ -72,9 +72,4 @@ Route::middleware(['auth', 'role:guru'])->prefix('guru')->as('guru.')->group(fun
 //  Nanti tinggal pindahkan blok ini ke routes/api.php kalau sudah di hosting
 // =============================================================
 
-Route::prefix('fire')->group(function () {
-    Route::post('/scan', [DeviceController::class, 'scan']);
-
-});
-
 require __DIR__.'/auth.php';
