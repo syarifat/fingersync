@@ -9,6 +9,7 @@ use App\Http\Middleware\SetTahunAjar;
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
         web: __DIR__.'/../routes/web.php',
+        api: __DIR__.'/../routes/api.php',
         commands: __DIR__.'/../routes/console.php',
         health: '/up',
     )
@@ -27,12 +28,6 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware) {
         $middleware->trustProxies(at: [
             '*', // Mempercayai semua proxy (Load Balancer Cloud)
-        ]);
-    })
-    ->withMiddleware(function (Middleware $middleware) {
-        // PENGECUALIAN CSRF TOKEN
-        $middleware->validateCsrfTokens(except: [
-            'fire/*', // Semua URL yang diawali /fire bebas masuk tanpa token
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
