@@ -2,7 +2,7 @@
     "version": 2,
     "framework": null,
     "functions": {
-        "public/index.php": { "runtime": "vercel-php@0.7.2" }
+        "api/index.php": { "runtime": "vercel-php@0.7.2" }
     },
     "routes": [
         {
@@ -13,23 +13,23 @@
             "src": "/storage/(.*)",
             "dest": "/public/storage/$1"
         },
+
         {
             "src": "/favicon.ico",
             "dest": "/public/favicon.ico"
         },
         {
-            "src": "/(.*).(png|jpg|jpeg|gif|svg|ico|css|js|woff|woff2|ttf)",
+            "src": "/(.*).(png|jpg|jpeg|gif|svg|ico|css|js)",
             "dest": "/public/$1.$2"
         },
         {
             "src": "/(.*)",
-            "dest": "/public/index.php"
+            "dest": "/api/index.php"
         }
     ],
     "env": {
         "APP_ENV": "production",
-        "APP_DEBUG": "true",
-        "APP_URL": "https://staging-fingersync.sat-project.me",
+        "APP_DEBUG": "false",
         "APP_CONFIG_CACHE": "/tmp/config.php",
         "APP_EVENTS_CACHE": "/tmp/events.php",
         "APP_PACKAGES_CACHE": "/tmp/packages.php",
