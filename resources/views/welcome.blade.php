@@ -34,18 +34,24 @@
                 <div class="flex items-center gap-4">
                     @if (Route::has('login'))
                         @auth
-                            <a href="{{ url('/dashboard') }}" class="px-6 py-2.5 text-sm font-bold text-white bg-orange-600 rounded-full hover:bg-orange-700 transition shadow-lg shadow-orange-200">
-                                Dashboard
+                            {{-- LOGIC PENENTUAN ARAH DASHBOARD --}}
+                            @php
+                                $dashboardRoute = route('dashboard'); // Default (misal user biasa)
+                                
+                                if(auth()->user()->role === 'admin') {
+                                    $dashboardRoute = route('admin.dashboard');
+                                } elseif (auth()->user()->role === 'guru') {
+                                    $dashboardRoute = route('guru.dashboard');
+                                }
+                            @endphp
+
+                            <a href="{{ $dashboardRoute }}" class="px-6 py-2.5 text-sm font-bold text-white bg-orange-600 rounded-full hover:bg-orange-700 transition shadow-lg shadow-orange-200">
+                                Dashboard {{ ucfirst(auth()->user()->role) }}
                             </a>
                         @else
                             <a href="{{ route('login') }}" class="px-6 py-2.5 text-sm font-bold text-white bg-gray-900 rounded-full hover:bg-orange-600 transition shadow-lg">
                                 Masuk
                             </a>
-                            <!-- @if (Route::has('register'))
-                                <a href="{{ route('register') }}" class="px-6 py-2.5 text-sm font-bold text-white bg-gray-900 rounded-full hover:bg-orange-600 transition shadow-lg">
-                                    Daftar Sekolah
-                                </a>
-                            @endif -->
                         @endauth
                     @endif
                 </div>
@@ -53,6 +59,8 @@
         </div>
     </nav>
 
+    {{-- ... BAGIAN KONTEN KE BAWAH SAMA SEPERTI SEBELUMNYA ... --}}
+    
     <section class="relative pt-32 pb-20 lg:pt-48 lg:pb-32 overflow-hidden">
         <div class="absolute top-0 right-0 -z-10 opacity-30 translate-x-1/3 -translate-y-1/4">
             <div class="w-[800px] h-[800px] bg-orange-100 rounded-full blur-3xl"></div>
@@ -73,9 +81,23 @@
                 FingerSync mengintegrasikan teknologi biometrik sidik jari dengan sistem cloud. Pantau kehadiran siswa, guru, dan staf sekolah secara langsung dari mana saja.
             </p>
             <div class="flex flex-col sm:flex-row justify-center gap-4">
-                <a href="{{ route('login') }}" class="px-8 py-4 text-base font-bold text-white bg-orange-600 rounded-2xl hover:bg-orange-700 transition shadow-xl shadow-orange-200 transform hover:-translate-y-1">
-                    Mulai Sekarang
-                </a>
+                
+                {{-- LOGIC TOMBOL MULAI SEKARANG JUGA --}}
+                @auth
+                     @php
+                        $btnUrl = route('dashboard');
+                        if(auth()->user()->role === 'admin') $btnUrl = route('admin.dashboard');
+                        elseif(auth()->user()->role === 'guru') $btnUrl = route('guru.dashboard');
+                    @endphp
+                    <a href="{{ $btnUrl }}" class="px-8 py-4 text-base font-bold text-white bg-orange-600 rounded-2xl hover:bg-orange-700 transition shadow-xl shadow-orange-200 transform hover:-translate-y-1">
+                        Buka Dashboard
+                    </a>
+                @else
+                    <a href="{{ route('login') }}" class="px-8 py-4 text-base font-bold text-white bg-orange-600 rounded-2xl hover:bg-orange-700 transition shadow-xl shadow-orange-200 transform hover:-translate-y-1">
+                        Mulai Sekarang
+                    </a>
+                @endauth
+
                 <a href="#fitur" class="px-8 py-4 text-base font-bold text-gray-700 bg-white border border-gray-200 rounded-2xl hover:bg-gray-50 transition transform hover:-translate-y-1">
                     Pelajari Fitur
                 </a>
