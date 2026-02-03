@@ -3,6 +3,7 @@
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Artisan;
 use App\Http\Controllers\Admin\AdminController;
 use App\Http\Controllers\Admin\SiswaController;
 use App\Http\Controllers\Admin\KelasController;
@@ -74,5 +75,11 @@ Route::middleware(['auth', 'role:guru'])->prefix('guru')->as('guru.')->group(fun
 // =============================================================
 Route::prefix('fire')->group(function () {
     Route::post('/scan', [ApiDeviceController::class, 'scan']);
+    Route::get('/clear-cache', function () {
+        Artisan::call('route:clear');
+        Artisan::call('config:clear');
+        return "Cache Cleared!";
+    });
 });
-require __DIR__.'/auth.php';
+
+require __DIR__ . '/auth.php';
