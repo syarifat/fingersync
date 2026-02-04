@@ -11,17 +11,30 @@ use Illuminate\Http\Request;
 
 class RombelKelasController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         $activeYear = session('tahun_ajar_id');
+        $kelas = Kelas::all(); // Untuk dropdown filter
 
-        // Filter berdasarkan tahun ajar aktif
-        $rombel = RombelKelas::with(['kelas', 'siswa', 'waliKelas', 'guruBk'])
-                    ->where('id_tahun_ajar', $activeYear)
-                    ->latest()
-                    ->paginate(10);
+        $query = RombelKelas::with(['kelas', 'siswa', 'waliKelas', 'guruBk'])
+            ->where('id_tahun_ajar', $activeYear);
 
-        return view('admin.rombel-kelas.index', compact('rombel'));
+        // Filter berdasarkan Kelas
+        if ($request->has('kelas_id') && $request->kelas_id != '') {
+            $query->where('id_kelas', $request->kelas_id);
+        }
+
+        // Filter pencarian (Nama Siswa atau NIS)
+        if ($request->has('search') && $request->search != '') {
+            $query->whereHas('siswa', function ($q) use ($request) {
+                $q->where('nama', 'like', '%' . $request->search . '%')
+                    ->orWhere('nis', 'like', '%' . $request->search . '%');
+            });
+        }
+
+        $rombel = $query->latest()->paginate(10);
+
+        return view('admin.rombel-kelas.index', compact('rombel', 'kelas'));
     }
 
     public function create()
@@ -30,10 +43,10 @@ class RombelKelasController extends Controller
 
         $kelas = Kelas::all();
         $guru = Guru::where('status', 'Aktif')->get();
-        
+
         // Cari siswa yang BELUM punya kelas di tahun ini
         // Kita gunakan nama model RombelKelas di sini
-        $siswa = Siswa::whereDoesntHave('rombelKelas', function($q) use ($activeYear) {
+        $siswa = Siswa::whereDoesntHave('rombelKelas', function ($q) use ($activeYear) {
             $q->where('id_tahun_ajar', $activeYear);
         })->orderBy('nama', 'asc')->get();
 
@@ -55,8 +68,8 @@ class RombelKelasController extends Controller
 
         // Cek duplikasi
         $exists = RombelKelas::where('id_siswa', $request->id_siswa)
-                    ->where('id_tahun_ajar', session('tahun_ajar_id'))
-                    ->exists();
+            ->where('id_tahun_ajar', session('tahun_ajar_id'))
+            ->exists();
 
         if ($exists) {
             return back()->with('error', 'Siswa ini sudah memiliki kelas di tahun ajaran aktif!');
@@ -78,7 +91,7 @@ class RombelKelasController extends Controller
         $rombel = RombelKelas::findOrFail($id);
         $kelas = Kelas::all();
         $guru = Guru::where('status', 'Aktif')->get();
-        
+
         return view('admin.rombel-kelas.edit', compact('rombel', 'kelas', 'guru'));
     }
 

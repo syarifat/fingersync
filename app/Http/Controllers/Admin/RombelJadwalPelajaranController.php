@@ -12,21 +12,45 @@ use App\Http\Requests\StoreJadwalRequest;
 
 class RombelJadwalPelajaranController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         $activeYear = session('tahun_ajar_id');
+        $kelasList = \App\Models\Kelas::orderBy('nama', 'asc')->get();
 
-        // Filter jadwal yang HANYA milik tahun ajar aktif
-        // Kita gunakan whereHas untuk menembus relasi rombelMapel
-        $jadwal = RombelJadwalPelajaran::with(['rombelMapel.kelas', 'rombelMapel.mataPelajaran', 'rombelMapel.guru', 'ruangan'])
-                    ->whereHas('rombelMapel', function($q) use ($activeYear) {
-                        $q->where('id_tahun_ajar', $activeYear);
-                    })
-                    ->orderByRaw("FIELD(hari, 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu')")
-                    ->orderBy('jam_mulai')
-                    ->paginate(20);
+        // Query dasar dengan relasi
+        $query = RombelJadwalPelajaran::with(['rombelMapel.kelas', 'rombelMapel.mataPelajaran', 'rombelMapel.guru', 'ruangan'])
+            ->whereHas('rombelMapel', function ($q) use ($activeYear) {
+                $q->where('id_tahun_ajar', $activeYear);
+            });
 
-        return view('admin.rombel-jadwal.index', compact('jadwal'));
+        // Filter Kelas (via relasi rombelMapel)
+        if ($request->has('kelas_id') && $request->kelas_id != '') {
+            $query->whereHas('rombelMapel', function ($q) use ($request) {
+                $q->where('id_kelas', $request->kelas_id);
+            });
+        }
+
+        // Filter Hari
+        if ($request->has('hari') && $request->hari != '') {
+            $query->where('hari', $request->hari);
+        }
+
+        // Filter Search (Mapel atau Guru)
+        if ($request->has('search') && $request->search != '') {
+            $query->whereHas('rombelMapel', function ($q) use ($request) {
+                $q->whereHas('mataPelajaran', function ($subQ) use ($request) {
+                    $subQ->where('nama', 'like', '%' . $request->search . '%');
+                })->orWhereHas('guru', function ($subQ) use ($request) {
+                    $subQ->where('nama', 'like', '%' . $request->search . '%');
+                });
+            });
+        }
+
+        $jadwal = $query->orderByRaw("FIELD(hari, 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu')")
+            ->orderBy('jam_mulai')
+            ->paginate(20);
+
+        return view('admin.rombel-jadwal.index', compact('jadwal', 'kelasList'));
     }
 
     public function create()
@@ -36,8 +60,8 @@ class RombelJadwalPelajaranController extends Controller
         // Ambil data plotting yang tersedia di tahun ini untuk dropdown
         // Format: X RPL 1 - Matematika (Pak Budi)
         $rombelMapel = RombelMataPelajaran::with(['kelas', 'mataPelajaran', 'guru'])
-                        ->where('id_tahun_ajar', $activeYear)
-                        ->get();
+            ->where('id_tahun_ajar', $activeYear)
+            ->get();
 
         $ruangan = Ruangan::all();
 
@@ -59,11 +83,11 @@ class RombelJadwalPelajaranController extends Controller
     public function edit($id)
     {
         $jadwal = RombelJadwalPelajaran::findOrFail($id);
-        
+
         $activeYear = session('tahun_ajar_id');
         $rombelMapel = RombelMataPelajaran::with(['kelas', 'mataPelajaran', 'guru'])
-                        ->where('id_tahun_ajar', $activeYear)
-                        ->get();
+            ->where('id_tahun_ajar', $activeYear)
+            ->get();
         $ruangan = Ruangan::all();
 
         return view('admin.rombel-jadwal.edit', compact('jadwal', 'rombelMapel', 'ruangan'));
@@ -72,7 +96,7 @@ class RombelJadwalPelajaranController extends Controller
     public function update(StoreJadwalRequest $request, $id)
     {
         // VALIDASI MANUAL DIHAPUS
-        
+
         $jadwal = RombelJadwalPelajaran::findOrFail($id);
         $jadwal->update($request->all());
 
@@ -87,13 +111,12 @@ class RombelJadwalPelajaranController extends Controller
             $jadwal->delete();
 
             return redirect()->route('admin.rombel-jadwal.index')->with('success', 'Jadwal berhasil dihapus.');
-
         } catch (QueryException $e) {
             // Menangani Error Foreign Key (Misal sudah ada absensi di jadwal ini)
             if ($e->getCode() == "23000") {
                 return back()->with('error', 'Gagal Hapus! Jadwal ini sudah memiliki riwayat presensi siswa.');
             }
-            
+
             return back()->with('error', 'Terjadi kesalahan database: ' . $e->getMessage());
         }
     }

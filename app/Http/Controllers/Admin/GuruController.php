@@ -14,10 +14,32 @@ class GuruController extends Controller
     /**
      * Menampilkan daftar guru
      */
-    public function index()
+    public function index(Request $request)
     {
-        // Mengambil data guru terbaru dengan pagination
-        $guru = Guru::latest()->paginate(10);
+        $query = Guru::query();
+
+        // 1. Filter Pencarian (Nama atau NIDN)
+        if ($request->has('search') && $request->search != '') {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('nama', 'LIKE', '%' . $search . '%')
+                  ->orWhere('nidn', 'LIKE', '%' . $search . '%');
+            });
+        }
+
+        // 2. Filter Status (Aktif/Nonaktif/Cuti/dll)
+        if ($request->has('status') && $request->status != '') {
+            $query->where('status', $request->status);
+        }
+
+        // 3. Filter Tipe Guru (BK atau Mapel Biasa)
+        if ($request->has('is_bk') && $request->is_bk != '') {
+            $query->where('is_bk', $request->is_bk);
+        }
+
+        // Eksekusi dengan Pagination
+        $guru = $query->latest()->paginate(10)->withQueryString();
+
         return view('admin.guru.index', compact('guru'));
     }
 

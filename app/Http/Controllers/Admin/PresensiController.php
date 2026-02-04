@@ -14,15 +14,40 @@ class PresensiController extends Controller
     /**
      * Menampilkan daftar absensi
      */
-    public function index()
+    public function index(Request $request)
     {
-        // Mengambil data presensi dengan relasinya
-        // Relasi: siswa, jadwal, device, tahunAjar harus ada di Model Presensi
-        $dataPresensi = Presensi::with(['siswa', 'jadwal', 'device', 'tahunAjar'])
-                                ->latest()
-                                ->paginate(10);
+        $kelasList = \App\Models\Kelas::orderBy('nama', 'asc')->get();
 
-        return view('admin.presensi.index', compact('dataPresensi'));
+        $query = Presensi::with(['siswa', 'jadwal.rombelMapel.kelas', 'device', 'tahunAjar']);
+
+        // Filter Search (Nama Siswa atau NISN)
+        if ($request->has('search') && $request->search != '') {
+            $query->whereHas('siswa', function ($q) use ($request) {
+                $q->where('nama', 'like', '%' . $request->search . '%')
+                    ->orWhere('nisn', 'like', '%' . $request->search . '%');
+            });
+        }
+
+        // Filter Tanggal
+        if ($request->has('tanggal') && $request->tanggal != '') {
+            $query->where('tanggal', $request->tanggal);
+        }
+
+        // Filter Status
+        if ($request->has('status') && $request->status != '') {
+            $query->where('status', $request->status);
+        }
+
+        // Filter Kelas (Via Relasi Jadwal -> RombelMapel -> Kelas)
+        if ($request->has('kelas_id') && $request->kelas_id != '') {
+            $query->whereHas('jadwal.rombelMapel', function ($q) use ($request) {
+                $q->where('id_kelas', $request->kelas_id);
+            });
+        }
+
+        $dataPresensi = $query->latest()->paginate(10);
+
+        return view('admin.presensi.index', compact('dataPresensi', 'kelasList'));
     }
 
     /**
@@ -52,20 +77,20 @@ class PresensiController extends Controller
         // 4. Cari Jadwal Pelajaran yang sedang berlangsung
         // Logika: Cari jadwal di hari ini, dimana jam sekarang berada di antara jam mulai dan selesai
         $jadwalAktif = RombelJadwalPelajaran::where('hari', $hariIni)
-                        ->where('jam_mulai', '<=', $jamSekarang)
-                        ->where('jam_selesai', '>=', $jamSekarang)
-                        // Opsional: Filter berdasarkan kelas siswa jika perlu
-                        // ->where('id_kelas', $siswa->id_kelas) 
-                        ->first();
+            ->where('jam_mulai', '<=', $jamSekarang)
+            ->where('jam_selesai', '>=', $jamSekarang)
+            // Opsional: Filter berdasarkan kelas siswa jika perlu
+            // ->where('id_kelas', $siswa->id_kelas) 
+            ->first();
 
         // Fallback: Jika admin input manual di luar jam pelajaran, kita bisa set null (jika db nullable) 
         // atau ambil jadwal default/dummy. Di sini saya return error jika strict.
         if (!$jadwalAktif) {
-             // OPSI A: Tolak jika tidak ada jadwal
-             return back()->with('error', "Tidak ada jadwal pelajaran aktif pada hari $hariIni jam $jamSekarang.");
-             
-             // OPSI B (Alternatif): Jika ingin tetap simpan walau tidak ada jadwal (misal kegiatan ekskul)
-             // $id_jadwal = 1; // ID jadwal dummy/umum
+            // OPSI A: Tolak jika tidak ada jadwal
+            return back()->with('error', "Tidak ada jadwal pelajaran aktif pada hari $hariIni jam $jamSekarang.");
+
+            // OPSI B (Alternatif): Jika ingin tetap simpan walau tidak ada jadwal (misal kegiatan ekskul)
+            // $id_jadwal = 1; // ID jadwal dummy/umum
         }
 
         // 5. Simpan Data

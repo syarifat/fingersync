@@ -23,6 +23,40 @@
                         </a>
                     </div>
 
+                    {{-- FILTER SECTION --}}
+                    <div class="mb-6 bg-gray-50 p-5 rounded-2xl border border-gray-100">
+                        <form method="GET" action="{{ route('admin.mata-pelajaran.index') }}" class="flex flex-col md:flex-row gap-4">
+
+                            <div class="flex-1">
+                                <label for="search" class="block text-xs font-bold text-gray-500 uppercase mb-1">Cari Mata Pelajaran</label>
+                                <div class="relative">
+                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                        <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                                        </svg>
+                                    </div>
+                                    <input type="text" name="search" id="search" value="{{ request('search') }}"
+                                        class="pl-10 block w-full rounded-xl border-gray-200 bg-white text-sm focus:border-orange-500 focus:ring-orange-500 shadow-sm"
+                                        placeholder="Nama Mata Pelajaran...">
+                                </div>
+                            </div>
+
+                            <div class="flex items-end gap-2">
+                                <button type="submit" class="px-6 py-2.5 bg-gray-800 text-white text-sm font-bold rounded-xl hover:bg-gray-900 transition-colors shadow-sm">
+                                    Filter
+                                </button>
+                                @if(request('search'))
+                                <a href="{{ route('admin.mata-pelajaran.index') }}" class="px-4 py-2.5 bg-white border border-gray-300 text-gray-700 text-sm font-bold rounded-xl hover:bg-gray-50 transition-colors flex items-center justify-center" title="Reset">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                    </svg>
+                                </a>
+                                @endif
+                            </div>
+
+                        </form>
+                    </div>
+
                     @if (session('success'))
                     <div class="mb-6 p-4 bg-emerald-50 border border-emerald-200 rounded-2xl flex items-center text-emerald-700 font-bold text-sm shadow-sm">
                         {{ session('success') }}

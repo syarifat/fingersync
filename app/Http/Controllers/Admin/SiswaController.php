@@ -10,10 +10,33 @@ use Illuminate\Support\Facades\File; // Penting untuk hapus file
 
 class SiswaController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $siswa = Siswa::with('jurusan')->latest()->paginate(10);
-        return view('admin.siswa.index', compact('siswa'));
+        // 1. Ambil data jurusan untuk dropdown filter
+        $jurusan = Jurusan::all();
+
+        // 2. Mulai Query Siswa
+        $query = Siswa::with('jurusan');
+
+        // 3. Filter Search (Nama atau NIS)
+        if ($request->has('search') && $request->search != '') {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('nama', 'LIKE', '%' . $search . '%')
+                  ->orWhere('nis', 'LIKE', '%' . $search . '%');
+            });
+        }
+
+        // 4. Filter Dropdown Jurusan
+        if ($request->has('id_jurusan') && $request->id_jurusan != '') {
+            $query->where('id_jurusan', $request->id_jurusan);
+        }
+
+        // 5. Eksekusi query + Pagination
+        // withQueryString() penting agar saat pindah halaman (page 2), filter tidak hilang
+        $siswa = $query->latest()->paginate(10)->withQueryString();
+
+        return view('admin.siswa.index', compact('siswa', 'jurusan'));
     }
 
     public function create()

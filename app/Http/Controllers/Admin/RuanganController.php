@@ -8,10 +8,16 @@ use Illuminate\Http\Request;
 
 class RuanganController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
+        $query = Ruangan::query();
+
+        if ($request->has('search') && $request->search != '') {
+            $query->where('nama_ruangan', 'like', '%' . $request->search . '%');
+        }
+
         // Urutkan berdasarkan nama ruangan
-        $ruangan = Ruangan::orderBy('nama_ruangan', 'asc')->paginate(10);
+        $ruangan = $query->orderBy('nama_ruangan', 'asc')->paginate(10);
         return view('admin.ruangan.index', compact('ruangan'));
     }
 

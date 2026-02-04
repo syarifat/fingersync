@@ -9,9 +9,15 @@ use Illuminate\Validation\Rule;
 
 class JurusanController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $jurusan = Jurusan::latest()->paginate(10);
+        $query = Jurusan::query();
+
+        if ($request->has('search') && $request->search != '') {
+            $query->where('nama', 'like', '%' . $request->search . '%');
+        }
+
+        $jurusan = $query->latest()->paginate(10);
         return view('admin.jurusan.index', compact('jurusan'));
     }
 

@@ -9,9 +9,15 @@ use Illuminate\Validation\Rule;
 
 class MataPelajaranController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $mapel = MataPelajaran::orderBy('nama', 'asc')->paginate(10);
+        $query = MataPelajaran::query();
+
+        if ($request->has('search') && $request->search != '') {
+            $query->where('nama', 'like', '%' . $request->search . '%');
+        }
+
+        $mapel = $query->orderBy('nama', 'asc')->paginate(10);
         return view('admin.mata-pelajaran.index', compact('mapel'));
     }
 

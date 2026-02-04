@@ -9,10 +9,21 @@ use Illuminate\Http\Request;
 
 class KelasController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $kelas = Kelas::with('jurusan')->latest()->paginate(10);
-        return view('admin.kelas.index', compact('kelas'));
+        $jurusan = Jurusan::all();
+        $query = Kelas::with('jurusan');
+
+        if ($request->has('search') && $request->search != '') {
+            $query->where('nama', 'like', '%' . $request->search . '%');
+        }
+
+        if ($request->has('id_jurusan') && $request->id_jurusan != '') {
+            $query->where('id_jurusan', $request->id_jurusan);
+        }
+
+        $kelas = $query->latest()->paginate(10);
+        return view('admin.kelas.index', compact('kelas', 'jurusan'));
     }
 
     public function create()
