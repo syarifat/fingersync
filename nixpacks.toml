@@ -3,8 +3,7 @@
 # Laravel 12 + Vite + Tailwind CSS + MySQL
 # ==============================================================================
 
-# Let Nixpacks auto-detect PHP & Node.js from composer.json and package.json
-# Only add extra packages needed (e.g. MySQL client libs)
+# Inherit auto-detected packages + add MySQL & GD extensions
 [phases.setup]
 nixPkgs = ["...", "php82Extensions.pdo_mysql", "php82Extensions.gd"]
 
@@ -29,4 +28,4 @@ dependsOn = ["install"]
 
 # --- Start Command ---
 [start]
-cmd = "php artisan migrate --force && php artisan storage:link && php artisan serve --host=0.0.0.0 --port=${PORT:-80}"
+cmd = "php artisan migrate --force && php artisan storage:link && php artisan config:cache && php artisan route:cache && php artisan view:cache && php artisan serve --host=0.0.0.0 --port=80"
