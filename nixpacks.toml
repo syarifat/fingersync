@@ -3,29 +3,17 @@
 # Laravel 12 + Vite + Tailwind CSS + MySQL
 # ==============================================================================
 
-# --- Provider Settings ---
+# Let Nixpacks auto-detect PHP & Node.js from composer.json and package.json
+# Only add extra packages needed (e.g. MySQL client libs)
 [phases.setup]
-nixPkgs = [
-    "php82",
-    "php82Extensions.pdo",
-    "php82Extensions.pdo_mysql",
-    "php82Extensions.mbstring",
-    "php82Extensions.xml",
-    "php82Extensions.curl",
-    "php82Extensions.openssl",
-    "php82Extensions.tokenizer",
-    "php82Extensions.bcmath",
-    "php82Extensions.ctype",
-    "php82Extensions.fileinfo",
-    "php82Extensions.gd",
-    "php82Extensions.zip",
-    "nodejs_20",
-    "npm-9_x"
-]
+nixPkgs = ["...", "php82Extensions.pdo_mysql", "php82Extensions.gd"]
 
 # --- Install Dependencies ---
 [phases.install]
 cmds = [
+    "mkdir -p /app/storage/framework/{sessions,views,cache}",
+    "mkdir -p /app/storage/logs",
+    "mkdir -p /app/bootstrap/cache",
     "composer install --no-dev --optimize-autoloader --no-interaction --prefer-dist",
     "npm ci"
 ]
