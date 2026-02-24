@@ -60,6 +60,8 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->as('admin.')->group(
 
     Route::get('/presensi', [PresensiController::class, 'index'])->name('presensi.index');
     Route::post('/presensi', [PresensiController::class, 'store'])->name('presensi.store');
+
+    Route::get('/siswa/inbox', [SiswaController::class, 'inbox'])->name('siswa.inbox');
 });
 
 // Role Guru

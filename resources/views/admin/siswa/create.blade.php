@@ -9,6 +9,12 @@
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <form action="{{ route('admin.siswa.store') }}" method="POST" enctype="multipart/form-data">
                 @csrf
+                
+                {{-- INPUT HIDDEN UNTUK INBOX_ID --}}
+                @if(isset($inbox_id) && $inbox_id != '')
+                    <input type="hidden" name="inbox_id" value="{{ $inbox_id }}">
+                @endif
+
                 <div class="bg-white shadow-2xl rounded-[2rem] overflow-hidden border border-gray-100">
                     <div class="p-10">
                         
@@ -30,11 +36,23 @@
                                     <x-text-input id="nama" name="nama" type="text" class="mt-2 block w-full border-gray-200" :value="old('nama')" required placeholder="Sesuai Akta Kelahiran" />
                                     <x-input-error :messages="$errors->get('nama')" class="mt-1" />
                                 </div>
+                                
+                                {{-- MODIFIKASI: INPUT FINGERPRINT_ID --}}
                                 <div>
                                     <x-input-label for="fingerprint_id" value="Fingerprint ID (Alat)" class="font-bold text-gray-700" />
-                                    <x-text-input id="fingerprint_id" name="fingerprint_id" type="number" class="mt-2 block w-full border-gray-200" :value="old('fingerprint_id')" required placeholder="ID Sensor" />
+                                    <x-text-input id="fingerprint_id" name="fingerprint_id" type="number" 
+                                        class="mt-2 block w-full border-gray-200 {{ isset($prefill_finger_id) && $prefill_finger_id != '' ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : '' }}" 
+                                        value="{{ old('fingerprint_id', $prefill_finger_id ?? '') }}" 
+                                        required placeholder="ID Sensor" 
+                                        {{ isset($prefill_finger_id) && $prefill_finger_id != '' ? 'readonly' : '' }} />
+                                    
+                                    @if(isset($prefill_finger_id) && $prefill_finger_id != '')
+                                        <p class="text-[10px] text-orange-600 mt-1 font-semibold">*Terisi otomatis dari Inbox. Tidak dapat diubah.</p>
+                                    @endif
+                                    
                                     <x-input-error :messages="$errors->get('fingerprint_id')" class="mt-1" />
                                 </div>
+
                                 <div>
                                     <x-input-label for="id_jurusan" value="Program Keahlian (Jurusan)" class="font-bold text-gray-700" />
                                     <select name="id_jurusan" required class="w-full border-gray-200 focus:border-orange-500 focus:ring-orange-500 rounded-xl shadow-sm mt-2">

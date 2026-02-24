@@ -120,6 +120,88 @@ class DeviceController extends Controller
         }
     }
 
+    // ==========================================================
+    // 1. ALAT 1 MENGIRIM ID BARU KE INBOX (MODE REGISTRASI)
+    // ==========================================================
+    public function registerNewId(Request $request)
+    {
+        $request->validate([
+            'id_device' => 'required|string',
+            'fingerprint_id' => 'required|integer'
+        ]);
+
+        // Cek apakah ID ini sudah ada di inbox dan masih pending, biar gak dobel
+        $exists = FingerprintInbox::where('id_device', $request->id_device)
+                    ->where('fingerprint_id', $request->fingerprint_id)
+                    ->where('status', 'pending')
+                    ->first();
+
+        if (!$exists) {
+            FingerprintInbox::create([
+                'id_device' => $request->id_device,
+                'fingerprint_id' => $request->fingerprint_id,
+                'status' => 'pending'
+            ]);
+        }
+
+        return response()->json([
+            'status' => 'SUCCESS',
+            'message' => 'ID berhasil masuk ke Inbox Admin'
+        ]);
+    }
+
+    // ==========================================================
+    // 2. ALAT 2 & 3 RUTIN BERTANYA "ADA TUGAS?" (POLLING)
+    // ==========================================================
+    public function checkTask(Request $request)
+    {
+        $id_device = $request->query('id_device'); // Alat mengirim ID-nya via parameter URL
+
+        if (!$id_device) {
+            return response()->json(['status' => 'ERROR', 'message' => 'ID Device kosong']);
+        }
+
+        // Cari 1 tugas yang masih 'pending' untuk alat ini
+        $task = DeviceTask::where('id_device', $id_device)
+                  ->where('status', 'pending')
+                  ->oldest() // Ambil tugas yang paling lama mengantri
+                  ->first();
+
+        if ($task) {
+            return response()->json([
+                'status' => 'TASK_AVAILABLE',
+                'task_id' => $task->id,
+                'action' => $task->action, // 'enroll'
+                'target_id' => $task->fingerprint_id // ID 15
+            ]);
+        }
+
+        // Jika tidak ada tugas, suruh alat standby (balik ke mode absen biasa)
+        return response()->json([
+            'status' => 'STANDBY'
+        ]);
+    }
+
+    // ==========================================================
+    // 3. ALAT 2 & 3 LAPOR TUGAS SELESAI
+    // ==========================================================
+    public function completeTask(Request $request)
+    {
+        $request->validate([
+            'task_id' => 'required|integer',
+            'status' => 'required|in:done,failed'
+        ]);
+
+        $task = DeviceTask::find($request->task_id);
+        
+        if ($task) {
+            $task->update(['status' => $request->status]);
+            return response()->json(['status' => 'SUCCESS', 'message' => 'Tugas diperbarui']);
+        }
+
+        return response()->json(['status' => 'ERROR', 'message' => 'Tugas tidak ditemukan'], 404);
+    }
+
     // Helper: Translate Hari
     private function getHariIndo($day) {
         $days = [
