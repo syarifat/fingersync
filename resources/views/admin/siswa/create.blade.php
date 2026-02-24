@@ -40,14 +40,21 @@
                                 {{-- MODIFIKASI: INPUT FINGERPRINT_ID --}}
                                 <div>
                                     <x-input-label for="fingerprint_id" value="Fingerprint ID (Alat)" class="font-bold text-gray-700" />
-                                    <x-text-input id="fingerprint_id" name="fingerprint_id" type="number" 
-                                        class="mt-2 block w-full border-gray-200 {{ isset($prefill_finger_id) && $prefill_finger_id != '' ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : '' }}" 
-                                        value="{{ old('fingerprint_id', $prefill_finger_id ?? '') }}" 
-                                        required placeholder="ID Sensor" 
-                                        {{ isset($prefill_finger_id) && $prefill_finger_id != '' ? 'readonly' : '' }} />
                                     
                                     @if(isset($prefill_finger_id) && $prefill_finger_id != '')
+                                        <input type="text" 
+                                            class="mt-2 block w-full rounded-lg border-gray-200 bg-gray-100 text-gray-500 cursor-not-allowed" 
+                                            value="{{ $prefill_finger_id }}" 
+                                            disabled />
+                                        
+                                        <input type="hidden" name="fingerprint_id" value="{{ $prefill_finger_id }}">
+                                        
                                         <p class="text-[10px] text-orange-600 mt-1 font-semibold">*Terisi otomatis dari Inbox. Tidak dapat diubah.</p>
+                                    @else
+                                        <x-text-input id="fingerprint_id" name="fingerprint_id" type="number" 
+                                                    class="mt-2 block w-full border-gray-200 focus:ring-orange-500" 
+                                                    value="{{ old('fingerprint_id') }}" 
+                                                    required placeholder="Masukkan ID Sensor" />
                                     @endif
                                     
                                     <x-input-error :messages="$errors->get('fingerprint_id')" class="mt-1" />
