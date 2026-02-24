@@ -9,6 +9,8 @@ use App\Models\Device;
 use App\Models\Siswa;
 use App\Models\RombelJadwalPelajaran;
 use App\Models\Presensi;
+use App\Models\FingerprintInbox;
+use App\Models\DeviceTask;
 
 class DeviceController extends Controller
 {
