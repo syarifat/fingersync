@@ -17,6 +17,15 @@
                             <p class="text-sm text-gray-500">Kelola informasi siswa dan sinkronisasi biometrik perangkat.</p>
                         </div>
                         <div class="flex items-center gap-3">
+                            {{-- TOMBOL INBOX JARI BARU --}}
+                            <a href="{{ route('admin.siswa.inbox') }}" class="inline-flex items-center px-5 py-2.5 bg-white border border-gray-300 rounded-lg font-semibold text-sm text-gray-700 hover:bg-gray-50 hover:text-orange-600 focus:outline-none focus:ring-4 focus:ring-gray-100 transition-all duration-200 shadow-sm">
+                                <svg class="w-4 h-4 mr-2 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"></path>
+                                </svg>
+                                Inbox Registrasi
+                            </a>
+
+                            {{-- TOMBOL TAMBAH SISWA LAMA --}}
                             <a href="{{ route('admin.siswa.create') }}" class="inline-flex items-center px-5 py-2.5 bg-orange-600 border border-transparent rounded-lg font-semibold text-sm text-white hover:bg-orange-700 focus:outline-none focus:ring-4 focus:ring-orange-100 transition-all duration-200 shadow-sm shadow-orange-200">
                                 <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
