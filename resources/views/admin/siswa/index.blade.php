@@ -21,23 +21,23 @@
                         <div class="flex flex-wrap items-center gap-3">
                             
                             {{-- Tombol Template Excel --}}
-                            <a href="{{ route('admin.siswa.template') }}" class="inline-flex items-center px-4 py-2.5 bg-emerald-50 border border-emerald-200 rounded-lg font-semibold text-sm text-emerald-700 hover:bg-emerald-100 transition-all shadow-sm" title="Download Template Excel">
+                            <a href="{{ route('admin.siswa.template') }}" class="inline-flex items-center justify-center px-4 h-[42px] bg-emerald-50 border border-emerald-200 rounded-lg font-semibold text-sm text-emerald-700 hover:bg-emerald-100 transition-all shadow-sm" title="Download Template Excel">
                                 <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
                                 Template
                             </a>
 
                             {{-- Form & Tombol Import Excel --}}
-                            <form action="{{ route('admin.siswa.import') }}" method="POST" enctype="multipart/form-data" class="flex items-center" id="formImport">
+                            <form action="{{ route('admin.siswa.import') }}" method="POST" enctype="multipart/form-data" class="m-0 p-0 block" id="formImport">
                                 @csrf
                                 <input type="file" name="file_excel" id="file_excel" class="hidden" accept=".xlsx, .xls, .csv" onchange="document.getElementById('formImport').submit();">
-                                <label for="file_excel" class="cursor-pointer inline-flex items-center px-4 py-2.5 bg-blue-600 border border-transparent rounded-lg font-semibold text-sm text-white hover:bg-blue-700 transition-all shadow-sm" title="Upload File Excel">
+                                <label for="file_excel" class="cursor-pointer inline-flex items-center justify-center px-4 h-[42px] bg-blue-600 border border-transparent rounded-lg font-semibold text-sm text-white hover:bg-blue-700 transition-all shadow-sm m-0" title="Upload File Excel">
                                     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
                                     Import
                                 </label>
                             </form>
 
                             {{-- Tombol Inbox Registrasi --}}
-                            <a href="{{ route('admin.siswa.inbox') }}" class="inline-flex items-center px-4 py-2.5 bg-white border border-gray-300 rounded-lg font-semibold text-sm text-gray-700 hover:bg-gray-50 hover:text-orange-600 transition-all shadow-sm">
+                            <a href="{{ route('admin.siswa.inbox') }}" class="inline-flex items-center justify-center px-4 h-[42px] bg-white border border-gray-300 rounded-lg font-semibold text-sm text-gray-700 hover:bg-gray-50 hover:text-orange-600 transition-all shadow-sm">
                                 <svg class="w-4 h-4 mr-2 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"></path>
                                 </svg>
@@ -45,7 +45,7 @@
                             </a>
 
                             {{-- Tombol Tambah Siswa --}}
-                            <a href="{{ route('admin.siswa.create') }}" class="inline-flex items-center px-5 py-2.5 bg-orange-600 border border-transparent rounded-lg font-semibold text-sm text-white hover:bg-orange-700 shadow-sm shadow-orange-200 transition-all">
+                            <a href="{{ route('admin.siswa.create') }}" class="inline-flex items-center justify-center px-5 h-[42px] bg-orange-600 border border-transparent rounded-lg font-semibold text-sm text-white hover:bg-orange-700 shadow-sm shadow-orange-200 transition-all">
                                 <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
                                 </svg>
