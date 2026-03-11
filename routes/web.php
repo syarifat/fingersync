@@ -61,6 +61,10 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->as('admin.')->group(
 
     Route::get('/presensi', [PresensiController::class, 'index'])->name('presensi.index');
     Route::post('/presensi', [PresensiController::class, 'store'])->name('presensi.store');
+
+    // Fitur Import Excel Siswa
+    Route::get('/siswa/template', [SiswaController::class, 'downloadTemplate'])->name('siswa.template');
+    Route::post('/siswa/import', [SiswaController::class, 'importExcel'])->name('siswa.import');
 });
 
 // Role Guru

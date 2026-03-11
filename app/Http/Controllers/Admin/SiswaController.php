@@ -10,6 +10,9 @@ use Illuminate\Support\Facades\File;
 use App\Models\FingerprintInbox;
 use App\Models\DeviceTask;
 use App\Models\Device;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Exports\SiswaTemplateExport;
+use App\Imports\SiswaImport;
 
 class SiswaController extends Controller
 {
@@ -164,5 +167,43 @@ class SiswaController extends Controller
 
         $siswa->delete();
         return redirect()->route('admin.siswa.index')->with('success', 'Data siswa berhasil dihapus.');
+    }
+
+    // ==========================================
+    // FITUR EXCEL: DOWNLOAD TEMPLATE
+    // ==========================================
+    public function downloadTemplate()
+    {
+        return Excel::download(new SiswaTemplateExport, 'Template_Import_Siswa.xlsx');
+    }
+
+    // ==========================================
+    // FITUR EXCEL: UPLOAD & IMPORT DATA
+    // ==========================================
+    public function importExcel(Request $request)
+    {
+        $request->validate([
+            'file_excel' => 'required|mimes:xlsx,xls,csv|max:5120', // Maks 5MB
+        ]);
+
+        try {
+            Excel::import(new SiswaImport, $request->file('file_excel'));
+            
+            // JIKA SUKSES (Tidak ada duplikasi)
+            return redirect()->back()->with('success', 'Data siswa dari Excel berhasil di-import!');
+            
+        } catch (\Maatwebsite\Excel\Validators\ValidationException $e) {
+            // JIKA GAGAL (Ada duplikasi / error validasi di Strategi A)
+            $failures = $e->failures();
+            $pesanError = "Gagal Import! ";
+            
+            foreach ($failures as $failure) {
+                $pesanError .= "Baris ke-{$failure->row()}: " . implode(', ', $failure->errors()) . " ";
+            }
+
+            return redirect()->back()->with('error', $pesanError);
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Terjadi kesalahan sistem: ' . $e->getMessage());
+        }
     }
 }

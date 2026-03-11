@@ -16,26 +16,45 @@
                             <h3 class="text-lg font-bold text-orange-600 uppercase tracking-tighter">Daftar Siswa Aktif</h3>
                             <p class="text-sm text-gray-500">Kelola informasi siswa dan sinkronisasi biometrik perangkat.</p>
                         </div>
-                        <div class="flex items-center gap-3">
-                            {{-- TOMBOL INBOX JARI BARU --}}
-                            <a href="{{ route('admin.siswa.inbox') }}" class="inline-flex items-center px-5 py-2.5 bg-white border border-gray-300 rounded-lg font-semibold text-sm text-gray-700 hover:bg-gray-50 hover:text-orange-600 focus:outline-none focus:ring-4 focus:ring-gray-100 transition-all duration-200 shadow-sm">
+                        
+                        {{-- KUMPULAN TOMBOL AKSI --}}
+                        <div class="flex flex-wrap items-center gap-3">
+                            
+                            {{-- Tombol Template Excel --}}
+                            <a href="{{ route('admin.siswa.template') }}" class="inline-flex items-center px-4 py-2.5 bg-emerald-50 border border-emerald-200 rounded-lg font-semibold text-sm text-emerald-700 hover:bg-emerald-100 transition-all shadow-sm" title="Download Template Excel">
+                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                                Template
+                            </a>
+
+                            {{-- Form & Tombol Import Excel --}}
+                            <form action="{{ route('admin.siswa.import') }}" method="POST" enctype="multipart/form-data" class="flex items-center" id="formImport">
+                                @csrf
+                                <input type="file" name="file_excel" id="file_excel" class="hidden" accept=".xlsx, .xls, .csv" onchange="document.getElementById('formImport').submit();">
+                                <label for="file_excel" class="cursor-pointer inline-flex items-center px-4 py-2.5 bg-blue-600 border border-transparent rounded-lg font-semibold text-sm text-white hover:bg-blue-700 transition-all shadow-sm" title="Upload File Excel">
+                                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
+                                    Import
+                                </label>
+                            </form>
+
+                            {{-- Tombol Inbox Registrasi --}}
+                            <a href="{{ route('admin.siswa.inbox') }}" class="inline-flex items-center px-4 py-2.5 bg-white border border-gray-300 rounded-lg font-semibold text-sm text-gray-700 hover:bg-gray-50 hover:text-orange-600 transition-all shadow-sm">
                                 <svg class="w-4 h-4 mr-2 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"></path>
                                 </svg>
-                                Inbox Registrasi
+                                Inbox Jari
                             </a>
 
-                            {{-- TOMBOL TAMBAH SISWA LAMA --}}
-                            <a href="{{ route('admin.siswa.create') }}" class="inline-flex items-center px-5 py-2.5 bg-orange-600 border border-transparent rounded-lg font-semibold text-sm text-white hover:bg-orange-700 focus:outline-none focus:ring-4 focus:ring-orange-100 transition-all duration-200 shadow-sm shadow-orange-200">
+                            {{-- Tombol Tambah Siswa --}}
+                            <a href="{{ route('admin.siswa.create') }}" class="inline-flex items-center px-5 py-2.5 bg-orange-600 border border-transparent rounded-lg font-semibold text-sm text-white hover:bg-orange-700 shadow-sm shadow-orange-200 transition-all">
                                 <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
                                 </svg>
-                                Tambah Siswa Baru
+                                Tambah Manual
                             </a>
                         </div>
                     </div>
 
-                    {{-- FILTER SECTION (BARU) --}}
+                    {{-- FILTER SECTION --}}
                     <div class="mb-6 bg-gray-50 p-4 rounded-xl border border-gray-100">
                         <form method="GET" action="{{ route('admin.siswa.index') }}" class="flex flex-col md:flex-row gap-4">
 
@@ -81,12 +100,23 @@
                         </form>
                     </div>
 
+                    {{-- ALERT SUCCESS --}}
                     @if (session('success'))
                     <div class="mb-6 p-4 bg-emerald-50 border border-emerald-200 rounded-xl flex items-center text-emerald-700">
                         <svg class="w-5 h-5 mr-3" fill="currentColor" viewBox="0 0 20 20">
                             <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
                         </svg>
                         <span class="text-sm font-medium">{{ session('success') }}</span>
+                    </div>
+                    @endif
+
+                    {{-- ALERT ERROR (Penting untuk Import Excel) --}}
+                    @if (session('error'))
+                    <div class="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl flex items-start text-red-700">
+                        <svg class="w-5 h-5 mr-3 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+                        </svg>
+                        <span class="text-sm font-medium">{{ session('error') }}</span>
                     </div>
                     @endif
 
