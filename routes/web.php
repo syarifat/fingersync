@@ -44,6 +44,9 @@ Route::middleware('auth')->group(function () {
 Route::middleware(['auth', 'role:admin'])->prefix('admin')->as('admin.')->group(function () {
     Route::get('/dashboard', [AdminController::class, 'index'])->name('dashboard');
     Route::get('/siswa/inbox', [SiswaController::class, 'inbox'])->name('siswa.inbox');
+    // Fitur Import Excel Siswa
+    Route::get('/siswa/template', [SiswaController::class, 'downloadTemplate'])->name('siswa.template');
+    Route::post('/siswa/import', [SiswaController::class, 'importExcel'])->name('siswa.import');
     Route::resource('siswa', SiswaController::class);
     Route::resource('kelas', KelasController::class);
     Route::resource('ruangan', RuanganController::class);
@@ -62,9 +65,6 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->as('admin.')->group(
     Route::get('/presensi', [PresensiController::class, 'index'])->name('presensi.index');
     Route::post('/presensi', [PresensiController::class, 'store'])->name('presensi.store');
 
-    // Fitur Import Excel Siswa
-    Route::get('/siswa/template', [SiswaController::class, 'downloadTemplate'])->name('siswa.template');
-    Route::post('/siswa/import', [SiswaController::class, 'importExcel'])->name('siswa.import');
 });
 
 // Role Guru

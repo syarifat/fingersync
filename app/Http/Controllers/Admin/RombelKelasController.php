@@ -55,9 +55,11 @@ class RombelKelasController extends Controller
 
     public function store(Request $request)
     {
+        // 1. Validasi: id_siswa sekarang berupa array
         $request->validate([
             'id_kelas' => 'required|exists:kelas,id',
-            'id_siswa' => 'required|exists:siswa,id',
+            'id_siswa' => 'required|array', // Pastikan inputnya array
+            'id_siswa.*' => 'exists:siswa,id', // Pastikan setiap ID siswa valid
             'id_guru_wali_kelas' => 'required|exists:guru,id',
             'id_guru_bk' => 'required|exists:guru,id',
         ]);
@@ -66,24 +68,38 @@ class RombelKelasController extends Controller
             return back()->with('error', 'Tahun Ajar belum dipilih!');
         }
 
-        // Cek duplikasi
-        $exists = RombelKelas::where('id_siswa', $request->id_siswa)
-            ->where('id_tahun_ajar', session('tahun_ajar_id'))
-            ->exists();
+        $tahunAjarId = session('tahun_ajar_id');
+        $berhasil = 0;
+        $gagal = 0;
 
-        if ($exists) {
-            return back()->with('error', 'Siswa ini sudah memiliki kelas di tahun ajaran aktif!');
+        // 2. Looping: Simpan setiap siswa yang dipilih ke database
+        foreach ($request->id_siswa as $siswaId) {
+            // Cek duplikasi untuk masing-masing siswa (Jaga-jaga jika ada error/bypass)
+            $exists = RombelKelas::where('id_siswa', $siswaId)
+                ->where('id_tahun_ajar', $tahunAjarId)
+                ->exists();
+
+            if (!$exists) {
+                RombelKelas::create([
+                    'id_tahun_ajar' => $tahunAjarId,
+                    'id_kelas' => $request->id_kelas,
+                    'id_siswa' => $siswaId,
+                    'id_guru_wali_kelas' => $request->id_guru_wali_kelas,
+                    'id_guru_bk' => $request->id_guru_bk,
+                ]);
+                $berhasil++;
+            } else {
+                $gagal++;
+            }
         }
 
-        RombelKelas::create([
-            'id_tahun_ajar' => session('tahun_ajar_id'),
-            'id_kelas' => $request->id_kelas,
-            'id_siswa' => $request->id_siswa,
-            'id_guru_wali_kelas' => $request->id_guru_wali_kelas,
-            'id_guru_bk' => $request->id_guru_bk,
-        ]);
+        // 3. Buat pesan sukses yang informatif
+        $pesan = "Berhasil menempatkan $berhasil siswa ke dalam kelas.";
+        if ($gagal > 0) {
+            $pesan .= " ($gagal siswa dilewati karena sudah memiliki kelas).";
+        }
 
-        return redirect()->route('admin.rombel-kelas.index')->with('success', 'Siswa berhasil ditempatkan dalam kelas.');
+        return redirect()->route('admin.rombel-kelas.index')->with('success', $pesan);
     }
 
     public function edit($id)

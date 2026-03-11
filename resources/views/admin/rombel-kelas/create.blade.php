@@ -18,11 +18,15 @@
 
                     <div class="space-y-6">
                         <div>
-                            <x-input-label for="id_siswa" value="Pilih Siswa" class="font-bold text-gray-700" />
-                            <select name="id_siswa" class="w-full border-gray-200 rounded-xl mt-2 focus:ring-orange-500" required>
-                                <option value="">-- Pilih Siswa (Hanya yang belum dapat kelas) --</option>
+                            <x-input-label for="id_siswa" value="Pilih Siswa (Bisa Lebih Dari Satu)" class="font-bold text-gray-700" />
+                            <p class="text-xs text-gray-500 mb-2 italic">* Tahan tombol <strong>Ctrl</strong> (Windows) atau <strong>Cmd</strong> (Mac) saat mengklik untuk memilih/membatalkan banyak siswa sekaligus.</p>
+                            
+                            {{-- Tambahkan kurung siku [] pada name dan atribut multiple --}}
+                            <select name="id_siswa[]" multiple class="w-full border-gray-200 rounded-xl mt-2 focus:ring-orange-500 min-h-[200px]" required>
                                 @foreach($siswa as $s)
-                                    <option value="{{ $s->id }}">{{ $s->nama }} ({{ $s->nisn }})</option>
+                                    <option value="{{ $s->id }}" class="p-2 border-b border-gray-50 hover:bg-orange-50">
+                                        {{ $s->nama }} ({{ $s->nisn }})
+                                    </option>
                                 @endforeach
                             </select>
                         </div>
