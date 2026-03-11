@@ -5,7 +5,7 @@
 
 # Inherit auto-detected packages + add MySQL & GD extensions
 [phases.setup]
-nixPkgs = ["...", "php82Extensions.pdo_mysql", "php82Extensions.gd"]
+nixPkgs = ["...", "php82Extensions.pdo_mysql", "php82Extensions.gd", "php82Extensions.zip"]
 
 # --- Install Dependencies ---
 [phases.install]
