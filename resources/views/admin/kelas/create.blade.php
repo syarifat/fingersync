@@ -9,20 +9,24 @@
                 @csrf
                 <div class="bg-white shadow-2xl rounded-[2rem] overflow-hidden">
                     <div class="p-10 space-y-6">
-                        <div>
-                            <x-input-label for="nama" value="Nama Kelas" class="font-bold" />
-                            <x-text-input id="nama" name="nama" type="text" class="mt-2 block w-full" placeholder="Contoh: XII RPL 1" required />
-                            <x-input-error :messages="$errors->get('nama')" class="mt-1" />
-                        </div>
+                        
                         <div>
                             <x-input-label for="id_jurusan" value="Pilih Jurusan" class="font-bold" />
-                            <select name="id_jurusan" required class="w-full border-gray-200 focus:border-orange-500 focus:ring-orange-500 rounded-xl shadow-sm mt-2">
+                            <select id="id_jurusan" name="id_jurusan" required class="w-full border-gray-200 focus:border-orange-500 focus:ring-orange-500 rounded-xl shadow-sm mt-2">
                                 <option value="">-- Pilih Jurusan --</option>
                                 @foreach($jurusan as $j)
                                     <option value="{{ $j->id }}">{{ $j->nama }}</option>
                                 @endforeach
                             </select>
+                            <x-input-error :messages="$errors->get('id_jurusan')" class="mt-1" />
                         </div>
+
+                        <div>
+                            <x-input-label for="nama" value="Nama Kelas (Bisa banyak sekaligus, pisahkan dengan Enter)" class="font-bold" />
+                            <textarea id="nama" name="nama" rows="5" class="mt-2 block w-full border-gray-200 focus:border-orange-500 focus:ring-orange-500 rounded-xl shadow-sm" placeholder="XI TKJ 1&#10;XI TKJ 2&#10;XII TKJ 2" required></textarea>
+                            <x-input-error :messages="$errors->get('nama')" class="mt-1" />
+                        </div>
+
                     </div>
                     <div class="bg-gray-50 px-10 py-6 flex justify-end gap-4">
                         <a href="{{ route('admin.kelas.index') }}" class="text-sm font-bold text-gray-400 hover:text-gray-600 flex items-center">BATAL</a>
