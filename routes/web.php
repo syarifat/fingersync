@@ -50,6 +50,8 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->as('admin.')->group(
     Route::resource('siswa', SiswaController::class);
     Route::resource('kelas', KelasController::class);
     Route::resource('ruangan', RuanganController::class);
+    Route::get('/guru/template', [AdminGuruController::class, 'downloadTemplate'])->name('guru.template');
+    Route::post('/guru/import', [AdminGuruController::class, 'importExcel'])->name('guru.import');
     Route::resource('guru', AdminGuruController::class);
     Route::resource('jurusan', JurusanController::class);
     Route::resource('mata-pelajaran', MataPelajaranController::class);

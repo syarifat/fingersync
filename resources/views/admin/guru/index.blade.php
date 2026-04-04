@@ -15,15 +15,34 @@
                             <h3 class="text-lg font-bold text-orange-600 uppercase tracking-tighter">Daftar Tenaga Pendidik</h3>
                             <p class="text-sm text-gray-500">Kelola akun dan profil guru.</p>
                         </div>
-                        <a href="{{ route('admin.guru.create') }}" class="px-6 py-3 bg-orange-600 text-white rounded-2xl font-bold text-xs uppercase tracking-widest hover:bg-orange-700 transition-all shadow-lg shadow-orange-100 flex items-center gap-2 hover:-translate-y-0.5">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"></path>
-                            </svg>
-                            Tambah Guru Baru
-                        </a>
+                        
+                        {{-- KUMPULAN TOMBOL AKSI --}}
+                        <div class="flex flex-wrap items-center gap-3">
+                            {{-- Tombol Template Excel --}}
+                            <a href="{{ route('admin.guru.template') }}" class="inline-flex items-center justify-center px-4 h-[42px] bg-emerald-50 border border-emerald-200 rounded-lg font-semibold text-sm text-emerald-700 hover:bg-emerald-100 transition-all shadow-sm" title="Download Template Excel">
+                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                                Template
+                            </a>
+
+                            {{-- Form & Tombol Import Excel --}}
+                            <form action="{{ route('admin.guru.import') }}" method="POST" enctype="multipart/form-data" class="m-0 p-0 block" id="formImportGuru">
+                                @csrf
+                                <input type="file" name="file_excel" id="file_excel_guru" class="hidden" accept=".xlsx, .xls, .csv" onchange="document.getElementById('formImportGuru').submit();">
+                                <label for="file_excel_guru" class="cursor-pointer inline-flex items-center justify-center px-4 h-[42px] bg-blue-600 border border-transparent rounded-lg font-semibold text-sm text-white hover:bg-blue-700 transition-all shadow-sm m-0" title="Upload File Excel">
+                                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
+                                    Import
+                                </label>
+                            </form>
+
+                            {{-- Tombol Tambah Guru Manual --}}
+                            <a href="{{ route('admin.guru.create') }}" class="inline-flex items-center justify-center px-5 h-[42px] bg-orange-600 border border-transparent rounded-lg font-semibold text-sm text-white hover:bg-orange-700 shadow-sm shadow-orange-200 transition-all">
+                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                                Tambah Manual
+                            </a>
+                        </div>
                     </div>
 
-                    {{-- FILTER SECTION (BARU) --}}
+                    {{-- FILTER SECTION --}}
                     <div class="mb-6 bg-gray-50 p-5 rounded-2xl border border-gray-100">
                         <form method="GET" action="{{ route('admin.guru.index') }}" class="flex flex-col md:flex-row gap-4">
 
@@ -61,11 +80,11 @@
                             </div>
 
                             <div class="flex items-end gap-2">
-                                <button type="submit" class="px-6 py-2.5 bg-gray-800 text-white text-sm font-bold rounded-xl hover:bg-gray-900 transition-colors shadow-sm">
+                                <button type="submit" class="px-6 py-2.5 bg-gray-800 text-white text-sm font-bold rounded-xl hover:bg-gray-900 transition-colors shadow-sm h-[42px]">
                                     Filter
                                 </button>
                                 @if(request()->hasAny(['search', 'status', 'is_bk']))
-                                <a href="{{ route('admin.guru.index') }}" class="px-4 py-2.5 bg-white border border-gray-300 text-gray-700 text-sm font-bold rounded-xl hover:bg-gray-50 transition-colors flex items-center justify-center" title="Reset">
+                                <a href="{{ route('admin.guru.index') }}" class="px-4 py-2.5 bg-white border border-gray-300 text-gray-700 text-sm font-bold rounded-xl hover:bg-gray-50 transition-colors flex items-center justify-center h-[42px]" title="Reset">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                                     </svg>
@@ -75,12 +94,23 @@
                         </form>
                     </div>
 
+                    {{-- ALERT SUCCESS --}}
                     @if (session('success'))
                     <div class="mb-6 p-4 bg-emerald-50 border border-emerald-200 rounded-2xl flex items-center text-emerald-700 font-bold text-sm shadow-sm">
                         <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                         </svg>
                         {{ session('success') }}
+                    </div>
+                    @endif
+
+                    {{-- ALERT ERROR (Penting untuk Import Excel) --}}
+                    @if (session('error'))
+                    <div class="mb-6 p-4 bg-red-50 border border-red-200 rounded-2xl flex items-start text-red-700 font-bold text-sm shadow-sm">
+                        <svg class="w-5 h-5 mr-3 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        <span>{{ session('error') }}</span>
                     </div>
                     @endif
 
