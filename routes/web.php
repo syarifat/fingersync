@@ -19,6 +19,7 @@ use App\Http\Controllers\Admin\RombelKelasController;
 use App\Http\Controllers\Admin\RombelMataPelajaranController;
 use App\Http\Controllers\Admin\RombelJadwalPelajaranController;
 use App\Http\Controllers\Admin\PresensiController;
+use App\Http\Controllers\Admin\UserController;
 
 
 Route::get('/', function () {
@@ -67,6 +68,8 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->as('admin.')->group(
 
     Route::get('/presensi', [PresensiController::class, 'index'])->name('presensi.index');
     Route::post('/presensi', [PresensiController::class, 'store'])->name('presensi.store');
+
+    Route::get('/user', [UserController::class, 'index'])->name('user.index');
 
 });
 
