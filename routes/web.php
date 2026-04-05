@@ -73,9 +73,14 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->as('admin.')->group(
 
 });
 
-// Role Guru
+// ==========================================
+// ROLE GURU
+// ==========================================
 Route::middleware(['auth', 'role:guru'])->prefix('guru')->as('guru.')->group(function () {
-    Route::get('/dashboard', [GuruGuruController::class, 'index'])->name('dashboard');
+    
+    // Dashboard Guru
+    Route::get('/dashboard', [\App\Http\Controllers\Guru\DashboardController::class, 'index'])->name('dashboard');
+    
 });
 
 require __DIR__ . '/auth.php';
