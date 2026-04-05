@@ -18,7 +18,7 @@
 <body>
     <div class="header">
         <h2>Buku Referensi ID Jurusan</h2>
-        <p>Gunakan ID ini untuk mengisi kolom <strong>id_jurusan</strong> pada Template Import Excel Siswa.</p>
+        <p>Gunakan ID ini untuk mengisi kolom <strong>KODE JURUSAN</strong> pada Template Import Excel Siswa.</p>
     </div>
 
     <table>
