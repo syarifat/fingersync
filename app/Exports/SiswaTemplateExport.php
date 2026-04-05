@@ -13,7 +13,7 @@ class SiswaTemplateExport implements FromArray, WithHeadings
             'NIS', 
             'NAMA_LENGKAP', 
             'FINGERPRINT_ID', 
-            'ID_JURUSAN', 
+            'KODE_JURUSAN', // Ubah ID_JURUSAN menjadi KODE_JURUSAN
             'GENDER', 
             'AGAMA', 
             'ALAMAT', 
@@ -34,7 +34,7 @@ class SiswaTemplateExport implements FromArray, WithHeadings
                 '12345678', 
                 'Budi Santoso', 
                 '15', 
-                '1', // Angka ID Jurusan
+                'TKJ', // Menggunakan Kode Jurusan, bukan angka ID
                 'Laki-laki', 
                 'Islam', 
                 'Jl. Mawar No 1', 

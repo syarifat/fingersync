@@ -68,16 +68,13 @@ class SiswaController extends Controller
         return view('admin.siswa.create', compact('jurusan', 'prefill_finger_id', 'inbox_id'));
     }
 
-    // ==========================================
-    // MODIFIKASI: STORE (SEBAR TUGAS KE ALAT LAIN)
-    // ==========================================
-    public function store(Request $request)
+public function store(Request $request)
     {
         $request->validate([
-            'nis' => 'required|unique:siswa',
+            'nis' => 'required|unique:siswa,nis', // Ditambahkan ,nis agar lebih spesifik
             'nama' => 'required',
             'id_jurusan' => 'required',
-            'fingerprint_id' => 'required|numeric',
+            'fingerprint_id' => 'required|numeric|unique:siswa,fingerprint_id', // PENTING: Mencegah ID jari ganda
             'email' => 'nullable|email',
             'image' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
         ]);
@@ -87,8 +84,10 @@ class SiswaController extends Controller
         // Handle Upload Foto
         if ($request->hasFile('image')) {
             $file = $request->file('image');
-            $nama_pria = str_replace(' ', '_', strtolower($request->nama));
-            $nama_file = $request->nis . '_' . $nama_pria . '.' . $file->getClientOriginalExtension();
+            
+            // Membersihkan nama dari spasi agar rapi saat jadi nama file
+            $nama_clean = str_replace(' ', '_', strtolower($request->nama));
+            $nama_file = $request->nis . '_' . $nama_clean . '.' . $file->getClientOriginalExtension();
             
             $file->move(public_path('img/siswa'), $nama_file);
             $data['image'] = $nama_file;
@@ -98,20 +97,21 @@ class SiswaController extends Controller
         $siswa = Siswa::create($data);
 
         // 2. LOGIC SINKRONISASI ALAT LAIN
-        // Mengecek apakah data ini asalnya dari form yang dibawa oleh Inbox
+        // Mengecek apakah data ini asalnya dari form yang dibawa oleh Inbox Registrasi
         if ($request->has('inbox_id') && $request->inbox_id != '') {
             
-            $inbox = FingerprintInbox::find($request->inbox_id);
+            $inbox = \App\Models\FingerprintInbox::find($request->inbox_id);
+            
             if ($inbox) {
-                // Tandai inbox ini sudah selesai diproses
+                // Tandai inbox ini sudah selesai diproses (assigned)
                 $inbox->update(['status' => 'assigned']);
 
-                // Cari SEMUA alat lain (kecuali alat tempat dia scan pertama kali)
-                $alatLain = Device::where('id_device', '!=', $inbox->id_device)->get();
+                // Cari SEMUA alat lain (kecuali alat tempat dia scan/daftar pertama kali)
+                $alatLain = \App\Models\Device::where('id_device', '!=', $inbox->id_device)->get();
                 
-                // Buatkan tugas (Task) untuk masing-masing alat lain agar merekam ID ini
+                // Buatkan tugas (Task) untuk masing-masing alat lain agar merekam/mendownload ID jari ini
                 foreach ($alatLain as $alat) {
-                    DeviceTask::create([
+                    \App\Models\DeviceTask::create([
                         'id_device' => $alat->id_device,
                         'fingerprint_id' => $siswa->fingerprint_id,
                         'action' => 'enroll',

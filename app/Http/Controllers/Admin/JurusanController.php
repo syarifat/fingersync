@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Jurusan;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class JurusanController extends Controller
 {
@@ -29,11 +30,11 @@ class JurusanController extends Controller
     public function store(Request $request)
     {
         $request->validate([
+            'kode' => 'required|string|max:20|unique:jurusan,kode', // Tambahan baru
             'nama' => 'required|string|max:255|unique:jurusan,nama',
         ]);
 
         Jurusan::create($request->all());
-
         return redirect()->route('admin.jurusan.index')->with('success', 'Jurusan baru berhasil ditambahkan.');
     }
 
@@ -45,12 +46,12 @@ class JurusanController extends Controller
     public function update(Request $request, Jurusan $jurusan)
     {
         $request->validate([
+            'kode' => ['required', 'string', 'max:20', Rule::unique('jurusan')->ignore($jurusan->id)], // Tambahan baru
             'nama' => ['required', 'string', 'max:255', Rule::unique('jurusan')->ignore($jurusan->id)],
         ]);
 
         $jurusan->update($request->all());
-
-        return redirect()->route('admin.jurusan.index')->with('success', 'Nama jurusan berhasil diperbarui.');
+        return redirect()->route('admin.jurusan.index')->with('success', 'Jurusan berhasil diperbarui.');
     }
 
     public function destroy(Jurusan $jurusan)
@@ -62,5 +63,17 @@ class JurusanController extends Controller
 
         $jurusan->delete();
         return redirect()->route('admin.jurusan.index')->with('success', 'Jurusan berhasil dihapus.');
+    }
+
+    public function downloadPdf()
+    {
+        // Ambil semua jurusan, urutkan berdasarkan ID
+        $jurusan = Jurusan::orderBy('id', 'asc')->get();
+
+        // Load view khusus PDF dan passing datanya
+        $pdf = Pdf::loadView('admin.jurusan.pdf', compact('jurusan'));
+
+        // Otomatis download dengan nama file yang rapi
+        return $pdf->download('Kamus_ID_Jurusan_FingerSync.pdf');
     }
 }

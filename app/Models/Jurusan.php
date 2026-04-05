@@ -10,7 +10,7 @@ class Jurusan extends Model
     use HasFactory;
 
     protected $table = 'jurusan';
-    protected $fillable = ['nama'];
+    protected $fillable = ['kode', 'nama'];
 
     // Relasi untuk pengecekan data
     public function kelas()

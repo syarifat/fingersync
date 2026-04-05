@@ -53,6 +53,7 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->as('admin.')->group(
     Route::get('/guru/template', [AdminGuruController::class, 'downloadTemplate'])->name('guru.template');
     Route::post('/guru/import', [AdminGuruController::class, 'importExcel'])->name('guru.import');
     Route::resource('guru', AdminGuruController::class);
+    Route::get('/jurusan/pdf', [JurusanController::class, 'downloadPdf'])->name('jurusan.pdf');
     Route::resource('jurusan', JurusanController::class);
     Route::resource('mata-pelajaran', MataPelajaranController::class);
     Route::resource('tahun-ajar', TahunAjarController::class);
