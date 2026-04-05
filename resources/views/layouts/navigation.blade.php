@@ -169,6 +169,25 @@
                 <span :class="sidebarOpen ? 'opacity-100 ml-4' : 'opacity-0 w-0'" class="font-medium transition-all duration-300 overflow-hidden whitespace-nowrap">Jadwal Mengajar</span>
             </a>
         </div>
+
+        {{-- MENU KHUSUS WALI KELAS (HANYA MUNCUL JIKA JADI WALI KELAS) --}}
+            @php
+                $cekGuru = \App\Models\Guru::where('user_id', Auth::id())->first();
+                $isWaliKelas = $cekGuru ? \App\Models\RombelKelas::where('id_guru_wali_kelas', $cekGuru->id)->exists() : false;
+            @endphp
+
+            @if($isWaliKelas)
+            <div class="mt-4 mb-2">
+                <div :class="sidebarOpen ? 'px-4' : 'px-0 text-center'" class="transition-all duration-300">
+                    <p :class="sidebarOpen ? 'text-left' : 'text-center text-[8px]'" class="text-[10px] uppercase font-bold text-blue-200 tracking-widest border-b border-blue-500 pb-1 mb-2">Wali Kelas</p>
+                </div>
+                <a href="{{ route('guru.walikelas.index') }}" 
+                   class="flex items-center p-3 rounded-xl transition-all duration-200 group {{ request()->routeIs('guru.walikelas.*') ? 'bg-blue-700 shadow-inner' : 'hover:bg-orange-500' }}">
+                    <svg class="w-6 h-6 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                    <span :class="sidebarOpen ? 'opacity-100 ml-4' : 'opacity-0 w-0'" class="font-medium transition-all duration-300 overflow-hidden whitespace-nowrap">Rekap Absensi Kelas</span>
+                </a>
+            </div>
+            @endif
         @endif
 
     </nav>

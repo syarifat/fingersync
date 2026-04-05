@@ -84,8 +84,10 @@ Route::middleware(['auth', 'role:guru'])->prefix('guru')->as('guru.')->group(fun
     Route::get('/presensi/{id}', [\App\Http\Controllers\Guru\PresensiController::class, 'show'])->name('presensi.show');
     // Jadwal Mengajar Full
     Route::get('/jadwal', [\App\Http\Controllers\Guru\JadwalController::class, 'index'])->name('jadwal.index');
-
+    // Menu Wali Kelas
+    Route::get('/wali-kelas', [\App\Http\Controllers\Guru\WaliKelasController::class, 'index'])->name('walikelas.index');
     
+
 });
 
 require __DIR__ . '/auth.php';
