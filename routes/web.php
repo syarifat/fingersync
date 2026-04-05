@@ -62,8 +62,13 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->as('admin.')->group(
     Route::post('tahun-ajar/switch', [TahunAjarController::class, 'switch'])->name('tahun-ajar.switch');
 
     // Rombel
-    Route::resource('rombel-kelas', RombelKelasController::class);
+    // ROMBEL KELAS (Konsep Baru)
+    Route::get('/rombel-kelas', [RombelKelasController::class, 'index'])->name('rombel-kelas.index');
+    Route::get('/rombel-kelas/{id_kelas}/manage', [RombelKelasController::class, 'manage'])->name('rombel-kelas.manage');
+    Route::post('/rombel-kelas/{id_kelas}/manage', [RombelKelasController::class, 'storeManage'])->name('rombel-kelas.storeManage');
+    
     Route::resource('rombel-mata-pelajaran', RombelMataPelajaranController::class);
+    
     Route::resource('rombel-jadwal', RombelJadwalPelajaranController::class);
 
     Route::get('/presensi', [PresensiController::class, 'index'])->name('presensi.index');
@@ -86,7 +91,7 @@ Route::middleware(['auth', 'role:guru'])->prefix('guru')->as('guru.')->group(fun
     Route::get('/jadwal', [\App\Http\Controllers\Guru\JadwalController::class, 'index'])->name('jadwal.index');
     // Menu Wali Kelas
     Route::get('/wali-kelas', [\App\Http\Controllers\Guru\WaliKelasController::class, 'index'])->name('walikelas.index');
-    
+
 
 });
 
