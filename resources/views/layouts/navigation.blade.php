@@ -155,6 +155,20 @@
             </a>
 
         </div>
+
+        {{-- MENU KHUSUS GURU --}}
+        @elseif(Auth::user()->role === 'guru')
+        <div class="pt-6 pb-2">
+            <div :class="sidebarOpen ? 'px-4' : 'px-0 text-center'" class="transition-all duration-300">
+                <p :class="sidebarOpen ? 'text-left' : 'text-center text-[8px]'" class="text-[10px] uppercase font-bold text-orange-200 tracking-widest border-b border-orange-500 pb-1 mb-2">Menu Utama</p>
+            </div>
+
+            <a href="{{ route('guru.jadwal.index') }}" 
+               class="flex items-center p-3 rounded-xl transition-all duration-200 group {{ request()->routeIs('guru.jadwal.*') ? 'bg-orange-700 shadow-inner' : 'hover:bg-orange-500' }}">
+                <svg class="w-6 h-6 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                <span :class="sidebarOpen ? 'opacity-100 ml-4' : 'opacity-0 w-0'" class="font-medium transition-all duration-300 overflow-hidden whitespace-nowrap">Jadwal Mengajar</span>
+            </a>
+        </div>
         @endif
 
     </nav>

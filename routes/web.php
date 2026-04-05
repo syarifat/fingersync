@@ -80,6 +80,11 @@ Route::middleware(['auth', 'role:guru'])->prefix('guru')->as('guru.')->group(fun
     
     // Dashboard Guru
     Route::get('/dashboard', [\App\Http\Controllers\Guru\DashboardController::class, 'index'])->name('dashboard');
+    // Pantau Absensi Kelas
+    Route::get('/presensi/{id}', [\App\Http\Controllers\Guru\PresensiController::class, 'show'])->name('presensi.show');
+    // Jadwal Mengajar Full
+    Route::get('/jadwal', [\App\Http\Controllers\Guru\JadwalController::class, 'index'])->name('jadwal.index');
+
     
 });
 

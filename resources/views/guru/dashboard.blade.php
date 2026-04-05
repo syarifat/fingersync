@@ -75,6 +75,21 @@
                                 <svg class="w-4 h-4 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
                                 Kelas: {{ $jadwal->rombelMataPelajaran->kelas->nama }}
                             </p>
+                            {{-- Nama Kelas (Kode Anda Sebelumnya) --}}
+                            <p class="text-gray-500 font-medium text-sm flex items-center gap-2">
+                                <svg class="w-4 h-4 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
+                                Kelas: {{ $jadwal->rombelMataPelajaran->kelas->nama }}
+                            </p>
+
+                            {{-- TAMBAHKAN KODE TOMBOL INI DI SINI --}}
+                            <div class="mt-5 pt-4 border-t border-gray-100 flex justify-end">
+                                <a href="{{ route('guru.presensi.show', $jadwal->id) }}" class="px-4 py-2 bg-orange-50 text-orange-700 rounded-xl text-sm font-bold hover:bg-orange-600 hover:text-white transition-colors shadow-sm flex items-center gap-2">
+                                    Lihat Absensi
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                                </a>
+                            </div>
+                            {{-- BATAS KODE TOMBOL --}}
+
                         </div>
                         @endforeach
                     </div>
