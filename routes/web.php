@@ -72,7 +72,10 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->as('admin.')->group(
     Route::get('/rombel-mata-pelajaran/{id_kelas}/manage', [RombelMataPelajaranController::class, 'manage'])->name('rombel-mata-pelajaran.manage');
     Route::post('/rombel-mata-pelajaran/{id_kelas}/manage', [RombelMataPelajaranController::class, 'storeManage'])->name('rombel-mata-pelajaran.storeManage');
     
-    Route::resource('rombel-jadwal', RombelJadwalPelajaranController::class);
+    // JADWAL PELAJARAN (Konsep Baru)
+    Route::get('/rombel-jadwal', [RombelJadwalPelajaranController::class, 'index'])->name('rombel-jadwal.index');
+    Route::get('/rombel-jadwal/{id_kelas}/manage', [RombelJadwalPelajaranController::class, 'manage'])->name('rombel-jadwal.manage');
+    Route::post('/rombel-jadwal/{id_kelas}/manage', [RombelJadwalPelajaranController::class, 'storeManage'])->name('rombel-jadwal.storeManage');
 
     Route::get('/presensi', [PresensiController::class, 'index'])->name('presensi.index');
     Route::post('/presensi', [PresensiController::class, 'store'])->name('presensi.store');
