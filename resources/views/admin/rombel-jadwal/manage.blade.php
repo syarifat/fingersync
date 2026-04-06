@@ -14,6 +14,24 @@
                 @csrf
                 
                 <div class="bg-white shadow-sm rounded-[2rem] border border-gray-100 p-8 overflow-hidden">
+                    {{-- TAMBAHKAN BLOK ALERT INI --}}
+                    @if (session('error'))
+                    <div class="mb-6 p-4 bg-red-50 border-l-4 border-red-500 text-red-700 rounded-r-xl font-bold text-sm shadow-sm flex items-start gap-3">
+                        <svg class="w-5 h-5 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        <div>
+                            <span class="block uppercase tracking-wider text-xs font-black mb-1">Gagal Menyimpan</span>
+                            {{ session('error') }}
+                        </div>
+                    </div>
+                    @endif
+
+                    @if (session('success'))
+                    <div class="mb-6 p-4 bg-emerald-50 border-l-4 border-emerald-500 text-emerald-700 rounded-r-xl font-bold text-sm shadow-sm flex items-center gap-3">
+                        <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                        {{ session('success') }}
+                    </div>
+                    @endif
+                    {{-- BATAS BLOK ALERT --}}
                     <div class="mb-6 flex justify-between items-center border-b border-gray-100 pb-4">
                         <div>
                             <h3 class="text-lg font-black text-blue-600 uppercase tracking-wide">Penyusunan Jadwal Kelas</h3>
