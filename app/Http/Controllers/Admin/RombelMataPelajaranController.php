@@ -8,129 +8,78 @@ use App\Models\Kelas;
 use App\Models\MataPelajaran;
 use App\Models\Guru;
 use Illuminate\Http\Request;
-use Illuminate\Database\QueryException;
 
 class RombelMataPelajaranController extends Controller
 {
-    public function index(Request $request)
+    // 1. HALAMAN INDEX: Menampilkan Daftar Kelas
+    public function index()
     {
         $activeYear = session('tahun_ajar_id');
-        $kelasList = Kelas::orderBy('nama', 'asc')->get();
+        $kelas = Kelas::orderBy('nama', 'asc')->get();
+
+        // Hitung berapa mapel yang sudah diplot untuk tiap kelas
+        foreach ($kelas as $k) {
+            $k->jumlah_mapel = RombelMataPelajaran::where('id_kelas', $k->id)
+                ->where('id_tahun_ajar', $activeYear)
+                ->count();
+        }
+
+        return view('admin.rombel-mata-pelajaran.index', compact('kelas'));
+    }
+
+    // 2. HALAMAN KELOLA: Menampilkan Form Dinamis
+    public function manage($id_kelas)
+    {
+        $activeYear = session('tahun_ajar_id');
+        if (!$activeYear) return back()->with('error', 'Pilih Tahun Ajar terlebih dahulu di menu atas!');
+
+        $kelas = Kelas::findOrFail($id_kelas);
+        $mapelList = MataPelajaran::orderBy('nama', 'asc')->get();
         $guruList = Guru::where('status', 'Aktif')->orderBy('nama', 'asc')->get();
 
-        $query = RombelMataPelajaran::with(['kelas', 'mataPelajaran', 'guru'])
-            ->where('id_tahun_ajar', $activeYear);
+        // Ambil data plotting yang sudah ada untuk kelas ini (untuk pre-fill form)
+        $plottingSaatIni = RombelMataPelajaran::where('id_kelas', $id_kelas)
+            ->where('id_tahun_ajar', $activeYear)
+            ->get();
 
-        // Filter Kelas
-        if ($request->has('kelas_id') && $request->kelas_id != '') {
-            $query->where('id_kelas', $request->kelas_id);
-        }
-
-        // Filter Guru
-        if ($request->has('guru_id') && $request->guru_id != '') {
-            $query->where('id_guru', $request->guru_id);
-        }
-
-        // Search Mata Pelajaran
-        if ($request->has('search') && $request->search != '') {
-            $query->whereHas('mataPelajaran', function ($q) use ($request) {
-                $q->where('nama', 'like', '%' . $request->search . '%');
-            });
-        }
-
-        // Ambil data plotting guru sesuai tahun aktif
-        $rombelMapel = $query->orderBy('id_kelas')
-            ->orderBy('id_mata_pelajaran')
-            ->paginate(15);
-
-        return view('admin.rombel-mata-pelajaran.index', compact('rombelMapel', 'kelasList', 'guruList'));
+        return view('admin.rombel-mata-pelajaran.manage', compact('kelas', 'mapelList', 'guruList', 'plottingSaatIni'));
     }
 
-    public function create()
+    // 3. PROSES SIMPAN (Bulk Delete & Insert)
+    public function storeManage(Request $request, $id_kelas)
     {
-        $kelas = Kelas::orderBy('nama', 'asc')->get();
-        $mapel = MataPelajaran::orderBy('nama', 'asc')->get();
-        $guru = Guru::where('status', 'Aktif')->orderBy('nama', 'asc')->get();
+        $activeYear = session('tahun_ajar_id');
 
-        return view('admin.rombel-mata-pelajaran.create', compact('kelas', 'mapel', 'guru'));
-    }
+        // 1. Hapus semua plotting lama di kelas ini untuk tahun ajar aktif
+        RombelMataPelajaran::where('id_kelas', $id_kelas)
+            ->where('id_tahun_ajar', $activeYear)
+            ->delete();
 
-    public function store(Request $request)
-    {
-        $request->validate([
-            'id_kelas' => 'required',
-            'id_mata_pelajaran' => 'required',
-            'id_guru' => 'required',
-        ]);
-
-        if (!session('tahun_ajar_id')) {
-            return back()->with('error', 'Tahun Ajar belum dipilih!');
-        }
-
-        // Cek Duplikasi: Mapel yang sama di Kelas yang sama pada Tahun yang sama
-        $exists = RombelMataPelajaran::where('id_tahun_ajar', session('tahun_ajar_id'))
-            ->where('id_kelas', $request->id_kelas)
-            ->where('id_mata_pelajaran', $request->id_mata_pelajaran)
-            ->exists();
-
-        if ($exists) {
-            return back()->with('error', 'Mata pelajaran ini sudah memiliki guru di kelas tersebut!');
-        }
-
-        RombelMataPelajaran::create([
-            'id_tahun_ajar' => session('tahun_ajar_id'),
-            'id_kelas' => $request->id_kelas,
-            'id_mata_pelajaran' => $request->id_mata_pelajaran,
-            'id_guru' => $request->id_guru,
-        ]);
-
-        return redirect()->route('admin.rombel-mata-pelajaran.index')->with('success', 'Plotting guru berhasil disimpan.');
-    }
-
-    public function edit($id)
-    {
-        $rombelMapel = RombelMataPelajaran::findOrFail($id);
-        $kelas = Kelas::all();
-        $mapel = MataPelajaran::all();
-        $guru = Guru::where('status', 'Aktif')->get();
-
-        return view('admin.rombel-mata-pelajaran.edit', compact('rombelMapel', 'kelas', 'mapel', 'guru'));
-    }
-
-    public function update(Request $request, $id)
-    {
-        $request->validate([
-            'id_kelas' => 'required',
-            'id_mata_pelajaran' => 'required',
-            'id_guru' => 'required',
-        ]);
-
-        $rombelMapel = RombelMataPelajaran::findOrFail($id);
-
-        $rombelMapel->update([
-            'id_kelas' => $request->id_kelas,
-            'id_mata_pelajaran' => $request->id_mata_pelajaran,
-            'id_guru' => $request->id_guru,
-        ]);
-
-        return redirect()->route('admin.rombel-mata-pelajaran.index')->with('success', 'Data plotting guru berhasil diperbarui.');
-    }
-
-    public function destroy($id)
-    {
-        try {
-            $rombelMapel = RombelMataPelajaran::findOrFail($id);
-            $rombelMapel->delete();
-
-            return redirect()->route('admin.rombel-mata-pelajaran.index')
-                ->with('success', 'Data berhasil dihapus.');
-        } catch (QueryException $e) {
-            // Error 23000 adalah kode untuk Integrity Constraint Violation
-            if ($e->getCode() == "23000") {
-                return back()->with('error', 'Gagal Hapus! Data ini sudah digunakan di Jadwal Pelajaran atau memiliki Riwayat Presensi.');
+        // 2. Jika ada input baris baru, masukkan semuanya
+        if ($request->has('id_mata_pelajaran') && $request->has('id_guru')) {
+            $dataInsert = [];
+            
+            // Looping form array
+            foreach ($request->id_mata_pelajaran as $index => $id_mapel) {
+                // Pastikan mapel dan gurunya tidak kosong
+                if (!empty($id_mapel) && !empty($request->id_guru[$index])) {
+                    $dataInsert[] = [
+                        'id_tahun_ajar' => $activeYear,
+                        'id_kelas' => $id_kelas,
+                        'id_mata_pelajaran' => $id_mapel,
+                        'id_guru' => $request->id_guru[$index],
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ];
+                }
             }
-
-            return back()->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
+            
+            // Insert massal
+            if (count($dataInsert) > 0) {
+                RombelMataPelajaran::insert($dataInsert);
+            }
         }
+
+        return redirect()->route('admin.rombel-mata-pelajaran.index')->with('success', 'Plotting Guru Mata Pelajaran berhasil diperbarui!');
     }
 }

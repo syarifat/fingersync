@@ -67,7 +67,10 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->as('admin.')->group(
     Route::get('/rombel-kelas/{id_kelas}/manage', [RombelKelasController::class, 'manage'])->name('rombel-kelas.manage');
     Route::post('/rombel-kelas/{id_kelas}/manage', [RombelKelasController::class, 'storeManage'])->name('rombel-kelas.storeManage');
     
-    Route::resource('rombel-mata-pelajaran', RombelMataPelajaranController::class);
+    // PLOTTING GURU MATA PELAJARAN (Konsep Baru)
+    Route::get('/rombel-mata-pelajaran', [RombelMataPelajaranController::class, 'index'])->name('rombel-mata-pelajaran.index');
+    Route::get('/rombel-mata-pelajaran/{id_kelas}/manage', [RombelMataPelajaranController::class, 'manage'])->name('rombel-mata-pelajaran.manage');
+    Route::post('/rombel-mata-pelajaran/{id_kelas}/manage', [RombelMataPelajaranController::class, 'storeManage'])->name('rombel-mata-pelajaran.storeManage');
     
     Route::resource('rombel-jadwal', RombelJadwalPelajaranController::class);
 
