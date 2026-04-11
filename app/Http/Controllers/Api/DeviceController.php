@@ -11,6 +11,7 @@ use App\Models\RombelJadwalPelajaran;
 use App\Models\Presensi;
 use App\Models\FingerprintInbox;
 use App\Models\DeviceTask;
+use App\Services\WhatsAppService; // <-- PASTIKAN CLASS INI SUDAH ANDA BUAT (Seperti petunjuk sebelumnya)
 
 class DeviceController extends Controller
 {
@@ -75,7 +76,7 @@ class DeviceController extends Controller
                 ], 404);
             }
 
-            // 6. Cek Duplikasi (Jangan sampai absen 2x)
+            // 6. Cek Duplikasi (Jangan sampai absen 2x di mapel yang sama)
             $sudahAbsen = Presensi::where('id_siswa', $siswa->id)
                 ->where('id_rombel_jadwal_pelajaran', $jadwal->id)
                 ->whereDate('tanggal', $now->format('Y-m-d'))
@@ -89,8 +90,27 @@ class DeviceController extends Controller
                 ]);
             }
 
+            // =====================================================================
+            // LOGIKA BARU: CEK ABSENSI PERTAMA HARI INI & KIRIM WA KE ORTU
+            // =====================================================================
+            // Kita cek sebelum data di-insert, apakah anak ini sudah absen HARI INI di jadwal manapun?
+            $absenPertamaHariIni = Presensi::where('id_siswa', $siswa->id)
+                ->whereDate('tanggal', $now->format('Y-m-d'))
+                ->doesntExist();
+
+            if ($absenPertamaHariIni && !empty($siswa->nohp_ortu)) {
+                $waktuWA = $now->format('H:i');
+                $pesanOrtu = "Halo Ayah/Ibu dari *{$siswa->nama}*,\n\n";
+                $pesanOrtu .= "Kami menginformasikan bahwa ananda telah *Tiba di Sekolah* dan melakukan presensi pertama pada jam *{$waktuWA} WIB*.\n\n";
+                $pesanOrtu .= "Semoga ananda belajar dengan baik hari ini. Terima kasih.";
+                
+                // Panggil layanan pengirim WA (akan jalan di background)
+                WhatsAppService::send($siswa->nohp_ortu, $pesanOrtu);
+            }
+            // =====================================================================
+
             // 7. Simpan Presensi
-            // Logic Terlambat: Toleransi 15 menit
+            // Logic Terlambat: Toleransi 15 menit dari jam mulai mapel
             $jamMulai = Carbon::parse($jadwal->jam_mulai);
             $selisihMenit = $jamMulai->diffInMinutes($now, false);
             $statusKehadiran = ($selisihMenit > 15) ? 'Terlambat' : 'Hadir';
