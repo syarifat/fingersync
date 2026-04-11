@@ -42,22 +42,34 @@ class RombelKelasController extends Controller
         if (!$activeYear) return back()->with('error', 'Pilih Tahun Ajar terlebih dahulu di menu atas!');
 
         $kelas = Kelas::findOrFail($id_kelas);
-        $guru = Guru::where('status', 'Aktif')->orderBy('nama', 'asc')->get();
 
-        // Cari Wali & BK saat ini (jika sudah diset sebelumnya)
+        // 1. Daftar untuk Guru BK (Bisa tampil semua guru aktif)
+        $guruBkList = Guru::where('status', 'Aktif')->orderBy('nama', 'asc')->get();
+
+        // 2. Daftar untuk Wali Kelas (Sembunyikan yang sudah jadi wali di kelas LAIN)
+        $guruWaliList = Guru::where('status', 'Aktif')
+            ->whereNotIn('id', function($query) use ($activeYear, $id_kelas) {
+                $query->select('id_guru_wali_kelas')
+                    ->from('rombel_kelas')
+                    ->where('id_tahun_ajar', $activeYear)
+                    ->where('id_kelas', '!=', $id_kelas) // Kecualikan kelas ini sendiri agar wali saat ini tetap muncul
+                    ->distinct();
+            })
+            ->orderBy('nama', 'asc')
+            ->get();
+
         $rombelSaatIni = RombelKelas::where('id_kelas', $id_kelas)->where('id_tahun_ajar', $activeYear)->first();
 
-        // Div Kanan: Siswa yang SUDAH di dalam kelas ini
         $siswaInClass = Siswa::whereHas('rombelKelas', function($q) use ($id_kelas, $activeYear) {
             $q->where('id_kelas', $id_kelas)->where('id_tahun_ajar', $activeYear);
         })->orderBy('nama')->get();
 
-        // Div Kiri: Siswa yang BELUM punya kelas sama sekali di tahun ini
         $siswaNoClass = Siswa::whereDoesntHave('rombelKelas', function($q) use ($activeYear) {
             $q->where('id_tahun_ajar', $activeYear);
         })->orderBy('nama')->get();
 
-        return view('admin.rombel-kelas.manage', compact('kelas', 'guru', 'rombelSaatIni', 'siswaInClass', 'siswaNoClass'));
+        // Pastikan variabel guruWaliList dan guruBkList dikirim ke view
+        return view('admin.rombel-kelas.manage', compact('kelas', 'guruWaliList', 'guruBkList', 'rombelSaatIni', 'siswaInClass', 'siswaNoClass'));
     }
 
     // 3. PROSES SIMPAN KELOLA
