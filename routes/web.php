@@ -93,10 +93,15 @@ Route::middleware(['auth', 'role:guru'])->prefix('guru')->as('guru.')->group(fun
     Route::get('/dashboard', [\App\Http\Controllers\Guru\DashboardController::class, 'index'])->name('dashboard');
     // Pantau Absensi Kelas
     Route::get('/presensi/{id}', [\App\Http\Controllers\Guru\PresensiController::class, 'show'])->name('presensi.show');
+    Route::post('/presensi/{id}', [\App\Http\Controllers\Guru\PresensiController::class, 'update'])->name('presensi.update');
     // Jadwal Mengajar Full
     Route::get('/jadwal', [\App\Http\Controllers\Guru\JadwalController::class, 'index'])->name('jadwal.index');
     // Menu Wali Kelas
     Route::get('/wali-kelas', [\App\Http\Controllers\Guru\WaliKelasController::class, 'index'])->name('walikelas.index');
+    // Riwayat Presensi (Berdasarkan Tanggal & Jadwal)
+    Route::get('/riwayat-absensi', [\App\Http\Controllers\Guru\RiwayatAbsensiController::class, 'index'])->name('riwayat-absensi.index');
+    Route::get('/riwayat-absensi/{id_jadwal}', [\App\Http\Controllers\Guru\RiwayatAbsensiController::class, 'show'])->name('riwayat-absensi.show');
+    Route::post('/riwayat-absensi/{id_jadwal}', [\App\Http\Controllers\Guru\RiwayatAbsensiController::class, 'update'])->name('riwayat-absensi.update');
 
 
 });

@@ -168,6 +168,12 @@
                 <svg class="w-6 h-6 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
                 <span :class="sidebarOpen ? 'opacity-100 ml-4' : 'opacity-0 w-0'" class="font-medium transition-all duration-300 overflow-hidden whitespace-nowrap">Jadwal Mengajar</span>
             </a>
+            {{-- TAMBAHKAN MENU RIWAYAT ABSENSI INI --}}
+            <a href="{{ route('guru.riwayat-absensi.index') }}" 
+               class="flex items-center p-3 rounded-xl transition-all duration-200 group {{ request()->routeIs('guru.riwayat-absensi.*') ? 'bg-orange-700 shadow-inner' : 'hover:bg-orange-500' }}">
+                <svg class="w-6 h-6 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path></svg>
+                <span :class="sidebarOpen ? 'opacity-100 ml-4' : 'opacity-0 w-0'" class="font-medium transition-all duration-300 overflow-hidden whitespace-nowrap">Riwayat Absensi</span>
+            </a>
         </div>
 
         {{-- MENU KHUSUS WALI KELAS (HANYA MUNCUL JIKA JADI WALI KELAS) --}}
