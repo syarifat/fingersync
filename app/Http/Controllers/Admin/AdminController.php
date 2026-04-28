@@ -33,7 +33,7 @@ class AdminController extends Controller
                                     ->count();
 
         // 3. Ambil 5 Data Presensi Terakhir (Realtime Feed)
-        $presensiTerbaru = Presensi::with(['siswa', 'rombelJadwalPelajaran.mataPelajaran'])
+        $presensiTerbaru = Presensi::with(['siswa', 'rombelJadwalPelajaran.rombelMataPelajaran.mataPelajaran'])
                                    ->orderBy('tanggal', 'desc')
                                    ->orderBy('jam_scan', 'desc')
                                    ->take(5)

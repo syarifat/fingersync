@@ -100,7 +100,7 @@
                                         <div class="text-xs text-gray-400">NIS: {{ $p->siswa->nis ?? '-' }}</div>
                                     </td>
                                     <td class="py-4 text-sm text-gray-600">
-                                        {{ $p->rombelJadwalPelajaran->mataPelajaran->nama ?? 'Tidak Ada Jadwal' }}
+                                        {{ $p->rombelJadwalPelajaran->rombelMataPelajaran->mataPelajaran->nama ?? 'Tidak Ada Jadwal' }}
                                     </td>
                                     <td class="py-4 text-right pr-4">
                                         @if($p->status == 'Hadir')
