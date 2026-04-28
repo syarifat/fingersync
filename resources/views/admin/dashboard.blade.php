@@ -41,7 +41,7 @@
                         <svg class="w-8 h-8 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                     </div>
                     <div>
-                        <p class="text-sm font-bold text-gray-400 uppercase tracking-wider">Hadir Hari Ini</p>
+                        <p class="text-sm font-bold text-gray-400 uppercase tracking-wider">Hadir (Terbaru)</p>
                         <h3 class="text-3xl font-black text-gray-800">{{ $hadirHariIni }}</h3>
                     </div>
                 </div>
@@ -73,7 +73,7 @@
                 <div class="p-8">
                     <div class="flex items-center justify-between mb-6">
                         <div>
-                            <h3 class="text-lg font-bold text-gray-800 tracking-tight">Log Absensi Terbaru Hari Ini</h3>
+                            <h3 class="text-lg font-bold text-gray-800 tracking-tight">Log Absensi Terbaru</h3>
                             <p class="text-sm text-gray-500">Menampilkan 5 siswa terakhir yang menempelkan jari di alat.</p>
                         </div>
                         <a href="#" class="text-sm font-bold text-orange-600 hover:text-orange-700">Lihat Semua Data &rarr;</a>
@@ -113,7 +113,7 @@
                                 @empty
                                 <tr>
                                     <td colspan="4" class="py-12 text-center text-gray-400">
-                                        Belum ada data presensi yang masuk hari ini.
+                                        Belum ada data presensi yang masuk.
                                     </td>
                                 </tr>
                                 @endforelse

@@ -14,7 +14,9 @@ class AdminController extends Controller
 {
     public function index()
     {
-        $hariIni = Carbon::today('Asia/Jakarta');
+        // Cari tanggal terakhir ada presensi untuk demo data, fallback ke hari ini jika kosong
+        $tanggalTerakhir = Presensi::max('tanggal') ?? Carbon::today('Asia/Jakarta')->toDateString();
+        $hariIni = Carbon::parse($tanggalTerakhir);
 
         // 1. Ambil Statistik Dasar
         $totalSiswa = Siswa::count();
@@ -32,7 +34,7 @@ class AdminController extends Controller
 
         // 3. Ambil 5 Data Presensi Terakhir (Realtime Feed)
         $presensiTerbaru = Presensi::with(['siswa', 'rombelJadwalPelajaran.mataPelajaran'])
-                                   ->whereDate('tanggal', $hariIni)
+                                   ->orderBy('tanggal', 'desc')
                                    ->orderBy('jam_scan', 'desc')
                                    ->take(5)
                                    ->get();
