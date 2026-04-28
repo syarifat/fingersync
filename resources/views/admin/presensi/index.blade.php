@@ -144,12 +144,12 @@
 
                                     {{-- Kolom Jadwal --}}
                                     <td class="py-5">
-                                        @if($row->jadwal)
+                                        @if($row->rombelJadwalPelajaran)
                                         <span class="px-3 py-1 bg-blue-50 text-blue-600 rounded-lg text-xs font-black uppercase">
-                                            {{ $row->jadwal->nama_pelajaran }}
+                                            {{ $row->rombelJadwalPelajaran->rombelMataPelajaran->mataPelajaran->nama ?? 'Mapel Tidak Ditemukan' }}
                                         </span>
                                         <div class="text-xs text-gray-400 mt-1 pl-1">
-                                            {{ $row->jadwal->jam_mulai }} - {{ $row->jadwal->jam_selesai }}
+                                            {{ $row->rombelJadwalPelajaran->jam_mulai }} - {{ $row->rombelJadwalPelajaran->jam_selesai }}
                                         </div>
                                         @else
                                         <span class="text-gray-300 italic text-xs font-bold">- Diluar Jadwal -</span>

@@ -18,7 +18,7 @@ class PresensiController extends Controller
     {
         $kelasList = \App\Models\Kelas::orderBy('nama', 'asc')->get();
 
-        $query = Presensi::with(['siswa', 'jadwal.rombelMapel.kelas', 'device', 'tahunAjar']);
+        $query = Presensi::with(['siswa', 'rombelJadwalPelajaran.rombelMataPelajaran.kelas', 'device', 'tahunAjar']);
 
         // Filter Search (Nama Siswa atau NISN)
         if ($request->has('search') && $request->search != '') {
@@ -38,9 +38,8 @@ class PresensiController extends Controller
             $query->where('status', $request->status);
         }
 
-        // Filter Kelas (Via Relasi Jadwal -> RombelMapel -> Kelas)
         if ($request->has('kelas_id') && $request->kelas_id != '') {
-            $query->whereHas('jadwal.rombelMapel', function ($q) use ($request) {
+            $query->whereHas('rombelJadwalPelajaran.rombelMataPelajaran', function ($q) use ($request) {
                 $q->where('id_kelas', $request->kelas_id);
             });
         }
