@@ -12,6 +12,12 @@ class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
+        // ==========================================
+        // KONFIGURASI SEEDER TANGGAL PRESENSI
+        // Ubah tanggal di bawah ini sesuai keinginan Anda!
+        // ==========================================
+        $tglAwalPresensi = '2026-04-01'; // Format: YYYY-MM-DD
+        $tglAkhirPresensi = '2026-05-05'; // Format: YYYY-MM-DD
         $faker = Faker::create('id_ID');
 
         // ==========================================
@@ -291,11 +297,11 @@ class DatabaseSeeder extends Seeder
         }
 
         // ==========================================
-        // 8. GENERATE PRESENSI (1 April - 27 April 2026)
+        // 8. GENERATE PRESENSI
         // ==========================================
-        echo "⏰ Generating Presensi (1 April - 27 April 2026)...\n";
-        $startDate = Carbon::create(2026, 4, 1);
-        $endDate = Carbon::create(2026, 4, 27);
+        echo "⏰ Generating Presensi ({$tglAwalPresensi} sampai {$tglAkhirPresensi})...\n";
+        $startDate = Carbon::parse($tglAwalPresensi);
+        $endDate = Carbon::parse($tglAkhirPresensi);
         $period = \Carbon\CarbonPeriod::create($startDate, $endDate);
         
         $presensiBatch = [];
