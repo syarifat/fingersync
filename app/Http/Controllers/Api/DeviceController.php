@@ -48,7 +48,7 @@ class DeviceController extends Controller
                 return response()->json([
                     'status' => 'ERROR', 
                     'message' => 'ID Device tidak ditemukan di database!'
-                ], 404);
+                ], 200);
             }
 
             // 4. Cek Siswa (Apakah ada?)
@@ -57,7 +57,7 @@ class DeviceController extends Controller
                 return response()->json([
                     'status' => 'ERROR', 
                     'message' => 'Data sidik jari siswa tidak ditemukan!'
-                ], 404);
+                ], 200);
             }
 
             // 5. Cari Jadwal Pelajaran (Sesuai Ruangan Device & Jam Sekarang)
@@ -73,7 +73,7 @@ class DeviceController extends Controller
                 return response()->json([
                     'status' => 'INFO', 
                     'message' => 'Tidak ada KBM aktif di ruangan ' . $device->ruangan->nama_ruangan . ' pada jam ' . $jamSekarang
-                ], 404);
+                ], 200);
             }
 
             // 6. Cek Duplikasi (Jangan sampai absen 2x di mapel yang sama)
