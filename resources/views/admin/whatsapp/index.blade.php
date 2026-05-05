@@ -125,7 +125,8 @@
                             <thead>
                                 <tr class="text-gray-400 text-xs uppercase tracking-widest border-b border-gray-100">
                                     <th class="pb-4 font-black px-4 w-48">Waktu</th>
-                                    <th class="pb-4 font-black">Siswa / Tujuan</th>
+                                    <th class="pb-4 font-black w-48">Siswa</th>
+                                    <th class="pb-4 font-black w-48">Tujuan Pesan</th>
                                     <th class="pb-4 font-black">Pesan</th>
                                     <th class="pb-4 font-black text-center w-32">Status</th>
                                 </tr>
@@ -139,21 +140,30 @@
                                             <span class="text-xs text-gray-400 font-bold">{{ $log->created_at->format('H:i:s') }}</span>
                                         </div>
                                     </td>
-                                    <td class="py-4 align-top">
+                                    <td class="py-4 align-top pr-4">
                                         <div class="flex flex-col">
                                             @if($log->siswa)
                                                 <span class="font-bold text-gray-900">{{ $log->siswa->nama }}</span>
-                                                <span class="text-[11px] text-gray-500 font-medium">Ortu: {{ $log->siswa->nama_ayah ?? ($log->siswa->nama_ibu ?? 'Wali') }}</span>
+                                                @if($log->siswa->rombelKelas)
+                                                    <span class="text-[10px] bg-gray-100 text-gray-600 px-2 py-0.5 rounded mt-1.5 w-max uppercase">{{ $log->siswa->rombelKelas->kelas->nama }}</span>
+                                                @endif
                                             @else
-                                                <span class="font-bold text-gray-900">Notifikasi Guru / Admin</span>
-                                                <span class="text-[11px] text-gray-500 font-medium">Laporan Wali Kelas / BK</span>
+                                                <span class="font-bold text-gray-900">Siswa Anomali</span>
+                                                <span class="text-[10px] bg-rose-50 text-rose-600 px-2 py-0.5 rounded mt-1.5 w-max uppercase">Daftar di dalam pesan</span>
+                                            @endif
+                                        </div>
+                                    </td>
+                                    <td class="py-4 align-top pr-4">
+                                        <div class="flex flex-col">
+                                            @if($log->siswa)
+                                                <span class="font-bold text-gray-900">Orang Tua (Wali)</span>
+                                                <span class="text-[11px] text-gray-500 font-medium">{{ $log->siswa->nama_ayah ?? ($log->siswa->nama_ibu ?? 'Wali Murid') }}</span>
+                                            @else
+                                                <span class="font-bold text-gray-900">Guru (Wali Kelas / BK)</span>
+                                                <span class="text-[11px] text-gray-500 font-medium">Internal Sekolah</span>
                                             @endif
                                             
                                             <span class="text-xs text-orange-600 font-bold mt-1">{{ $log->no_wa }}</span>
-                                            
-                                            @if($log->siswa && $log->siswa->rombelKelas)
-                                                <span class="text-[10px] bg-gray-100 text-gray-600 px-2 py-0.5 rounded mt-1.5 w-max uppercase">{{ $log->siswa->rombelKelas->kelas->nama }}</span>
-                                            @endif
                                         </div>
                                     </td>
                                     <td class="py-4 align-top">
@@ -170,8 +180,8 @@
                                     </td>
                                 </tr>
                                 @empty
-                                <tr>
-                                    <td colspan="4" class="py-10 text-center text-gray-400 italic font-bold">
+                                <tr class="border-b border-gray-50">
+                                    <td colspan="5" class="py-10 text-center text-gray-400 italic font-bold">
                                         Belum ada riwayat pengiriman WhatsApp.
                                     </td>
                                 </tr>
