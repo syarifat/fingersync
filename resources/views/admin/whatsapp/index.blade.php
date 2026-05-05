@@ -75,7 +75,17 @@
                                     placeholder="Ketik nama atau nomor...">
                             </div>
 
-                            <div class="md:w-1/4">
+                            <div class="md:w-1/5">
+                                <label for="jenis" class="block text-xs font-bold text-gray-500 uppercase mb-1">Jenis Pesan</label>
+                                <select name="jenis" id="jenis" class="block w-full rounded-xl border-gray-200 bg-white text-sm focus:border-orange-500 focus:ring-orange-500 shadow-sm">
+                                    <option value="">-- Semua Jenis --</option>
+                                    <option value="absen_pertama" {{ request('jenis') == 'absen_pertama' ? 'selected' : '' }}>Ke Ortu - Absen Pertama</option>
+                                    <option value="rekap_sore" {{ request('jenis') == 'rekap_sore' ? 'selected' : '' }}>Ke Ortu - Rekap Sore</option>
+                                    <option value="anomali" {{ request('jenis') == 'anomali' ? 'selected' : '' }}>Ke Guru - Laporan Bolos</option>
+                                </select>
+                            </div>
+
+                            <div class="md:w-1/5">
                                 <label for="kelas_id" class="block text-xs font-bold text-gray-500 uppercase mb-1">Filter Kelas</label>
                                 <select name="kelas_id" id="kelas_id" class="block w-full rounded-xl border-gray-200 bg-white text-sm focus:border-orange-500 focus:ring-orange-500 shadow-sm">
                                     <option value="">-- Semua Kelas --</option>
@@ -100,7 +110,7 @@
                                 <button type="submit" class="px-6 py-2.5 bg-gray-800 text-white text-sm font-bold rounded-xl hover:bg-gray-900 transition-colors shadow-sm">
                                     Filter
                                 </button>
-                                @if(request()->hasAny(['search', 'kelas_id', 'status']))
+                                @if(request()->hasAny(['search', 'kelas_id', 'status', 'jenis']))
                                 <a href="{{ route('admin.whatsapp.index') }}" class="px-4 py-2.5 bg-white border border-gray-300 text-gray-700 text-sm font-bold rounded-xl hover:bg-gray-50 transition-colors flex items-center justify-center" title="Reset">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
                                 </a>

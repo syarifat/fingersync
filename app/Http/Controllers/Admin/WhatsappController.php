@@ -60,6 +60,17 @@ class WhatsappController extends Controller
             });
         }
 
+        // Filter Jenis Pesan
+        if ($request->has('jenis') && $request->jenis != '') {
+            if ($request->jenis == 'absen_pertama') {
+                $query->where('pesan', 'like', '%Tiba di Sekolah%');
+            } elseif ($request->jenis == 'rekap_sore') {
+                $query->where('pesan', 'like', '%LAPORAN PRESENSI HARIAN%');
+            } elseif ($request->jenis == 'anomali') {
+                $query->where('pesan', 'like', '%Peringatan Anomali Kehadiran%');
+            }
+        }
+
         // Filter Status
         if ($request->has('status') && $request->status != '') {
             $query->where('status', $request->status);
