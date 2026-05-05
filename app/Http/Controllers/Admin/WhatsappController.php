@@ -87,7 +87,7 @@ class WhatsappController extends Controller
             $query->where('status', $request->status);
         }
 
-        $logs = $query->latest()->paginate(15);
+        $logs = $query->latest()->paginate(10);
         $kelasList = Kelas::orderBy('nama', 'asc')->get();
 
         return view('admin.whatsapp.index', compact(
