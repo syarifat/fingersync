@@ -28,13 +28,15 @@ class TahunAjarController extends Controller
                 'required',
                 'string',
                 'max:20',
+                'regex:/^\d{4}\/\d{4}$/', // Wajib format: 2026/2027
                 Rule::unique('tahun_ajar')->where(function ($query) use ($request) {
                     return $query->where('semester', $request->semester);
                 }),
             ],
             'semester' => 'required|in:Ganjil,Genap',
         ], [
-            'tahun.unique' => 'Tahun Ajar dan Semester ini sudah ada! Tidak boleh duplikat.'
+            'tahun.unique' => 'Tahun Ajar dan Semester ini sudah ada! Tidak boleh duplikat.',
+            'tahun.regex' => 'Format tahun ajar harus menggunakan garis miring (contoh: 2026/2027)'
         ]);
 
         $status = $request->has('status_aktif') ? true : false;
@@ -66,13 +68,15 @@ class TahunAjarController extends Controller
                 'required',
                 'string',
                 'max:20',
+                'regex:/^\d{4}\/\d{4}$/', // Wajib format: 2026/2027
                 Rule::unique('tahun_ajar')->where(function ($query) use ($request) {
                     return $query->where('semester', $request->semester);
                 })->ignore($tahun_ajar->id),
             ],
             'semester' => 'required|in:Ganjil,Genap',
         ], [
-            'tahun.unique' => 'Tahun Ajar dan Semester ini sudah ada! Tidak boleh duplikat.'
+            'tahun.unique' => 'Tahun Ajar dan Semester ini sudah ada! Tidak boleh duplikat.',
+            'tahun.regex' => 'Format tahun ajar harus menggunakan garis miring (contoh: 2026/2027)'
         ]);
 
         $status = $request->has('status_aktif') ? true : false;
