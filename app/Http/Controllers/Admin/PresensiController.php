@@ -4,8 +4,9 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Presensi;
-use App\Models\TahunAjar; // Pastikan model ini ada
-use App\Models\RombelJadwalPelajaran; // Pastikan model ini ada
+use App\Models\TahunAjar;
+use App\Models\RombelJadwalPelajaran;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
 
@@ -47,6 +48,40 @@ class PresensiController extends Controller
         $dataPresensi = $query->latest()->paginate(10);
 
         return view('admin.presensi.index', compact('dataPresensi', 'kelasList'));
+    }
+
+    public function exportPdf(Request $request)
+    {
+        $query = Presensi::with(['siswa', 'rombelJadwalPelajaran.rombelMataPelajaran.kelas', 'device', 'tahunAjar']);
+
+        // Filter Search (Nama Siswa atau NIS)
+        if ($request->has('search') && $request->search != '') {
+            $query->whereHas('siswa', function ($q) use ($request) {
+                $q->where('nama', 'like', '%' . $request->search . '%')
+                    ->orWhere('nis', 'like', '%' . $request->search . '%');
+            });
+        }
+
+        // Filter Tanggal
+        if ($request->has('tanggal') && $request->tanggal != '') {
+            $query->where('tanggal', $request->tanggal);
+        }
+
+        // Filter Status
+        if ($request->has('status') && $request->status != '') {
+            $query->where('status', $request->status);
+        }
+
+        if ($request->has('kelas_id') && $request->kelas_id != '') {
+            $query->whereHas('rombelJadwalPelajaran.rombelMataPelajaran', function ($q) use ($request) {
+                $q->where('id_kelas', $request->kelas_id);
+            });
+        }
+
+        $dataPresensi = $query->latest()->get();
+
+        $pdf = Pdf::loadView('admin.presensi.pdf', compact('dataPresensi', 'request'));
+        return $pdf->download('Laporan_Presensi_Siswa.pdf');
     }
 
     /**
