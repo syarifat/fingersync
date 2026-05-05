@@ -94,7 +94,7 @@ class KirimRekapSore extends Command
             $pesan .= "Demikian laporan harian ini kami sampaikan. Terima kasih atas perhatian Ayah/Ibu.";
 
             // 4. KIRIM WA!
-            \App\Services\WhatsAppService::send($siswa->nohp_ortu, $pesan);
+            \App\Services\WhatsAppService::send($siswa->nohp_ortu, $pesan, $siswa->id);
             $totalTerkirim++;
         }
 
