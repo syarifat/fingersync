@@ -70,7 +70,7 @@ class PresensiController extends Controller
         $bulan    = (int) date('m', strtotime($bulanStr . '-01'));
         $bulanLabel = \Carbon\Carbon::createFromDate($tahun, $bulan, 1)->isoFormat('MMMM YYYY');
 
-        $tahunAjar = \App\Models\TahunAjar::where('aktif', 1)->first();
+        $tahunAjar = \App\Models\TahunAjar::where('status_aktif', 1)->first();
 
         $siswaList = \App\Models\RombelKelas::with('siswa')
             ->where('id_kelas', $request->kelas_id)
