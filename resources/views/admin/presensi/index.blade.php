@@ -1,4 +1,4 @@
-<x-app-layout>
+﻿<x-app-layout>
     <x-slot name="header">
         <h2 class="font-semibold text-2xl text-gray-800 leading-tight italic">
             {{ __('Manajemen Data Presensi') }}
@@ -25,74 +25,60 @@
 
                     {{-- FILTER SECTION --}}
                     <div class="mb-6 bg-gray-50 p-5 rounded-2xl border border-gray-100">
-                        <form method="GET" action="{{ route('admin.presensi.index') }}" class="flex flex-col md:flex-row gap-4">
+                        <form method="GET" action="{{ route('admin.presensi.index') }}" class="flex flex-col gap-3">
 
-                            <div class="flex-1">
-                                <label for="search" class="block text-xs font-bold text-gray-500 uppercase mb-1">Cari Siswa</label>
-                                <div class="relative">
-                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                        <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-                                        </svg>
+                            {{-- BARIS 1: Kelas + Mapel + Cari Siswa --}}
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                                <div>
+                                    <label for="kelas_id" class="block text-xs font-bold text-gray-500 uppercase mb-1">Kelas <span class="text-orange-500">*</span></label>
+                                    <select name="kelas_id" id="kelas_id" required class="block w-full rounded-xl border-gray-200 bg-white text-sm focus:border-orange-500 focus:ring-orange-500 shadow-sm">
+                                        @foreach($kelasList as $k)
+                                        <option value="{{ $k->id }}" {{ request('kelas_id') == $k->id ? 'selected' : '' }}>{{ $k->nama }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                                <div>
+                                    <label for="mapel_id" class="block text-xs font-bold text-gray-500 uppercase mb-1">Mata Pelajaran</label>
+                                    <select name="mapel_id" id="mapel_id" class="block w-full rounded-xl border-gray-200 bg-white text-sm focus:border-orange-500 focus:ring-orange-500 shadow-sm">
+                                        <option value="">-- Semua Mata Pelajaran --</option>
+                                        @foreach($mapelList as $m)
+                                        <option value="{{ $m->id }}" {{ request('mapel_id') == $m->id ? 'selected' : '' }}>{{ $m->nama }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                                <div>
+                                    <label for="search" class="block text-xs font-bold text-gray-500 uppercase mb-1">Cari Siswa</label>
+                                    <div class="relative">
+                                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                            <svg class="h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                                        </div>
+                                        <input type="text" name="search" id="search" value="{{ request('search') }}" class="pl-10 block w-full rounded-xl border-gray-200 bg-white text-sm focus:border-orange-500 focus:ring-orange-500 shadow-sm" placeholder="Nama atau NIS...">
                                     </div>
-                                    <input type="text" name="search" id="search" value="{{ request('search') }}"
-                                        class="pl-10 block w-full rounded-xl border-gray-200 bg-white text-sm focus:border-orange-500 focus:ring-orange-500 shadow-sm"
-                                        placeholder="Nama Siswa atau NIS...">
                                 </div>
                             </div>
 
-                            <div class="md:w-1/5">
-                                <label for="kelas_id" class="block text-xs font-bold text-gray-500 uppercase mb-1">Kelas (Wajib)</label>
-                                <select name="kelas_id" id="kelas_id" required class="block w-full rounded-xl border-gray-200 bg-white text-sm focus:border-orange-500 focus:ring-orange-500 shadow-sm">
-                                    @foreach($kelasList as $k)
-                                    <option value="{{ $k->id }}" {{ request('kelas_id') == $k->id ? 'selected' : '' }}>
-                                        {{ $k->nama }}
-                                    </option>
-                                    @endforeach
-                                </select>
-                            </div>
-
-                            <div class="md:w-1/5">
-                                <label for="mapel_id" class="block text-xs font-bold text-gray-500 uppercase mb-1">Mapel (Opsional)</label>
-                                <select name="mapel_id" id="mapel_id" class="block w-full rounded-xl border-gray-200 bg-white text-sm focus:border-orange-500 focus:ring-orange-500 shadow-sm">
-                                    <option value="">-- Semua Mapel --</option>
-                                    @foreach($mapelList as $m)
-                                    <option value="{{ $m->id }}" {{ request('mapel_id') == $m->id ? 'selected' : '' }}>
-                                        {{ $m->nama }}
-                                    </option>
-                                    @endforeach
-                                </select>
-                            </div>
-
-                            <div class="md:w-1/6">
-                                <label for="tanggal" class="block text-xs font-bold text-gray-500 uppercase mb-1">Harian</label>
-                                <input type="date" name="tanggal" id="tanggal" value="{{ request('tanggal') }}"
-                                    class="block w-full rounded-xl border-gray-200 bg-white text-sm focus:border-orange-500 focus:ring-orange-500 shadow-sm">
-                            </div>
-
-                            <div class="md:w-1/6">
-                                <label for="bulan" class="block text-xs font-bold text-gray-500 uppercase mb-1">Atau Bulanan</label>
-                                <input type="month" name="bulan" id="bulan" value="{{ request('bulan') }}"
-                                    class="block w-full rounded-xl border-gray-200 bg-white text-sm focus:border-orange-500 focus:ring-orange-500 shadow-sm">
-                            </div>
-
-                            <div class="flex items-end gap-2">
-                                <button type="submit" class="px-6 py-2.5 bg-gray-800 text-white text-sm font-bold rounded-xl hover:bg-gray-900 transition-colors shadow-sm">
-                                    Filter
-                                </button>
-                                
-                                <a href="{{ route('admin.presensi.export_pdf', request()->all()) }}" target="_blank" class="px-4 py-2.5 bg-rose-50 border border-rose-200 text-rose-600 text-sm font-bold rounded-xl hover:bg-rose-100 transition-colors flex items-center justify-center gap-2" title="Export PDF">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
-                                    PDF
-                                </a>
-
-                                @if(request()->hasAny(['mapel_id', 'tanggal', 'bulan']))
-                                <a href="{{ route('admin.presensi.index') }}" class="px-4 py-2.5 bg-white border border-gray-300 text-gray-700 text-sm font-bold rounded-xl hover:bg-gray-50 transition-colors flex items-center justify-center" title="Reset">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                                    </svg>
-                                </a>
-                                @endif
+                            {{-- BARIS 2: Harian + Bulanan + Tombol --}}
+                            <div class="flex flex-col md:flex-row gap-3 items-end">
+                                <div class="flex-1">
+                                    <label for="tanggal" class="block text-xs font-bold text-gray-500 uppercase mb-1">Filter Harian</label>
+                                    <input type="date" name="tanggal" id="tanggal" value="{{ request('tanggal') }}" class="block w-full rounded-xl border-gray-200 bg-white text-sm focus:border-orange-500 focus:ring-orange-500 shadow-sm">
+                                </div>
+                                <div class="flex-1">
+                                    <label for="bulan" class="block text-xs font-bold text-gray-500 uppercase mb-1">Filter Bulanan</label>
+                                    <input type="month" name="bulan" id="bulan" value="{{ request('bulan') }}" class="block w-full rounded-xl border-gray-200 bg-white text-sm focus:border-orange-500 focus:ring-orange-500 shadow-sm">
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <button type="submit" class="px-6 py-2.5 bg-gray-800 text-white text-sm font-bold rounded-xl hover:bg-gray-900 transition-colors shadow-sm">Filter</button>
+                                    <a href="{{ route('admin.presensi.export_pdf', request()->all()) }}" target="_blank" class="px-4 py-2.5 bg-rose-50 border border-rose-200 text-rose-600 text-sm font-bold rounded-xl hover:bg-rose-100 transition-colors flex items-center gap-2" title="Export PDF">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                                        PDF
+                                    </a>
+                                    @if(request()->hasAny(['mapel_id', 'tanggal', 'bulan', 'search']))
+                                    <a href="{{ route('admin.presensi.index') }}" class="px-4 py-2.5 bg-white border border-gray-300 text-gray-600 text-sm font-bold rounded-xl hover:bg-gray-50 transition-colors flex items-center" title="Reset">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                                    </a>
+                                    @endif
+                                </div>
                             </div>
 
                         </form>
