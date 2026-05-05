@@ -105,4 +105,28 @@ class PresensiController extends Controller
 
         return redirect()->route('admin.presensi.index')->with('success', 'Data absensi berhasil disimpan.');
     }
+
+    /**
+     * Menampilkan form edit presensi
+     */
+    public function edit(Presensi $presensi)
+    {
+        return view('admin.presensi.edit', compact('presensi'));
+    }
+
+    /**
+     * Mengupdate data presensi
+     */
+    public function update(Request $request, Presensi $presensi)
+    {
+        $request->validate([
+            'status' => 'required|in:Hadir,Izin,Sakit,Terlambat,Alpa',
+        ]);
+
+        $presensi->update([
+            'status' => $request->status,
+        ]);
+
+        return redirect()->route('admin.presensi.index')->with('success', 'Status absensi berhasil diperbarui.');
+    }
 }

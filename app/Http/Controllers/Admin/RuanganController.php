@@ -31,6 +31,8 @@ class RuanganController extends Controller
         $request->validate([
             'nama_ruangan' => 'required|string|max:255|unique:ruangan,nama_ruangan',
             'keterangan' => 'nullable|string|max:255',
+        ], [
+            'nama_ruangan.unique' => 'Nama ruangan ini sudah terdaftar! Silakan gunakan nama lain.',
         ]);
 
         Ruangan::create($request->all());
@@ -48,6 +50,8 @@ class RuanganController extends Controller
         $request->validate([
             'nama_ruangan' => 'required|string|max:255|unique:ruangan,nama_ruangan,' . $ruangan->id,
             'keterangan' => 'nullable|string|max:255',
+        ], [
+            'nama_ruangan.unique' => 'Nama ruangan ini sudah terdaftar! Silakan gunakan nama lain.',
         ]);
 
         $ruangan->update($request->all());

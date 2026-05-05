@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\TahunAjar;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 class TahunAjarController extends Controller
 {
@@ -23,8 +24,17 @@ class TahunAjarController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'tahun' => 'required|string|max:20', // Contoh: 2025/2026
+            'tahun' => [
+                'required',
+                'string',
+                'max:20',
+                Rule::unique('tahun_ajar')->where(function ($query) use ($request) {
+                    return $query->where('semester', $request->semester);
+                }),
+            ],
             'semester' => 'required|in:Ganjil,Genap',
+        ], [
+            'tahun.unique' => 'Tahun Ajar dan Semester ini sudah ada! Tidak boleh duplikat.'
         ]);
 
         $status = $request->has('status_aktif') ? true : false;
@@ -52,8 +62,17 @@ class TahunAjarController extends Controller
     public function update(Request $request, TahunAjar $tahun_ajar)
     {
         $request->validate([
-            'tahun' => 'required|string|max:20',
+            'tahun' => [
+                'required',
+                'string',
+                'max:20',
+                Rule::unique('tahun_ajar')->where(function ($query) use ($request) {
+                    return $query->where('semester', $request->semester);
+                })->ignore($tahun_ajar->id),
+            ],
             'semester' => 'required|in:Ganjil,Genap',
+        ], [
+            'tahun.unique' => 'Tahun Ajar dan Semester ini sudah ada! Tidak boleh duplikat.'
         ]);
 
         $status = $request->has('status_aktif') ? true : false;
