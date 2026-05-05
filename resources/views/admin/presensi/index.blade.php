@@ -69,10 +69,10 @@
                                 </div>
                                 <div class="flex items-center gap-2">
                                     <button type="submit" class="px-6 py-2.5 bg-gray-800 text-white text-sm font-bold rounded-xl hover:bg-gray-900 transition-colors shadow-sm">Filter</button>
-                                    <a href="{{ route('admin.presensi.export_pdf', request()->all()) }}" target="_blank" class="px-4 py-2.5 bg-rose-50 border border-rose-200 text-rose-600 text-sm font-bold rounded-xl hover:bg-rose-100 transition-colors flex items-center gap-2" title="Export PDF">
+                                    <button type="button" onclick="bukaModalPdf()" class="px-4 py-2.5 bg-rose-50 border border-rose-200 text-rose-600 text-sm font-bold rounded-xl hover:bg-rose-100 transition-colors flex items-center gap-2">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
-                                        PDF
-                                    </a>
+                                        Export PDF
+                                    </button>
                                     @if(request()->hasAny(['mapel_id', 'tanggal', 'bulan', 'search']))
                                     <a href="{{ route('admin.presensi.index') }}" class="px-4 py-2.5 bg-white border border-gray-300 text-gray-600 text-sm font-bold rounded-xl hover:bg-gray-50 transition-colors flex items-center" title="Reset">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
@@ -205,5 +205,71 @@
                 </div>
             </div>
         </div>
+
+{{-- MODAL EXPORT PDF --}}
+<div id="modalPdf" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6 mx-4">
+        <div class="flex items-center justify-between mb-5">
+            <h3 class="text-lg font-black text-gray-800">⚙️ Opsi Export PDF</h3>
+            <button onclick="tutupModalPdf()" class="text-gray-400 hover:text-gray-600 transition-colors">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+        </div>
+
+        <form id="formExportPdf" action="{{ route('admin.presensi.export_pdf') }}" method="GET" target="_blank">
+            <input type="hidden" name="kelas_id" id="modal_kelas_id">
+
+            <div class="mb-4">
+                <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Kelas yang Dipilih</label>
+                <div id="modal_kelas_label" class="px-4 py-2 bg-orange-50 border border-orange-200 text-orange-700 font-bold rounded-xl text-sm">-</div>
+            </div>
+
+            <div class="mb-4">
+                <label for="modal_mapel_id" class="block text-xs font-bold text-gray-500 uppercase mb-1">Mata Pelajaran</label>
+                <select name="mapel_id" id="modal_mapel_id" class="block w-full rounded-xl border-gray-200 bg-white text-sm focus:border-orange-500 focus:ring-orange-500 shadow-sm">
+                    <option value="">-- Semua Mata Pelajaran --</option>
+                    @foreach($mapelList as $m)
+                    <option value="{{ $m->id }}">{{ $m->nama }}</option>
+                    @endforeach
+                </select>
+            </div>
+
+            <div class="mb-6">
+                <label for="modal_bulan" class="block text-xs font-bold text-gray-500 uppercase mb-1">Pilih Bulan <span class="text-rose-500">*</span></label>
+                <input type="month" name="bulan" id="modal_bulan" required
+                    class="block w-full rounded-xl border-gray-200 bg-white text-sm focus:border-orange-500 focus:ring-orange-500 shadow-sm"
+                    value="{{ now()->format('Y-m') }}">
+            </div>
+
+            <div class="flex gap-3">
+                <button type="submit" class="flex-1 px-6 py-3 bg-rose-600 text-white font-black rounded-xl hover:bg-rose-700 transition-colors text-sm flex items-center justify-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                    Download PDF
+                </button>
+                <button type="button" onclick="tutupModalPdf()" class="px-4 py-3 bg-gray-100 text-gray-600 font-bold rounded-xl hover:bg-gray-200 transition-colors text-sm">
+                    Batal
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+const kelasList = @json($kelasList->map(fn($k) => ['id' => $k->id, 'nama' => $k->nama]));
+
+function bukaModalPdf() {
+    const kelasId = document.getElementById('kelas_id').value;
+    const kelas = kelasList.find(k => k.id == kelasId);
+    document.getElementById('modal_kelas_id').value = kelasId;
+    document.getElementById('modal_kelas_label').textContent = kelas ? kelas.nama : 'Pilih kelas dulu di filter!';
+    document.getElementById('modalPdf').classList.remove('hidden');
+}
+function tutupModalPdf() {
+    document.getElementById('modalPdf').classList.add('hidden');
+}
+document.getElementById('modalPdf').addEventListener('click', function(e) {
+    if (e.target === this) tutupModalPdf();
+});
+</script>
     </div>
 </x-app-layout>

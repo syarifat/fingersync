@@ -1,76 +1,129 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Laporan Presensi Siswa</title>
+    <meta charset="UTF-8">
+    <title>Absensi Siswa</title>
     <style>
-        body { font-family: sans-serif; font-size: 12px; }
-        .header { text-align: center; margin-bottom: 20px; border-bottom: 2px solid #000; padding-bottom: 10px; }
-        .header h1 { margin: 0; font-size: 18px; text-transform: uppercase; }
-        .header p { margin: 5px 0 0; color: #555; }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-        th { background-color: #f5f5f5; font-weight: bold; }
-        .status-hadir { color: #16a34a; font-weight: bold; }
-        .status-izin { color: #2563eb; font-weight: bold; }
-        .status-sakit { color: #ca8a04; font-weight: bold; }
-        .status-alpa { color: #dc2626; font-weight: bold; }
-        .status-terlambat { color: #ea580c; font-weight: bold; }
-        .filters { margin-bottom: 15px; font-size: 11px; color: #666; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: Arial, sans-serif; font-size: 10px; color: #1a1a1a; }
+
+        .header { text-align: center; margin-bottom: 14px; border-bottom: 2px solid #1a1a1a; padding-bottom: 8px; }
+        .header h1 { font-size: 15px; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; }
+        .header p { font-size: 10px; color: #555; margin-top: 3px; }
+
+        .mapel-section { margin-bottom: 22px; page-break-inside: avoid; }
+        .mapel-title {
+            background: #1e293b;
+            color: white;
+            padding: 5px 10px;
+            font-size: 11px;
+            font-weight: bold;
+            letter-spacing: 0.5px;
+            border-radius: 4px 4px 0 0;
+            margin-bottom: 0;
+        }
+
+        table { width: 100%; border-collapse: collapse; }
+        th, td { border: 1px solid #cbd5e1; text-align: center; }
+
+        /* Header row */
+        .th-no    { width: 28px; padding: 4px 2px; font-size: 9px; background: #f1f5f9; }
+        .th-nama  { width: 130px; text-align: left; padding: 4px 6px; font-size: 9px; background: #f1f5f9; }
+        .th-tgl   { width: 22px; padding: 4px 2px; font-size: 9px; background: #f1f5f9; }
+        .th-total { width: 28px; padding: 4px 2px; font-size: 9px; background: #f1f5f9; }
+
+        /* Data rows */
+        .td-no   { padding: 3px 2px; font-size: 9px; color: #64748b; }
+        .td-nama { padding: 3px 6px; text-align: left; font-size: 9px; font-weight: 500; white-space: nowrap; overflow: hidden; max-width: 130px; }
+        .td-cell { padding: 3px 2px; font-size: 9px; font-weight: bold; }
+        .td-total { padding: 3px 2px; font-size: 9px; }
+
+        /* Status colors */
+        .H { background: #dcfce7; color: #15803d; }   /* Hadir - hijau */
+        .T { background: #fef9c3; color: #854d0e; }   /* Terlambat - kuning */
+        .I { background: #dbeafe; color: #1d4ed8; }   /* Izin - biru */
+        .S { background: #ffedd5; color: #c2410c; }   /* Sakit - oranye */
+        .A { background: #fee2e2; color: #b91c1c; }   /* Alpa - merah */
+        .dash { color: #d1d5db; }
+
+        /* Legend */
+        .legend { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 10px; font-size: 8.5px; }
+        .leg-item { display: flex; align-items: center; gap: 4px; }
+        .leg-box { width: 14px; height: 14px; border-radius: 3px; border: 1px solid #e2e8f0; display: inline-flex; align-items: center; justify-content: center; font-weight: bold; font-size: 8px; }
+
+        .empty-msg { padding: 20px; text-align: center; color: #94a3b8; font-style: italic; }
     </style>
 </head>
 <body>
+
     <div class="header">
-        <h1>LAPORAN PRESENSI SISWA</h1>
-        <p>FingerSync - Sistem Manajemen Kehadiran Berbasis Sidik Jari</p>
+        <h1>REKAP ABSENSI BULANAN</h1>
+        <p>{{ $kelas->nama }} &nbsp;|&nbsp; {{ $bulanLabel }}</p>
     </div>
 
-    <div class="filters">
-        <strong>Filter Aktif:</strong>
-        @if(request('kelas_id')) | Kelas: {{ \App\Models\Kelas::find(request('kelas_id'))->nama ?? '-' }} @endif
-        @if(request('mapel_id')) | Mapel: {{ \App\Models\MataPelajaran::find(request('mapel_id'))->nama ?? '-' }} @endif
-        @if(request('tanggal')) | Harian: {{ \Carbon\Carbon::parse(request('tanggal'))->isoFormat('DD MMMM YYYY') }} @endif
-        @if(request('bulan')) | Bulanan: {{ \Carbon\Carbon::parse(request('bulan').'-01')->isoFormat('MMMM YYYY') }} @endif
-        @if(request('search')) | Cari: {{ request('search') }} @endif
-    </div>
-
-    <table>
-        <thead>
-            <tr>
-                <th>No</th>
-                <th>TANGGAL & WAKTU</th>
-                <th>SISWA</th>
-                <th>KELAS</th>
-                <th>MATA PELAJARAN</th>
-                <th>STATUS</th>
-            </tr>
-        </thead>
-        <tbody>
-            @forelse($dataPresensi as $index => $presensi)
-            <tr>
-                <td>{{ $index + 1 }}</td>
-                <td>
-                    {{ \Carbon\Carbon::parse($presensi->tanggal)->format('d/m/Y') }}<br>
-                    <small>{{ $presensi->waktu_absen }}</small>
-                </td>
-                <td>
-                    <strong>{{ $presensi->siswa->nama ?? '-' }}</strong><br>
-                    <small>NIS: {{ $presensi->siswa->nis ?? '-' }}</small>
-                </td>
-                <td>{{ $presensi->rombelJadwalPelajaran->rombelMataPelajaran->kelas->nama ?? '-' }}</td>
-                <td>{{ $presensi->rombelJadwalPelajaran->rombelMataPelajaran->mataPelajaran->nama ?? '-' }}</td>
-                <td>
+    @forelse($dataPerMapel as $item)
+    <div class="mapel-section">
+        <div class="mapel-title">📚 {{ $item['nama_mapel'] }}</div>
+        <table>
+            <thead>
+                <tr>
+                    <th class="th-no">No</th>
+                    <th class="th-nama">Nama Siswa</th>
+                    @foreach($item['tanggal_aktif'] as $tgl)
+                    <th class="th-tgl">{{ date('d', strtotime($tgl)) }}</th>
+                    @endforeach
+                    <th class="th-total">H</th>
+                    <th class="th-total">T</th>
+                    <th class="th-total">I</th>
+                    <th class="th-total">S</th>
+                    <th class="th-total">A</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach($siswaList as $i => $siswa)
+                <tr>
+                    <td class="td-no">{{ $i + 1 }}</td>
+                    <td class="td-nama">{{ $siswa->nama }}</td>
                     @php
-                        $colorClass = 'status-' . strtolower($presensi->status);
+                        $matrixRow = $item['matrix'][$siswa->id] ?? [];
+                        $countH = 0; $countT = 0; $countI = 0; $countS = 0; $countA = 0;
                     @endphp
-                    <span class="{{ $colorClass }}">{{ $presensi->status }}</span>
-                </td>
-            </tr>
-            @empty
-            <tr>
-                <td colspan="6" style="text-align: center; padding: 20px;">Tidak ada data presensi yang sesuai dengan filter.</td>
-            </tr>
-            @endforelse
-        </tbody>
-    </table>
+                    @foreach($item['tanggal_aktif'] as $tgl)
+                        @php
+                            $status = $matrixRow[$tgl] ?? '-';
+                            if ($status == 'H') $countH++;
+                            elseif ($status == 'T') $countT++;
+                            elseif ($status == 'I') $countI++;
+                            elseif ($status == 'S') $countS++;
+                            elseif ($status == 'A') $countA++;
+                        @endphp
+                        <td class="td-cell {{ $status != '-' ? $status : '' }} {{ $status == '-' ? 'dash' : '' }}">
+                            {{ $status }}
+                        </td>
+                    @endforeach
+                    <td class="td-total H">{{ $countH ?: '' }}</td>
+                    <td class="td-total T">{{ $countT ?: '' }}</td>
+                    <td class="td-total I">{{ $countI ?: '' }}</td>
+                    <td class="td-total S">{{ $countS ?: '' }}</td>
+                    <td class="td-total A">{{ $countA ?: '' }}</td>
+                </tr>
+                @endforeach
+            </tbody>
+        </table>
+    </div>
+    @empty
+    <div class="empty-msg">Tidak ada data presensi yang cocok dengan filter yang dipilih.</div>
+    @endforelse
+
+    <div class="legend">
+        <span><strong>Keterangan:</strong></span>
+        <span class="leg-item"><span class="leg-box H">H</span> Hadir</span>
+        <span class="leg-item"><span class="leg-box T">T</span> Terlambat</span>
+        <span class="leg-item"><span class="leg-box I">I</span> Izin</span>
+        <span class="leg-item"><span class="leg-box S">S</span> Sakit</span>
+        <span class="leg-item"><span class="leg-box A">A</span> Alpa</span>
+        <span class="leg-item">- = Tidak ada sesi</span>
+    </div>
+
 </body>
 </html>

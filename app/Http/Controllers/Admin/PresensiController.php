@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 
 namespace App\Http\Controllers\Admin;
 
@@ -58,36 +58,64 @@ class PresensiController extends Controller
 
     public function exportPdf(Request $request)
     {
-        $kelas_id = $request->kelas_id;
-        
-        $query = Presensi::with(['siswa', 'rombelJadwalPelajaran.rombelMataPelajaran.kelas', 'rombelJadwalPelajaran.rombelMataPelajaran.mataPelajaran', 'device', 'tahunAjar']);
+        $request->validate([
+            'kelas_id' => 'required|exists:kelas,id',
+            'bulan'    => 'required',
+        ]);
 
-        // 1. Filter Kelas (Wajib)
-        if ($kelas_id) {
-            $query->whereHas('rombelJadwalPelajaran.rombelMataPelajaran', function ($q) use ($kelas_id) {
-                $q->where('id_kelas', $kelas_id);
-            });
+        \Carbon\Carbon::setLocale('id');
+        $kelas    = \App\Models\Kelas::findOrFail($request->kelas_id);
+        $bulanStr = $request->bulan;
+        $tahun    = (int) date('Y', strtotime($bulanStr . '-01'));
+        $bulan    = (int) date('m', strtotime($bulanStr . '-01'));
+        $bulanLabel = \Carbon\Carbon::createFromDate($tahun, $bulan, 1)->isoFormat('MMMM YYYY');
+
+        $tahunAjar = \App\Models\TahunAjar::where('aktif', 1)->first();
+
+        $siswaList = \App\Models\RombelKelas::with('siswa')
+            ->where('id_kelas', $request->kelas_id)
+            ->when($tahunAjar, fn($q) => $q->where('id_tahun_ajar', $tahunAjar->id))
+            ->get()->pluck('siswa')->filter()->sortBy('nama')->values();
+
+        $rmQuery = \App\Models\RombelMataPelajaran::with('mataPelajaran')
+            ->where('id_kelas', $request->kelas_id)
+            ->when($tahunAjar, fn($q) => $q->where('id_tahun_ajar', $tahunAjar->id));
+        if ($request->mapel_id) {
+            $rmQuery->where('id_mata_pelajaran', $request->mapel_id);
+        }
+        $rombelMapelList = $rmQuery->get();
+
+        $dataPerMapel = [];
+        foreach ($rombelMapelList as $rm) {
+            $presensiList = Presensi::whereNotNull('id_siswa')
+                ->whereHas('rombelJadwalPelajaran', fn($q) => $q->where('id_rombel_mata_pelajaran', $rm->id))
+                ->whereMonth('tanggal', $bulan)->whereYear('tanggal', $tahun)->get();
+
+            if ($presensiList->isEmpty()) continue;
+
+            $tanggalAktif = $presensiList->pluck('tanggal')->unique()->sort()->values()
+                ->map(fn($t) => \Carbon\Carbon::parse($t)->format('Y-m-d'));
+
+            $matrix = [];
+            foreach ($siswaList as $siswa) {
+                $row = [];
+                foreach ($tanggalAktif as $tgl) {
+                    $p = $presensiList->where('id_siswa', $siswa->id)->where('tanggal', $tgl)->first();
+                    $row[$tgl] = $p ? strtoupper(substr($p->status, 0, 1)) : '-';
+                }
+                $matrix[$siswa->id] = $row;
+            }
+
+            $dataPerMapel[] = [
+                'nama_mapel'    => $rm->mataPelajaran->nama ?? 'Mapel',
+                'tanggal_aktif' => $tanggalAktif,
+                'matrix'        => $matrix,
+            ];
         }
 
-        // 2. Filter Mapel (Opsional)
-        if ($request->has('mapel_id') && $request->mapel_id != '') {
-            $query->whereHas('rombelJadwalPelajaran.rombelMataPelajaran', function ($q) use ($request) {
-                $q->where('id_mata_pelajaran', $request->mapel_id);
-            });
-        }
-
-        // 3. Filter Waktu (Harian atau Bulanan)
-        if ($request->has('tanggal') && $request->tanggal != '') {
-            $query->where('tanggal', $request->tanggal);
-        } elseif ($request->has('bulan') && $request->bulan != '') {
-            $query->whereMonth('tanggal', date('m', strtotime($request->bulan)))
-                  ->whereYear('tanggal', date('Y', strtotime($request->bulan)));
-        }
-
-        $dataPresensi = $query->latest()->get();
-
-        $pdf = Pdf::loadView('admin.presensi.pdf', compact('dataPresensi', 'request'));
-        return $pdf->download('Laporan_Presensi_Siswa.pdf');
+        $pdf = Pdf::loadView('admin.presensi.pdf', compact('kelas', 'siswaList', 'dataPerMapel', 'bulanLabel'))
+                  ->setPaper('a4', 'landscape');
+        return $pdf->download("Absensi_{$kelas->nama}_{$bulanStr}.pdf");
     }
 
     /**
