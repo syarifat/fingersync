@@ -131,10 +131,18 @@
                                     </td>
                                     <td class="py-4 align-top">
                                         <div class="flex flex-col">
-                                            <span class="font-bold text-gray-900">{{ $log->siswa->nama ?? 'Bukan Siswa' }}</span>
-                                            <span class="text-xs text-orange-500 font-bold">{{ $log->no_wa }}</span>
+                                            @if($log->siswa)
+                                                <span class="font-bold text-gray-900">{{ $log->siswa->nama }}</span>
+                                                <span class="text-[11px] text-gray-500 font-medium">Ortu: {{ $log->siswa->nama_ayah ?? ($log->siswa->nama_ibu ?? 'Wali') }}</span>
+                                            @else
+                                                <span class="font-bold text-gray-900">Notifikasi Guru / Admin</span>
+                                                <span class="text-[11px] text-gray-500 font-medium">Laporan Wali Kelas / BK</span>
+                                            @endif
+                                            
+                                            <span class="text-xs text-orange-600 font-bold mt-1">{{ $log->no_wa }}</span>
+                                            
                                             @if($log->siswa && $log->siswa->rombelKelas)
-                                                <span class="text-[10px] bg-gray-100 text-gray-500 px-2 py-0.5 rounded mt-1 w-max uppercase">{{ $log->siswa->rombelKelas->kelas->nama }}</span>
+                                                <span class="text-[10px] bg-gray-100 text-gray-600 px-2 py-0.5 rounded mt-1.5 w-max uppercase">{{ $log->siswa->rombelKelas->kelas->nama }}</span>
                                             @endif
                                         </div>
                                     </td>
