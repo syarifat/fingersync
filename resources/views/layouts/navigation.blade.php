@@ -154,6 +154,14 @@
                 </span>
             </a>
 
+            <a href="{{ route('admin.whatsapp.index') }}" 
+                class="flex items-center p-3 rounded-xl transition-all duration-200 group {{ request()->routeIs('*whatsapp*') ? 'bg-orange-700 shadow-inner' : 'hover:bg-orange-500' }}">
+                <svg class="w-6 h-6 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+                </svg>
+                <span :class="sidebarOpen ? 'opacity-100 ml-4' : 'opacity-0 w-0'" class="font-medium transition-all duration-300 overflow-hidden whitespace-nowrap">Log WhatsApp</span>
+            </a>
+
         </div>
 
         {{-- MENU KHUSUS GURU --}}

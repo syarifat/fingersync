@@ -105,7 +105,7 @@ class DeviceController extends Controller
                 $pesanOrtu .= "Semoga ananda belajar dengan baik hari ini. Terima kasih.";
                 
                 // Panggil layanan pengirim WA (akan jalan di background)
-                WhatsAppService::send($siswa->nohp_ortu, $pesanOrtu);
+                WhatsAppService::send($siswa->nohp_ortu, $pesanOrtu, $siswa->id);
             }
             // =====================================================================
 

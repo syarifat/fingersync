@@ -82,6 +82,8 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->as('admin.')->group(
     Route::get('/presensi/{presensi}/edit', [PresensiController::class, 'edit'])->name('presensi.edit');
     Route::put('/presensi/{presensi}', [PresensiController::class, 'update'])->name('presensi.update');
 
+    Route::get('/whatsapp', [\App\Http\Controllers\Admin\WhatsappController::class, 'index'])->name('whatsapp.index');
+
     Route::get('/user', [UserController::class, 'index'])->name('user.index');
 
 });
