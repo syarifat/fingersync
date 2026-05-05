@@ -55,8 +55,19 @@ class WhatsappController extends Controller
         // Filter Kelas
         if ($request->has('kelas_id') && $request->kelas_id != '') {
             $kelas_id = $request->kelas_id;
-            $query->whereHas('siswa.rombelKelas', function($qRombel) use ($kelas_id) {
-                $qRombel->where('id_kelas', $kelas_id);
+            $kelas = Kelas::find($kelas_id);
+            $nama_kelas = $kelas ? $kelas->nama : '';
+
+            $query->where(function($q) use ($kelas_id, $nama_kelas) {
+                // Untuk log Ortu (absen pertama & rekap sore) yang memiliki id_siswa
+                $q->whereHas('siswa.rombelKelas', function($qRombel) use ($kelas_id) {
+                    $qRombel->where('id_kelas', $kelas_id);
+                });
+
+                // Untuk log Guru (Anomali) yang tidak memiliki id_siswa, kita cari dari teks pesan
+                if ($nama_kelas != '') {
+                    $q->orWhere('pesan', 'like', '%Kelas: *' . $nama_kelas . '*%');
+                }
             });
         }
 
