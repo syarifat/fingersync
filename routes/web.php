@@ -21,6 +21,19 @@ use App\Http\Controllers\Admin\RombelJadwalPelajaranController;
 use App\Http\Controllers\Admin\PresensiController;
 use App\Http\Controllers\Admin\UserController;
 
+// Route khusus untuk eksekusi Cron Job via Web (cron-job.org)
+Route::get('/cron/cek-anomali/{token}', function ($token) {
+    if ($token !== 'FINGERSYNC-SECURE-123') return abort(403, 'Unauthorized');
+    Artisan::call('absensi:cek-anomali');
+    return 'Cek Anomali dieksekusi: ' . Artisan::output();
+});
+
+Route::get('/cron/rekap-sore/{token}', function ($token) {
+    if ($token !== 'FINGERSYNC-SECURE-123') return abort(403, 'Unauthorized');
+    Artisan::call('absensi:rekap-sore');
+    return 'Rekap Sore dieksekusi: ' . Artisan::output();
+});
+
 
 Route::get('/', function () {
     return view('welcome');

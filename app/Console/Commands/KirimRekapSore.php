@@ -20,7 +20,7 @@ class KirimRekapSore extends Command
         Carbon::setLocale('id');
         
         // --- MODE TESTING (Ubah jadi false jika ingin kirim real-time) ---
-        $isTestMode = true;
+        $isTestMode = false;
 
         if ($isTestMode) {
             $now = Carbon::create(2026, 4, 11, 16, 0, 0); 
