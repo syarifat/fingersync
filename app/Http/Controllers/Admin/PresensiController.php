@@ -20,11 +20,11 @@ class PresensiController extends Controller
 
         $query = Presensi::with(['siswa', 'rombelJadwalPelajaran.rombelMataPelajaran.kelas', 'device', 'tahunAjar']);
 
-        // Filter Search (Nama Siswa atau NISN)
+        // Filter Search (Nama Siswa atau NIS)
         if ($request->has('search') && $request->search != '') {
             $query->whereHas('siswa', function ($q) use ($request) {
                 $q->where('nama', 'like', '%' . $request->search . '%')
-                    ->orWhere('nisn', 'like', '%' . $request->search . '%');
+                    ->orWhere('nis', 'like', '%' . $request->search . '%');
             });
         }
 

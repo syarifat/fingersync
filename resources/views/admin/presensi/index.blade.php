@@ -37,7 +37,7 @@
                                     </div>
                                     <input type="text" name="search" id="search" value="{{ request('search') }}"
                                         class="pl-10 block w-full rounded-xl border-gray-200 bg-white text-sm focus:border-orange-500 focus:ring-orange-500 shadow-sm"
-                                        placeholder="Nama Siswa atau NISN...">
+                                        placeholder="Nama Siswa atau NIS...">
                                 </div>
                             </div>
 
@@ -139,7 +139,7 @@
                                     <td class="py-5">
                                         <div class="flex flex-col">
                                             <span class="font-bold text-gray-900">{{ $row->siswa->nama ?? 'Siswa dihapus' }}</span>
-                                            <span class="text-xs text-gray-400 font-bold">{{ $row->siswa->nisn ?? '-' }}</span>
+                                            <span class="text-xs text-gray-400 font-bold">{{ $row->siswa->nis ?? '-' }}</span>
                                         </div>
                                     </td>
 

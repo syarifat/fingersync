@@ -27,8 +27,8 @@
                                 <span class="font-black text-gray-800">{{ $presensi->siswa->nama ?? 'Siswa Tidak Ditemukan' }}</span>
                             </div>
                             <div>
-                                <span class="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">NISN</span>
-                                <span class="font-black text-gray-800">{{ $presensi->siswa->nisn ?? '-' }}</span>
+                                <span class="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">NIS</span>
+                                <span class="font-black text-gray-800">{{ $presensi->siswa->nis ?? '-' }}</span>
                             </div>
                             <div>
                                 <span class="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Mata Pelajaran</span>
