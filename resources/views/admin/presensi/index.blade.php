@@ -41,16 +41,9 @@
                                 </div>
                             </div>
 
-                            <div class="md:w-1/6">
-                                <label for="tanggal" class="block text-xs font-bold text-gray-500 uppercase mb-1">Tanggal</label>
-                                <input type="date" name="tanggal" id="tanggal" value="{{ request('tanggal') }}"
-                                    class="block w-full rounded-xl border-gray-200 bg-white text-sm focus:border-orange-500 focus:ring-orange-500 shadow-sm">
-                            </div>
-
-                            <div class="md:w-1/6">
-                                <label for="kelas_id" class="block text-xs font-bold text-gray-500 uppercase mb-1">Filter Kelas</label>
-                                <select name="kelas_id" id="kelas_id" class="block w-full rounded-xl border-gray-200 bg-white text-sm focus:border-orange-500 focus:ring-orange-500 shadow-sm">
-                                    <option value="">-- Semua Kelas --</option>
+                            <div class="md:w-1/5">
+                                <label for="kelas_id" class="block text-xs font-bold text-gray-500 uppercase mb-1">Kelas (Wajib)</label>
+                                <select name="kelas_id" id="kelas_id" required class="block w-full rounded-xl border-gray-200 bg-white text-sm focus:border-orange-500 focus:ring-orange-500 shadow-sm">
                                     @foreach($kelasList as $k)
                                     <option value="{{ $k->id }}" {{ request('kelas_id') == $k->id ? 'selected' : '' }}>
                                         {{ $k->nama }}
@@ -59,16 +52,28 @@
                                 </select>
                             </div>
 
-                            <div class="md:w-1/6">
-                                <label for="status" class="block text-xs font-bold text-gray-500 uppercase mb-1">Status</label>
-                                <select name="status" id="status" class="block w-full rounded-xl border-gray-200 bg-white text-sm focus:border-orange-500 focus:ring-orange-500 shadow-sm">
-                                    <option value="">-- Semua Status --</option>
-                                    @foreach(['Hadir', 'Izin', 'Sakit', 'Terlambat', 'Alpa'] as $s)
-                                    <option value="{{ $s }}" {{ request('status') == $s ? 'selected' : '' }}>
-                                        {{ $s }}
+                            <div class="md:w-1/5">
+                                <label for="mapel_id" class="block text-xs font-bold text-gray-500 uppercase mb-1">Mapel (Opsional)</label>
+                                <select name="mapel_id" id="mapel_id" class="block w-full rounded-xl border-gray-200 bg-white text-sm focus:border-orange-500 focus:ring-orange-500 shadow-sm">
+                                    <option value="">-- Semua Mapel --</option>
+                                    @foreach($mapelList as $m)
+                                    <option value="{{ $m->id }}" {{ request('mapel_id') == $m->id ? 'selected' : '' }}>
+                                        {{ $m->nama }}
                                     </option>
                                     @endforeach
                                 </select>
+                            </div>
+
+                            <div class="md:w-1/6">
+                                <label for="tanggal" class="block text-xs font-bold text-gray-500 uppercase mb-1">Harian</label>
+                                <input type="date" name="tanggal" id="tanggal" value="{{ request('tanggal') }}"
+                                    class="block w-full rounded-xl border-gray-200 bg-white text-sm focus:border-orange-500 focus:ring-orange-500 shadow-sm">
+                            </div>
+
+                            <div class="md:w-1/6">
+                                <label for="bulan" class="block text-xs font-bold text-gray-500 uppercase mb-1">Atau Bulanan</label>
+                                <input type="month" name="bulan" id="bulan" value="{{ request('bulan') }}"
+                                    class="block w-full rounded-xl border-gray-200 bg-white text-sm focus:border-orange-500 focus:ring-orange-500 shadow-sm">
                             </div>
 
                             <div class="flex items-end gap-2">
@@ -81,7 +86,7 @@
                                     PDF
                                 </a>
 
-                                @if(request()->hasAny(['search', 'tanggal', 'kelas_id', 'status']))
+                                @if(request()->hasAny(['mapel_id', 'tanggal', 'bulan']))
                                 <a href="{{ route('admin.presensi.index') }}" class="px-4 py-2.5 bg-white border border-gray-300 text-gray-700 text-sm font-bold rounded-xl hover:bg-gray-50 transition-colors flex items-center justify-center" title="Reset">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>

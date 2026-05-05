@@ -18,64 +18,70 @@ class PresensiController extends Controller
     public function index(Request $request)
     {
         $kelasList = \App\Models\Kelas::orderBy('nama', 'asc')->get();
+        $mapelList = \App\Models\MataPelajaran::orderBy('nama', 'asc')->get();
 
-        $query = Presensi::with(['siswa', 'rombelJadwalPelajaran.rombelMataPelajaran.kelas', 'device', 'tahunAjar']);
+        // Kelas wajib dipilih, set default jika kosong
+        $kelas_id = $request->kelas_id;
+        if (!$kelas_id && $kelasList->count() > 0) {
+            $kelas_id = $kelasList->first()->id;
+            $request->merge(['kelas_id' => $kelas_id]);
+        }
 
-        // Filter Search (Nama Siswa atau NIS)
-        if ($request->has('search') && $request->search != '') {
-            $query->whereHas('siswa', function ($q) use ($request) {
-                $q->where('nama', 'like', '%' . $request->search . '%')
-                    ->orWhere('nis', 'like', '%' . $request->search . '%');
+        $query = Presensi::with(['siswa', 'rombelJadwalPelajaran.rombelMataPelajaran.kelas', 'rombelJadwalPelajaran.rombelMataPelajaran.mataPelajaran', 'device', 'tahunAjar']);
+
+        // 1. Filter Kelas (Wajib)
+        if ($kelas_id) {
+            $query->whereHas('rombelJadwalPelajaran.rombelMataPelajaran', function ($q) use ($kelas_id) {
+                $q->where('id_kelas', $kelas_id);
             });
         }
 
-        // Filter Tanggal
+        // 2. Filter Mapel (Opsional)
+        if ($request->has('mapel_id') && $request->mapel_id != '') {
+            $query->whereHas('rombelJadwalPelajaran.rombelMataPelajaran', function ($q) use ($request) {
+                $q->where('id_mata_pelajaran', $request->mapel_id);
+            });
+        }
+
+        // 3. Filter Waktu (Harian atau Bulanan)
         if ($request->has('tanggal') && $request->tanggal != '') {
             $query->where('tanggal', $request->tanggal);
-        }
-
-        // Filter Status
-        if ($request->has('status') && $request->status != '') {
-            $query->where('status', $request->status);
-        }
-
-        if ($request->has('kelas_id') && $request->kelas_id != '') {
-            $query->whereHas('rombelJadwalPelajaran.rombelMataPelajaran', function ($q) use ($request) {
-                $q->where('id_kelas', $request->kelas_id);
-            });
+        } elseif ($request->has('bulan') && $request->bulan != '') {
+            $query->whereMonth('tanggal', date('m', strtotime($request->bulan)))
+                  ->whereYear('tanggal', date('Y', strtotime($request->bulan)));
         }
 
         $dataPresensi = $query->latest()->paginate(10);
 
-        return view('admin.presensi.index', compact('dataPresensi', 'kelasList'));
+        return view('admin.presensi.index', compact('dataPresensi', 'kelasList', 'mapelList'));
     }
 
     public function exportPdf(Request $request)
     {
-        $query = Presensi::with(['siswa', 'rombelJadwalPelajaran.rombelMataPelajaran.kelas', 'device', 'tahunAjar']);
+        $kelas_id = $request->kelas_id;
+        
+        $query = Presensi::with(['siswa', 'rombelJadwalPelajaran.rombelMataPelajaran.kelas', 'rombelJadwalPelajaran.rombelMataPelajaran.mataPelajaran', 'device', 'tahunAjar']);
 
-        // Filter Search (Nama Siswa atau NIS)
-        if ($request->has('search') && $request->search != '') {
-            $query->whereHas('siswa', function ($q) use ($request) {
-                $q->where('nama', 'like', '%' . $request->search . '%')
-                    ->orWhere('nis', 'like', '%' . $request->search . '%');
+        // 1. Filter Kelas (Wajib)
+        if ($kelas_id) {
+            $query->whereHas('rombelJadwalPelajaran.rombelMataPelajaran', function ($q) use ($kelas_id) {
+                $q->where('id_kelas', $kelas_id);
             });
         }
 
-        // Filter Tanggal
+        // 2. Filter Mapel (Opsional)
+        if ($request->has('mapel_id') && $request->mapel_id != '') {
+            $query->whereHas('rombelJadwalPelajaran.rombelMataPelajaran', function ($q) use ($request) {
+                $q->where('id_mata_pelajaran', $request->mapel_id);
+            });
+        }
+
+        // 3. Filter Waktu (Harian atau Bulanan)
         if ($request->has('tanggal') && $request->tanggal != '') {
             $query->where('tanggal', $request->tanggal);
-        }
-
-        // Filter Status
-        if ($request->has('status') && $request->status != '') {
-            $query->where('status', $request->status);
-        }
-
-        if ($request->has('kelas_id') && $request->kelas_id != '') {
-            $query->whereHas('rombelJadwalPelajaran.rombelMataPelajaran', function ($q) use ($request) {
-                $q->where('id_kelas', $request->kelas_id);
-            });
+        } elseif ($request->has('bulan') && $request->bulan != '') {
+            $query->whereMonth('tanggal', date('m', strtotime($request->bulan)))
+                  ->whereYear('tanggal', date('Y', strtotime($request->bulan)));
         }
 
         $dataPresensi = $query->latest()->get();

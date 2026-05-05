@@ -26,11 +26,11 @@
 
     <div class="filters">
         <strong>Filter Aktif:</strong>
-        @if(request('search')) | Cari: {{ request('search') }} @endif
-        @if(request('tanggal')) | Tanggal: {{ \Carbon\Carbon::parse(request('tanggal'))->isoFormat('DD MMMM YYYY') }} @endif
         @if(request('kelas_id')) | Kelas: {{ \App\Models\Kelas::find(request('kelas_id'))->nama ?? '-' }} @endif
-        @if(request('status')) | Status: {{ request('status') }} @endif
-        @if(!request()->hasAny(['search', 'tanggal', 'kelas_id', 'status'])) | Semua Data @endif
+        @if(request('mapel_id')) | Mapel: {{ \App\Models\MataPelajaran::find(request('mapel_id'))->nama ?? '-' }} @endif
+        @if(request('tanggal')) | Harian: {{ \Carbon\Carbon::parse(request('tanggal'))->isoFormat('DD MMMM YYYY') }} @endif
+        @if(request('bulan')) | Bulanan: {{ \Carbon\Carbon::parse(request('bulan').'-01')->isoFormat('MMMM YYYY') }} @endif
+        @if(request('search')) | Cari: {{ request('search') }} @endif
     </div>
 
     <table>
