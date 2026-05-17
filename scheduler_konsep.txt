@@ -1,0 +1,22 @@
+#### 1. Scheduler A: Sistem Peringatan Dini / *Early Warning System*
+* **Nama Program:** Cek Anomali Presensi (`absensi:cek-anomali`)
+* **Waktu Eksekusi:** Berjalan setiap **30 Menit** (selama rentang jam sekolah).
+* **Target Notifikasi:** Wali Kelas dan Guru Bimbingan Konseling (BK).
+* **Cara Kerja:**
+  * Berfungsi sebagai mata-mata kedisiplinan di jam-jam rawan.
+  * Sistem akan menyisir jadwal pelajaran yang sudah **berjalan lebih dari 1 jam**.
+  * Jika ditemukan ada siswa yang sama sekali belum *tap* sidik jari (padahal kelas sudah mulai sejak lama), sistem menetapkan siswa tersebut sebagai status **"Anomali / Indikasi Bolos"**.
+  * Sistem lalu merangkum daftar siswa bolos per kelas dan langsung menembakkan **Pesan Peringatan via WhatsApp** kepada Guru BK dan Wali Kelas terkait untuk segera ditindaklanjuti sebelum jam sekolah berakhir.
+
+#### 2. Scheduler B: Finalisasi Data & Transparansi / *Daily Auto-Closing*
+* **Nama Program:** Rekapitulasi Presensi Sore (`absensi:rekap-sore`)
+* **Waktu Eksekusi:** Berjalan **Sekali Sehari** (Tepat pukul 16:00 WIB).
+* **Target Notifikasi:** Orang Tua / Wali Murid.
+* **Cara Kerja:**
+  * Merupakan proses tutup buku harian (*closing*) kegiatan presensi di penghujung hari.
+  * **Tahap 1 (Integritas Data):** Sistem akan melakukan *sweeping* (penyisiran) total terhadap semua jadwal seluruh siswa hari ini. Jika ada kolom kehadiran yang masih kosong (siswa membolos total tanpa keterangan manual dari guru), sistem akan melakukan **Auto-Fill** dengan secara fisik menginjeksi status **"Alpha"** ke dalam database. Ini menjamin data absensi 100% rapi dan tidak ada data berlubang/kosong (memudahkan pembuatan Rapor).
+  * **Tahap 2 (Transparansi):** Setelah seluruh database rapi, sistem menyusun laporan kehadiran secara detail (sesi demi sesi mapel beserta ikon presensinya), lalu mem-*broadcast* laporan tersebut ke nomor WhatsApp **Orang Tua Siswa**, memberikan rasa aman dan transparansi mutlak kepada wali murid.
+
+---
+**Tips Presentasi:** 
+Beri penekanan bahwa sistem ini **mengurangi beban administratif guru**. Guru tidak perlu lagi menelepon orang tua satu per satu atau secara manual menulis "Alpha" pada siswa yang membolos; semua sudah ditangani secara otomatis oleh *FingerSync Scheduler*.

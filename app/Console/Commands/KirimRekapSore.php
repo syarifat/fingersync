@@ -33,15 +33,20 @@ class KirimRekapSore extends Command
         }
 
         $tanggalFormat = Carbon::parse($tanggalIni)->isoFormat('DD MMMM YYYY');
-        $this->info("Memulai pengiriman rekap sore untuk tanggal $tanggalFormat...");
+        $this->info("Memulai pengisian Alpha otomatis dan pengiriman rekap sore untuk tanggal $tanggalFormat...");
 
-        // 1. Ambil semua siswa yang punya nomor HP Ortu
-        $siswaList = Siswa::whereNotNull('nohp_ortu')->where('status', 'Aktif')->get();
+        // CARI DEVICE DEFAULT UNTUK ABSENSI OTOMATIS
+        $device = \App\Models\Device::first();
+        $deviceId = $device ? $device->id : null; 
+
+        // 1. Ambil SEMUA siswa aktif (agar yang tidak punya nohp ortu tetap tercatat Alpha di database)
+        $siswaList = Siswa::where('status', 'Aktif')->get();
 
         $totalTerkirim = 0;
+        $totalAlphaDitambahkan = 0;
 
         foreach ($siswaList as $siswa) {
-            // --- PERBAIKAN: Cari siswa ini ada di KELAS mana ---
+            // --- Cari siswa ini ada di KELAS mana ---
             $rombelSiswa = \App\Models\RombelKelas::where('id_siswa', $siswa->id)
                             ->latest() // Ambil riwayat kelas yang paling baru
                             ->first();
@@ -78,7 +83,21 @@ class KirimRekapSore extends Command
                     ->where('tanggal', $tanggalIni)
                     ->first();
 
-                $status = $absen ? $absen->status : 'Alpha / Tidak Ada Keterangan';
+                // OTOMATISKAN JADI ALPHA JIKA KOSONG
+                if (!$absen) {
+                    $absen = Presensi::create([
+                        'id_siswa' => $siswa->id,
+                        'id_rombel_jadwal_pelajaran' => $jdwl->id,
+                        'tanggal' => $tanggalIni,
+                        'jam_scan' => '16:00:00', // Jam 4 sore
+                        'id_device' => $deviceId,
+                        'status' => 'Alpha',
+                        'id_tahun_ajar' => $jdwl->rombelMataPelajaran->id_tahun_ajar,
+                    ]);
+                    $totalAlphaDitambahkan++;
+                }
+
+                $status = $absen->status;
                 
                 // Icon pemanis
                 $icon = '❌';
@@ -86,19 +105,24 @@ class KirimRekapSore extends Command
                 if ($status == 'Sakit') $icon = '🤒';
                 if ($status == 'Izin') $icon = '✉️';
 
+                $displayStatus = ($status == 'Alpha') ? 'Alpha / Tanpa Keterangan' : $status;
+
                 $pesan .= "{$icon} *{$jam}* | {$mapel}\n";
-                $pesan .= "Status: _{$status}_\n\n";
+                $pesan .= "Status: _{$displayStatus}_\n\n";
             }
 
             $pesan .= "----------------------------------\n";
             $pesan .= "Demikian laporan harian ini kami sampaikan. Terima kasih atas perhatian Ayah/Ibu.";
 
-            // 4. KIRIM WA!
-            \App\Services\WhatsAppService::send($siswa->nohp_ortu, $pesan, $siswa->id);
-            $totalTerkirim++;
+            // 4. KIRIM WA! (Hanya jika orang tua memiliki nomor HP)
+            if (!empty($siswa->nohp_ortu)) {
+                \App\Services\WhatsAppService::send($siswa->nohp_ortu, $pesan, $siswa->id);
+                $totalTerkirim++;
+            }
         }
 
-        $this->info("Selesai! Berhasil mengirim $totalTerkirim rekap sore ke Orang Tua.");
+        $this->info("Selesai! $totalAlphaDitambahkan data Alpha otomatis ditambahkan ke database.");
+        $this->info("Berhasil mengirim $totalTerkirim rekap sore ke Orang Tua.");
     }
 
     private function getHariIndo($day) {
