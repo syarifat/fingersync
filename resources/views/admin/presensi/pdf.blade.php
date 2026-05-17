@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>Absensi Siswa</title>
+    <title>Presensi Siswa</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: Arial, sans-serif; font-size: 10px; color: #1a1a1a; }
@@ -57,7 +57,7 @@
 <body>
 
     <div class="header">
-        <h1>REKAP ABSENSI BULANAN</h1>
+        <h1>REKAP PRESENSI BULANAN</h1>
         <p>{{ $kelas->nama }} &nbsp;|&nbsp; {{ $bulanLabel }}</p>
     </div>
 

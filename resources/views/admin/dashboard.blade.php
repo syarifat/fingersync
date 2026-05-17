@@ -73,7 +73,7 @@
                 <div class="p-8">
                     <div class="flex items-center justify-between mb-6">
                         <div>
-                            <h3 class="text-lg font-bold text-gray-800 tracking-tight">Log Absensi Terbaru</h3>
+                            <h3 class="text-lg font-bold text-gray-800 tracking-tight">Log Presensi Terbaru</h3>
                             <p class="text-sm text-gray-500">Menampilkan 5 siswa terakhir yang menempelkan jari di alat.</p>
                         </div>
                         <a href="#" class="text-sm font-bold text-orange-600 hover:text-orange-700">Lihat Semua Data &rarr;</a>

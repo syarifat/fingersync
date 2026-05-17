@@ -1,7 +1,7 @@
 <x-app-layout>
     <x-slot name="header">
         <h2 class="font-semibold text-2xl text-gray-800 leading-tight italic">
-            {{ __('Cari Riwayat Absensi') }}
+            {{ __('Cari Riwayat Presensi') }}
         </h2>
     </x-slot>
 
@@ -61,7 +61,7 @@
                             <div class="mt-5 pt-4 border-t border-gray-100 flex justify-end">
                                 {{-- Link menuju halaman Show dengan membawa parameter Tanggal --}}
                                 <a href="{{ route('guru.riwayat-absensi.show', $jadwal->id) }}?tanggal={{ $tanggalFilter }}" class="px-4 py-2 bg-gray-800 text-white rounded-xl text-sm font-bold hover:bg-orange-600 transition-colors shadow-sm flex items-center gap-2">
-                                    Kelola Absensi
+                                    Kelola Presensi
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
                                 </a>
                             </div>

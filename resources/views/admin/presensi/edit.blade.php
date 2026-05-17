@@ -50,7 +50,7 @@
                                 <option value="Alpa" {{ $presensi->status == 'Alpa' ? 'selected' : '' }}>Alpa</option>
                             </select>
                             <x-input-error :messages="$errors->get('status')" class="mt-1" />
-                            <p class="text-xs text-gray-500 mt-2 italic">*Mengubah status absensi ini akan langsung tercermin di laporan nilai dan dashboard guru.</p>
+                            <p class="text-xs text-gray-500 mt-2 italic">*Mengubah status presensi ini akan langsung tercermin di laporan nilai dan dashboard guru.</p>
                         </div>
 
                     </div>

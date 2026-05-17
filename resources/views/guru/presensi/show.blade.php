@@ -5,7 +5,7 @@
                 <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
             </a>
             <h2 class="font-semibold text-2xl text-gray-800 leading-tight italic">
-                {{ __('Kelola Absensi Kelas') }}
+                {{ __('Kelola Presensi Kelas') }}
             </h2>
         </div>
     </x-slot>
@@ -35,7 +35,7 @@
                     </p>
                 </div>
                 <div class="bg-orange-50 border border-orange-100 px-6 py-3 rounded-2xl text-center">
-                    <span class="block text-sm text-orange-600 font-bold uppercase tracking-widest mb-1">Tanggal Absensi</span>
+                    <span class="block text-sm text-orange-600 font-bold uppercase tracking-widest mb-1">Tanggal Presensi</span>
                     <span class="block text-lg font-black text-gray-800">{{ \Carbon\Carbon::parse($tanggalHariIni)->isoFormat('DD MMMM YYYY') }}</span>
                 </div>
             </div>
@@ -45,9 +45,9 @@
                 @csrf
                 <div class="bg-white overflow-hidden shadow-sm rounded-[2rem] border border-gray-100 p-8">
                     <div class="mb-6 flex justify-between items-center border-b border-gray-100 pb-4">
-                        <p class="text-sm text-gray-500">Ubah status pada kolom dropdown, lalu klik tombol <b>Simpan Absensi</b> di bawah.</p>
+                        <p class="text-sm text-gray-500">Ubah status pada kolom dropdown, lalu klik tombol <b>Simpan Presensi</b> di bawah.</p>
                         <button type="submit" class="px-6 py-2.5 bg-orange-600 text-white rounded-xl text-sm font-bold hover:bg-orange-700 transition-colors shadow-lg">
-                            Simpan Absensi
+                            Simpan Presensi
                         </button>
                     </div>
 

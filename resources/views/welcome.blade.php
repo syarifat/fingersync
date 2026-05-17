@@ -74,7 +74,7 @@
                 Sistem Presensi Generasi Baru
             </span>
             <h1 class="text-5xl md:text-7xl font-extrabold text-gray-900 tracking-tight mb-8 leading-tight">
-                Absensi Siswa <br class="hidden md:block" />
+                Presensi Siswa <br class="hidden md:block" />
                 <span class="text-transparent bg-clip-text bg-gradient-to-r from-orange-600 to-yellow-500">Cepat, Akurat & Realtime</span>
             </h1>
             <p class="text-lg md:text-xl text-gray-500 max-w-2xl mx-auto mb-10 leading-relaxed">
