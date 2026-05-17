@@ -69,51 +69,69 @@ class PresensiController extends Controller
         $tahun    = (int) date('Y', strtotime($bulanStr . '-01'));
         $bulan    = (int) date('m', strtotime($bulanStr . '-01'));
         $bulanLabel = \Carbon\Carbon::createFromDate($tahun, $bulan, 1)->isoFormat('MMMM YYYY');
+        $daysInMonth = \Carbon\Carbon::createFromDate($tahun, $bulan, 1)->daysInMonth;
 
         $tahunAjar = \App\Models\TahunAjar::where('status_aktif', 1)->first();
+
+        // Get filter mapel info if applied
+        $mapelInfo = null;
+        if ($request->mapel_id) {
+            $mapelObj = \App\Models\MataPelajaran::find($request->mapel_id);
+            if ($mapelObj) {
+                $mapelInfo = $mapelObj->nama;
+            }
+        }
 
         $siswaList = \App\Models\RombelKelas::with('siswa')
             ->where('id_kelas', $request->kelas_id)
             ->when($tahunAjar, fn($q) => $q->where('id_tahun_ajar', $tahunAjar->id))
             ->get()->pluck('siswa')->filter()->sortBy('nama')->values();
 
-        $rmQuery = \App\Models\RombelMataPelajaran::with('mataPelajaran')
-            ->where('id_kelas', $request->kelas_id)
-            ->when($tahunAjar, fn($q) => $q->where('id_tahun_ajar', $tahunAjar->id));
-        if ($request->mapel_id) {
-            $rmQuery->where('id_mata_pelajaran', $request->mapel_id);
-        }
-        $rombelMapelList = $rmQuery->get();
-
-        $dataPerMapel = [];
-        foreach ($rombelMapelList as $rm) {
-            $presensiList = Presensi::whereNotNull('id_siswa')
-                ->whereHas('rombelJadwalPelajaran', fn($q) => $q->where('id_rombel_mata_pelajaran', $rm->id))
-                ->whereMonth('tanggal', $bulan)->whereYear('tanggal', $tahun)->get();
-
-            if ($presensiList->isEmpty()) continue;
-
-            $tanggalAktif = $presensiList->pluck('tanggal')->unique()->sort()->values()
-                ->map(fn($t) => \Carbon\Carbon::parse($t)->format('Y-m-d'));
-
-            $matrix = [];
-            foreach ($siswaList as $siswa) {
-                $row = [];
-                foreach ($tanggalAktif as $tgl) {
-                    $p = $presensiList->where('id_siswa', $siswa->id)->where('tanggal', $tgl)->first();
-                    $row[$tgl] = $p ? strtoupper(substr($p->status, 0, 1)) : '-';
+        $queryPresensi = Presensi::whereNotNull('id_siswa')
+            ->whereHas('rombelJadwalPelajaran.rombelMataPelajaran', function($q) use ($request) {
+                $q->where('id_kelas', $request->kelas_id);
+                if ($request->mapel_id) {
+                    $q->where('id_mata_pelajaran', $request->mapel_id);
                 }
-                $matrix[$siswa->id] = $row;
-            }
+            })
+            ->whereMonth('tanggal', $bulan)
+            ->whereYear('tanggal', $tahun);
 
-            $dataPerMapel[] = [
-                'nama_mapel'    => $rm->mataPelajaran->nama ?? 'Mapel',
-                'tanggal_aktif' => $tanggalAktif,
-                'matrix'        => $matrix,
+        $presensiList = $queryPresensi->get();
+
+        $matrix = [];
+        foreach ($siswaList as $siswa) {
+            $row = [];
+            for ($d = 1; $d <= $daysInMonth; $d++) {
+                $tglStr = Carbon::createFromDate($tahun, $bulan, $d)->format('Y-m-d');
+                $pList = $presensiList->where('id_siswa', $siswa->id)->where('tanggal', $tglStr);
+                
+                if ($pList->isEmpty()) {
+                    $row[$d] = '';
+                } else {
+                    // Aggregate daily status: Worst-case logic
+                    $statuses = $pList->pluck('status')->toArray();
+                    if (in_array('Alpa', $statuses)) $row[$d] = 'A';
+                    elseif (in_array('Sakit', $statuses)) $row[$d] = 'S';
+                    elseif (in_array('Izin', $statuses)) $row[$d] = 'I';
+                    elseif (in_array('Terlambat', $statuses)) $row[$d] = 'T';
+                    elseif (in_array('Hadir', $statuses)) $row[$d] = 'H';
+                    else $row[$d] = '';
+                }
+            }
+            $matrix[$siswa->id] = $row;
+        }
+
+        // Build array of dates properties (for header and weekend formatting)
+        $datesInfo = [];
+        for ($d = 1; $d <= $daysInMonth; $d++) {
+            $datesInfo[$d] = [
+                'day' => $d,
+                'isWeekend' => Carbon::createFromDate($tahun, $bulan, $d)->isWeekend()
             ];
         }
 
-        $pdf = Pdf::loadView('admin.presensi.pdf', compact('kelas', 'siswaList', 'dataPerMapel', 'bulanLabel'))
+        $pdf = Pdf::loadView('admin.presensi.pdf', compact('kelas', 'siswaList', 'matrix', 'datesInfo', 'bulanLabel', 'mapelInfo'))
                   ->setPaper('a4', 'landscape');
         return $pdf->download("Absensi_{$kelas->nama}_{$bulanStr}.pdf");
     }
