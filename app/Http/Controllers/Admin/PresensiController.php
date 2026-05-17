@@ -153,9 +153,17 @@ class PresensiController extends Controller
             ];
         }
 
+        $namaMapel = $mapelInfo ? $mapelInfo : 'Semua Mapel';
+        // Membersihkan karakter yang dilarang pada nama file sistem operasi
+        $namaMapelSafe = str_replace(['/', '\\', ':', '*', '?', '"', '<', '>', '|'], '-', $namaMapel);
+        $kelasSafe = str_replace(['/', '\\', ':', '*', '?', '"', '<', '>', '|'], '-', $kelas->nama);
+        
+        $fileName = "Data Presensi_{$bulanLabel}_{$kelasSafe}_{$namaMapelSafe}.pdf";
+
         $pdf = Pdf::loadView('admin.presensi.pdf', compact('kelas', 'siswaList', 'dataPerMapel', 'datesInfo', 'bulanLabel', 'mapelInfo'))
                   ->setPaper('a4', 'landscape');
-        return $pdf->download("Absensi_{$kelas->nama}_{$bulanStr}.pdf");
+                  
+        return $pdf->download($fileName);
     }
 
     /**
