@@ -87,13 +87,18 @@ class PresensiController extends Controller
             ->when($tahunAjar, fn($q) => $q->where('id_tahun_ajar', $tahunAjar->id))
             ->get()->pluck('siswa')->filter()->sortBy('nama')->values();
 
-        $rmQuery = \App\Models\RombelMataPelajaran::with('mataPelajaran')
-            ->where('id_kelas', $request->kelas_id)
-            ->when($tahunAjar, fn($q) => $q->where('id_tahun_ajar', $tahunAjar->id));
+        // Cari mata pelajaran unik yang diajarkan di kelas ini
+        $mapelQuery = \App\Models\MataPelajaran::whereHas('rombelMataPelajaran', function($q) use ($request, $tahunAjar) {
+            $q->where('id_kelas', $request->kelas_id);
+            if ($tahunAjar) {
+                $q->where('id_tahun_ajar', $tahunAjar->id);
+            }
+        });
+        
         if ($request->mapel_id) {
-            $rmQuery->where('id_mata_pelajaran', $request->mapel_id);
+            $mapelQuery->where('id', $request->mapel_id);
         }
-        $rombelMapelList = $rmQuery->get();
+        $mapelList = $mapelQuery->get();
 
         // Build array of dates properties (for header and weekend formatting)
         $datesInfo = [];
@@ -105,10 +110,19 @@ class PresensiController extends Controller
         }
 
         $dataPerMapel = [];
-        foreach ($rombelMapelList as $rm) {
+        foreach ($mapelList as $mapel) {
             $presensiList = Presensi::whereNotNull('id_siswa')
-                ->whereHas('rombelJadwalPelajaran', fn($q) => $q->where('id_rombel_mata_pelajaran', $rm->id))
-                ->whereMonth('tanggal', $bulan)->whereYear('tanggal', $tahun)->get();
+                ->whereHas('rombelJadwalPelajaran.rombelMataPelajaran', function($q) use ($mapel, $request) {
+                    $q->where('id_mata_pelajaran', $mapel->id)
+                      ->where('id_kelas', $request->kelas_id);
+                })
+                ->whereMonth('tanggal', $bulan)
+                ->whereYear('tanggal', $tahun)
+                ->get();
+
+            // Jika benar-benar kosong presensi mapel ini, boleh dilewati agar pdf tidak memunculkan tabel kosong melompong
+            // Hapus baris ini jika Anda ingin tabel mapel tetap tercetak walau datanya kosong semua
+            if ($presensiList->isEmpty()) continue; 
 
             $matrix = [];
             foreach ($siswaList as $siswa) {
@@ -134,7 +148,7 @@ class PresensiController extends Controller
             }
 
             $dataPerMapel[] = [
-                'nama_mapel'    => $rm->mataPelajaran->nama ?? 'Mapel',
+                'nama_mapel'    => $mapel->nama,
                 'matrix'        => $matrix,
             ];
         }
