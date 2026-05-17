@@ -14,7 +14,18 @@
         .filter-info { margin-bottom: 10px; font-size: 11px; color: #333; }
         .filter-info span { font-weight: bold; }
 
-        .mapel-section { margin-bottom: 22px; }
+        .mapel-section { margin-bottom: 22px; page-break-after: always; }
+        .mapel-section:last-child { page-break-after: auto; }
+        .mapel-title {
+            background: #1e293b;
+            color: white;
+            padding: 5px 10px;
+            font-size: 11px;
+            font-weight: bold;
+            letter-spacing: 0.5px;
+            border-radius: 4px 4px 0 0;
+            margin-bottom: 0;
+        }
 
         table { width: 100%; border-collapse: collapse; }
         th, td { border: 1px solid #cbd5e1; text-align: center; }
@@ -65,7 +76,9 @@
     @if($siswaList->isEmpty())
         <div class="empty-msg">Tidak ada siswa di kelas ini.</div>
     @else
+        @foreach($dataPerMapel as $item)
         <div class="mapel-section">
+            <div class="mapel-title">📚 {{ $item['nama_mapel'] }}</div>
             <table>
                 <thead>
                     <tr>
@@ -90,7 +103,7 @@
                         <td class="td-no">{{ $i + 1 }}</td>
                         <td class="td-nama">{{ $siswa->nama }}</td>
                         @php
-                            $matrixRow = $matrix[$siswa->id] ?? [];
+                            $matrixRow = $item['matrix'][$siswa->id] ?? [];
                             $countH = 0; $countT = 0; $countI = 0; $countS = 0; $countA = 0;
                         @endphp
                         
@@ -118,6 +131,7 @@
                 </tbody>
             </table>
         </div>
+        @endforeach
     @endif
 
     <div class="legend">
