@@ -14,8 +14,7 @@
         .filter-info { margin-bottom: 10px; font-size: 11px; color: #333; }
         .filter-info span { font-weight: bold; }
 
-        .mapel-section { margin-bottom: 22px; page-break-after: always; }
-        .mapel-section:last-child { page-break-after: auto; }
+        .mapel-section { margin-bottom: 22px; }
         .mapel-title {
             background: #1e293b;
             color: white;
@@ -77,7 +76,7 @@
         <div class="empty-msg">Tidak ada siswa di kelas ini.</div>
     @else
         @foreach($dataPerMapel as $item)
-        <div class="mapel-section">
+        <div class="mapel-section" style="{{ !$loop->last ? 'page-break-after: always;' : '' }}">
             <div class="mapel-title">📚 {{ $item['nama_mapel'] }}</div>
             <table>
                 <thead>
@@ -130,19 +129,19 @@
                     @endforeach
                 </tbody>
             </table>
+
+            <div class="legend">
+                <span><strong>Keterangan:</strong></span>
+                <span class="leg-item"><span class="leg-box H">H</span> Hadir / <span class="leg-box T">T</span> Terlambat (Dihitung Hadir)</span>
+                <span class="leg-item"><span class="leg-box I">I</span> Izin</span>
+                <span class="leg-item"><span class="leg-box S">S</span> Sakit</span>
+                <span class="leg-item"><span class="leg-box A">A</span> Alpa</span>
+                <span class="leg-item"><span class="leg-box weekend"></span> Hari Libur (Sabtu/Minggu)</span>
+                <span class="leg-item">- = Tidak ada kegiatan</span>
+            </div>
         </div>
         @endforeach
     @endif
-
-    <div class="legend">
-        <span><strong>Keterangan:</strong></span>
-        <span class="leg-item"><span class="leg-box H">H</span> Hadir / <span class="leg-box T">T</span> Terlambat (Dihitung Hadir)</span>
-        <span class="leg-item"><span class="leg-box I">I</span> Izin</span>
-        <span class="leg-item"><span class="leg-box S">S</span> Sakit</span>
-        <span class="leg-item"><span class="leg-box A">A</span> Alpa</span>
-        <span class="leg-item"><span class="leg-box weekend"></span> Hari Libur (Sabtu/Minggu)</span>
-        <span class="leg-item">- = Tidak ada kegiatan</span>
-    </div>
 
 </body>
 </html>
