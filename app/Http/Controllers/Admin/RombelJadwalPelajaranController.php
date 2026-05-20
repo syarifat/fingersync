@@ -66,7 +66,12 @@ class RombelJadwalPelajaranController extends Controller
         // Jika form kosong (Admin sengaja menghapus semua baris)
         if (!$request->has('hari')) {
             $plottingIds = RombelMataPelajaran::where('id_kelas', $id_kelas)->where('id_tahun_ajar', $activeYear)->pluck('id');
-            RombelJadwalPelajaran::whereIn('id_rombel_mata_pelajaran', $plottingIds)->delete();
+            $jadwalLamaIds = RombelJadwalPelajaran::whereIn('id_rombel_mata_pelajaran', $plottingIds)->pluck('id');
+            
+            // Hapus child data (presensi) terlebih dahulu agar tidak kena foreign key constraint error
+            \App\Models\Presensi::whereIn('id_rombel_jadwal_pelajaran', $jadwalLamaIds)->delete();
+            
+            RombelJadwalPelajaran::whereIn('id', $jadwalLamaIds)->delete();
             return redirect()->route('admin.rombel-jadwal.index')->with('success', 'Jadwal pelajaran berhasil dikosongkan!');
         }
 
@@ -159,7 +164,13 @@ class RombelJadwalPelajaranController extends Controller
         // Jika script berhasil sampai di titik ini, berarti SELURUH jadwal AMAN 100%.
         // Lakukan Sapu Bersih jadwal lama, dan Insert jadwal baru.
         $plottingIds = RombelMataPelajaran::where('id_kelas', $id_kelas)->where('id_tahun_ajar', $activeYear)->pluck('id');
-        RombelJadwalPelajaran::whereIn('id_rombel_mata_pelajaran', $plottingIds)->delete();
+        $jadwalLamaIds = RombelJadwalPelajaran::whereIn('id_rombel_mata_pelajaran', $plottingIds)->pluck('id');
+        
+        // Hapus child data (presensi) terlebih dahulu agar tidak kena foreign key constraint error
+        \App\Models\Presensi::whereIn('id_rombel_jadwal_pelajaran', $jadwalLamaIds)->delete();
+        
+        // Baru hapus jadwalnya
+        RombelJadwalPelajaran::whereIn('id', $jadwalLamaIds)->delete();
 
         if (count($dataInsert) > 0) {
             RombelJadwalPelajaran::insert($dataInsert);

@@ -15,6 +15,28 @@
     <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        function confirmDelete(event, warningMessage) {
+            event.preventDefault();
+            const form = event.target.closest('form');
+            Swal.fire({
+                title: 'Yakin Ingin Menghapus?',
+                text: warningMessage || 'Data yang dihapus tidak dapat dikembalikan!',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#ea580c', // Tailwind orange-600
+                cancelButtonColor: '#6b7280',  // Tailwind gray-500
+                confirmButtonText: 'Ya, Hapus!',
+                cancelButtonText: 'Batal'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    form.submit();
+                }
+            });
+        }
+    </script>
 </head>
 
 <body class="font-sans antialiased bg-gray-50" x-data="{ sidebarOpen: true }">

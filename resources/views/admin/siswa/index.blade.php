@@ -181,7 +181,7 @@
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path>
                                                 </svg>
                                             </a>
-                                            <form action="{{ route('admin.siswa.destroy', $s->id) }}" method="POST" onsubmit="return confirm('Hapus data siswa {{ $s->nama }}?')">
+                                            <form action="{{ route('admin.siswa.destroy', $s->id) }}" method="POST" onsubmit="confirmDelete(event, 'Menghapus siswa ini juga akan ikut menghapus riwayat keanggotaan kelas (rombel) dan seluruh data presensinya. Lanjutkan?')">
                                                 @csrf @method('DELETE')
                                                 <button type="submit" class="p-2 bg-red-100 text-red-600 rounded-lg hover:bg-red-500 hover:text-white transition-all shadow-sm" title="Hapus Data">
                                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

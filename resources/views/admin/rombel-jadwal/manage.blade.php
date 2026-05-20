@@ -10,7 +10,7 @@
 
     <div class="py-12 bg-gray-50 min-h-screen">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            <form action="{{ route('admin.rombel-jadwal.storeManage', $kelas->id) }}" method="POST">
+            <form action="{{ route('admin.rombel-jadwal.storeManage', $kelas->id) }}" method="POST" onsubmit="return validateManageJadwal(event)">
                 @csrf
                 
                 <div class="bg-white shadow-sm rounded-[2rem] border border-gray-100 p-8 overflow-hidden">
@@ -186,5 +186,13 @@
                 addRow(null); // Tambah 1 baris kosong jika belum ada data
             }
         });
+
+        function validateManageJadwal(event) {
+            const container = document.getElementById('dynamicContainer');
+            // Jika container kosong (Sapu Bersih), beri peringatan foreign key
+            if (container.children.length === 0) {
+                confirmDelete(event, 'Aksi ini akan menghapus seluruh jadwal pelajaran di kelas ini beserta SEMUA riwayat presensi (absensi) yang sudah tercatat. Anda yakin ingin melanjutkan?');
+            }
+        }
     </script>
 </x-app-layout>
