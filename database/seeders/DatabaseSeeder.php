@@ -182,14 +182,9 @@ class DatabaseSeeder extends Seeder
                 $namaSiswaAsli = $faker->firstName($gender == 'Laki-laki' ? 'male' : 'female') . ' ' . $faker->lastName;
                 $profileType = $types[$s];
                 
-                // Tambahkan tanda visual pada nama agar mudah dicek saat demo
-                $namaDisplay = $namaSiswaAsli;
-                if ($profileType == 'teladan') $namaDisplay .= ' (Teladan)';
-                if ($profileType == 'bermasalah') $namaDisplay .= ' (Bermasalah)';
-
                 $siswaId = DB::table('siswa')->insertGetId([
                     'nis' => '26' . str_pad($fingerprintCounter, 4, '0', STR_PAD_LEFT),
-                    'nama' => $namaDisplay,
+                    'nama' => $namaSiswaAsli,
                     'fingerprint_id' => $fingerprintCounter,
                     'id_jurusan' => $jurusanId,
                     'gender' => $gender,
