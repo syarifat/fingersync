@@ -151,6 +151,7 @@ class DatabaseSeeder extends Seeder
         $siswaProfiles = []; 
         $fingerprintCounter = 1;
 
+        // Buat kelas terlebih dahulu
         foreach ($kelasNames as $index => $namaKelas) {
             $kelasId = DB::table('kelas')->insertGetId([
                 'nama' => $namaKelas, 'id_jurusan' => $jurusanId, 'created_at' => now(), 'updated_at' => now()
@@ -168,20 +169,27 @@ class DatabaseSeeder extends Seeder
                 'wali_kelas' => $waliKelasAssigned,
                 'ruangan_id' => $ruanganIds[$index],
             ];
+        }
 
-            // Setup Profile Siswa di kelas ini: 5 Teladan, 5 Bermasalah, 20 Biasa
+        // Setup Profile Siswa di masing-masing kelas secara terpisah: 5 Teladan, 5 Bermasalah, 20 Biasa
+        $classProfiles = [];
+        for ($i = 0; $i < 3; $i++) {
             $types = array_merge(
                 array_fill(0, 5, 'teladan'),
                 array_fill(0, 5, 'bermasalah'),
                 array_fill(0, 20, 'biasa')
             );
             shuffle($types);
+            $classProfiles[$i] = $types;
+        }
 
-            for ($s = 0; $s < 30; $s++) {
+        // Generate siswa secara Round-Robin agar fingerprint_id & siswa_id 1 s.d 10 terbagi rata ke 3 kelas
+        for ($s = 0; $s < 30; $s++) {
+            foreach ($kelasData as $index => $k) {
                 $gender = $faker->randomElement(['Laki-laki', 'Perempuan']);
                 $namaSiswaAsli = $faker->firstName($gender == 'Laki-laki' ? 'male' : 'female') . ' ' . $faker->lastName;
-                $profileType = $types[$s];
-                
+                $profileType = $classProfiles[$index][$s];
+
                 $siswaId = DB::table('siswa')->insertGetId([
                     'nis' => '26' . str_pad($fingerprintCounter, 4, '0', STR_PAD_LEFT),
                     'nama' => $namaSiswaAsli,
@@ -202,10 +210,10 @@ class DatabaseSeeder extends Seeder
 
                 // Masukkan siswa ke Rombel Kelas
                 DB::table('rombel_kelas')->insert([
-                    'id_kelas' => $kelasId,
+                    'id_kelas' => $k['id'],
                     'id_siswa' => $siswaId,
-                    'id_guru_wali_kelas' => $waliKelasAssigned,
-                    'id_guru_bk' => $guruBkAssigned,
+                    'id_guru_wali_kelas' => $k['wali_kelas'],
+                    'id_guru_bk' => $k['guru_bk'],
                     'id_tahun_ajar' => $tahunAjarId,
                     'created_at' => now(), 'updated_at' => now()
                 ]);
