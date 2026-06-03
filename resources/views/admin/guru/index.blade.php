@@ -56,7 +56,7 @@
                                     </div>
                                     <input type="text" name="search" id="search" value="{{ request('search') }}"
                                         class="pl-10 block w-full rounded-xl border-gray-200 bg-white text-sm focus:border-orange-500 focus:ring-orange-500 shadow-sm"
-                                        placeholder="Nama atau NIDN...">
+                                        placeholder="Nama atau NIY...">
                                 </div>
                             </div>
 
@@ -119,7 +119,7 @@
                             <thead>
                                 <tr class="text-gray-400 text-xs uppercase tracking-widest border-b border-gray-100">
                                     <th class="pb-4 pl-4 font-black">Profil Guru</th>
-                                    <th class="pb-4 font-black">NIDN / Kontak</th>
+                                    <th class="pb-4 font-black">NIY / Kontak</th>
                                     <th class="pb-4 font-black text-center">Status</th>
                                     <th class="pb-4 pr-4 font-black text-right">Aksi</th>
                                 </tr>

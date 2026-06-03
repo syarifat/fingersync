@@ -20,7 +20,7 @@
                     </div>
                     <div>
                         <h3 class="text-2xl font-black text-gray-800">Selamat datang, {{ $guru->nama }}!</h3>
-                        <p class="text-gray-500 font-medium mt-1">NIDN: {{ $guru->nidn }}</p>
+                        <p class="text-gray-500 font-medium mt-1">NIY: {{ $guru->nidn }}</p>
                     </div>
                 </div>
                 

@@ -16,7 +16,7 @@
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div>
                                 <x-input-label for="username" value="Username Login" class="font-bold text-gray-700" />
-                                <x-text-input name="username" class="mt-2 w-full bg-orange-50/30 border-orange-200 focus:ring-orange-500" required :value="old('username')" placeholder="NIP / NIDN (Unik)" />
+                                <x-text-input name="username" class="mt-2 w-full bg-orange-50/30 border-orange-200 focus:ring-orange-500" required :value="old('username')" placeholder="NIY (Unik)" />
                                 <x-input-error :messages="$errors->get('username')" class="mt-1" />
                             </div>
                             
@@ -38,7 +38,7 @@
                         </h3>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div>
-                                <x-input-label for="nidn" value="NIDN / NIP" class="font-bold text-gray-700" />
+                                <x-input-label for="nidn" value="NIY" class="font-bold text-gray-700" />
                                 <x-text-input name="nidn" type="number" class="mt-2 w-full" required :value="old('nidn')" />
                                 <x-input-error :messages="$errors->get('nidn')" class="mt-1" />
                             </div>
