@@ -21,21 +21,170 @@
         function confirmDelete(event, warningMessage) {
             event.preventDefault();
             const form = event.target.closest('form');
+            triggerValidation(form);
+        }
+
+        function triggerValidation(form) {
+            if (form.dataset.confirmed) {
+                form.submit();
+                return;
+            }
+            if (form.dataset.processing) {
+                return;
+            }
+            form.dataset.processing = 'true';
+
+            // Tampilkan loading spinner
             Swal.fire({
-                title: 'Yakin Ingin Menghapus?',
-                text: warningMessage || 'Data yang dihapus tidak dapat dikembalikan!',
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#ea580c', // Tailwind orange-600
-                cancelButtonColor: '#6b7280',  // Tailwind gray-500
-                confirmButtonText: 'Ya, Hapus!',
-                cancelButtonText: 'Batal'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    form.submit();
+                title: 'Memeriksa dampak data...',
+                text: 'Mohon tunggu sebentar.',
+                allowOutsideClick: false,
+                didOpen: () => {
+                    Swal.showLoading();
                 }
             });
+
+            const action = form.getAttribute('action');
+            const method = form.getAttribute('method') || 'GET';
+            let realMethod = method.toUpperCase();
+            const methodInput = form.querySelector('input[name="_method"]');
+            if (methodInput) {
+                realMethod = methodInput.value.toUpperCase();
+            }
+
+            const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+            const formDataObj = new FormData(form);
+            const serializedData = new URLSearchParams(formDataObj).toString();
+
+            fetch('{{ route("admin.check-affected") }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken
+                },
+                body: JSON.stringify({
+                    url: action,
+                    method: realMethod,
+                    form_data: serializedData
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                Swal.close();
+                delete form.dataset.processing;
+
+                let title = 'Konfirmasi Tindakan';
+                let text = 'Apakah Anda yakin ingin melanjutkan tindakan ini?';
+                let icon = 'question';
+                let confirmText = 'Ya, Lanjutkan';
+                let confirmColor = '#ea580c'; // orange-600
+
+                if (realMethod === 'DELETE') {
+                    title = 'Yakin Ingin Menghapus?';
+                    text = 'Data yang dihapus tidak dapat dikembalikan!';
+                    icon = 'warning';
+                    confirmText = 'Ya, Hapus!';
+                    confirmColor = '#ea580c';
+                } else if (realMethod === 'PUT' || realMethod === 'PATCH') {
+                    title = 'Simpan Perubahan?';
+                    text = 'Perubahan data akan disimpan ke database.';
+                    icon = 'info';
+                    confirmText = 'Ya, Simpan!';
+                    confirmColor = '#2563eb'; // blue-600
+                }
+
+                if (data.affected && data.list.length > 0) {
+                    let listHtml = '<div class="text-left mt-4 p-4 bg-orange-50 border border-orange-200 rounded-2xl text-sm">';
+                    listHtml += '<p class="font-bold text-orange-800 mb-2"><svg class="w-5 h-5 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg> PERINGATAN! Tindakan ini juga akan menghapus/mempengaruhi data terkait berikut:</p>';
+                    listHtml += '<ul class="list-disc pl-5 space-y-1 text-gray-700 font-semibold">';
+                    data.list.forEach(item => {
+                        listHtml += `<li>${item.count} ${item.label}</li>`;
+                    });
+                    listHtml += '</ul>';
+                    listHtml += '<p class="text-xs text-red-600 mt-3 font-bold">* Data di atas akan disesuaikan atau dihapus secara otomatis demi menjaga integritas database.</p>';
+                    listHtml += '</div>';
+
+                    Swal.fire({
+                        title: 'Data Terkait Terdeteksi!',
+                        html: listHtml,
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#dc2626', // red-600
+                        cancelButtonColor: '#6b7280',
+                        confirmButtonText: 'Ya, Tetap Proses!',
+                        cancelButtonText: 'Batal'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            form.dataset.confirmed = 'true';
+                            form.submit();
+                        }
+                    });
+                } else {
+                    Swal.fire({
+                        title: title,
+                        text: text,
+                        icon: icon,
+                        showCancelButton: true,
+                        confirmButtonColor: confirmColor,
+                        cancelButtonColor: '#6b7280',
+                        confirmButtonText: confirmText,
+                        cancelButtonText: 'Batal'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            form.dataset.confirmed = 'true';
+                            form.submit();
+                        }
+                    });
+                }
+            })
+            .catch(error => {
+                Swal.close();
+                delete form.dataset.processing;
+                
+                // Fallback jika API gagal
+                Swal.fire({
+                    title: realMethod === 'DELETE' ? 'Yakin Ingin Menghapus?' : 'Konfirmasi Tindakan',
+                    text: 'Apakah Anda yakin ingin melanjutkan tindakan ini?',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#ea580c',
+                    cancelButtonColor: '#6b7280',
+                    confirmButtonText: 'Ya, Lanjutkan',
+                    cancelButtonText: 'Batal'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        form.dataset.confirmed = 'true';
+                        form.submit();
+                    }
+                });
+            });
         }
+
+        // Interseptor global untuk form submit yang tidak memakai confirmDelete (seperti form Edit/Update)
+        document.addEventListener('submit', function (event) {
+            const form = event.target;
+            if (form.dataset.confirmed) {
+                return;
+            }
+
+            const action = form.getAttribute('action');
+            if (!action || !action.includes('/admin/')) {
+                return;
+            }
+
+            const method = form.getAttribute('method') || 'GET';
+            if (method.toUpperCase() === 'GET') {
+                return;
+            }
+
+            // Abaikan form switch tahun, logout, dan clear cache
+            if (action.includes('/tahun-ajar/switch') || action.includes('/logout') || action.includes('/clear-cache')) {
+                return;
+            }
+
+            event.preventDefault();
+            triggerValidation(form);
+        });
     </script>
 </head>
 

@@ -100,6 +100,7 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->as('admin.')->group(
 
     Route::get('/user', [UserController::class, 'index'])->name('user.index');
 
+    Route::post('/check-affected', [\App\Http\Controllers\Admin\AffectedRecordsController::class, 'check'])->name('check-affected');
 });
 
 // ==========================================
