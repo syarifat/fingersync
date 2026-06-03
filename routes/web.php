@@ -89,6 +89,7 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->as('admin.')->group(
     Route::get('/rombel-jadwal', [RombelJadwalPelajaranController::class, 'index'])->name('rombel-jadwal.index');
     Route::get('/rombel-jadwal/{id_kelas}/manage', [RombelJadwalPelajaranController::class, 'manage'])->name('rombel-jadwal.manage');
     Route::post('/rombel-jadwal/{id_kelas}/manage', [RombelJadwalPelajaranController::class, 'storeManage'])->name('rombel-jadwal.storeManage');
+    Route::post('/rombel-jadwal/{id_kelas}/check-clash', [RombelJadwalPelajaranController::class, 'checkClash'])->name('rombel-jadwal.check-clash');
 
     Route::get('/presensi', [PresensiController::class, 'index'])->name('presensi.index');
     Route::get('/presensi/export-pdf', [PresensiController::class, 'exportPdf'])->name('presensi.export_pdf');

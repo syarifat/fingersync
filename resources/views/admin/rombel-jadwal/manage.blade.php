@@ -132,6 +132,12 @@
                 </button>
             </div>
 
+            {{-- WARNING BENTROK --}}
+            <div class="lg:col-span-12 error-message text-[11px] text-red-600 font-bold mt-1 hidden bg-red-50 p-2.5 rounded-xl border border-red-100 flex items-center gap-2">
+                <svg class="w-4 h-4 text-red-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+                <span></span>
+            </div>
+
         </div>
     </template>
 
@@ -175,16 +181,93 @@
             const row = button.closest('.row-item');
             row.remove();
             checkEmpty();
+            checkAllClashes();
         }
 
-        document.getElementById('addRowBtn').addEventListener('click', () => addRow(null));
+        // Debounce helper untuk membatasi request API
+        function debounce(func, wait) {
+            let timeout;
+            return function(...args) {
+                clearTimeout(timeout);
+                timeout = setTimeout(() => func.apply(this, args), wait);
+            };
+        }
+
+        function checkAllClashes() {
+            const rows = container.querySelectorAll('.row-item');
+            if (rows.length === 0) return;
+
+            const formData = new URLSearchParams();
+            rows.forEach(row => {
+                const hari = row.querySelector('select[name="hari[]"]').value;
+                const id_plot = row.querySelector('select[name="id_rombel_mata_pelajaran[]"]').value;
+                const mulai = row.querySelector('input[name="jam_mulai[]"]').value;
+                const selesai = row.querySelector('input[name="jam_selesai[]"]').value;
+                const ruangan = row.querySelector('select[name="id_ruangan[]"]').value;
+
+                formData.append('hari[]', hari);
+                formData.append('id_rombel_mata_pelajaran[]', id_plot);
+                formData.append('jam_mulai[]', mulai);
+                formData.append('jam_selesai[]', selesai);
+                formData.append('id_ruangan[]', ruangan);
+            });
+
+            const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+
+            fetch('{{ route("admin.rombel-jadwal.check-clash", $kelas->id) }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-CSRF-TOKEN': csrfToken
+                },
+                body: formData.toString()
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Reset semua warning terlebih dahulu
+                rows.forEach(row => {
+                    const errorDiv = row.querySelector('.error-message');
+                    if (errorDiv) {
+                        errorDiv.classList.add('hidden');
+                        errorDiv.querySelector('span').innerText = '';
+                    }
+                });
+
+                // Tampilkan warning di bawah baris yang bentrok
+                if (data.has_conflict && data.conflicts) {
+                    Object.keys(data.conflicts).forEach(index => {
+                        const rowIndex = parseInt(index);
+                        if (rows[rowIndex]) {
+                            const errorDiv = rows[rowIndex].querySelector('.error-message');
+                            if (errorDiv) {
+                                errorDiv.classList.remove('hidden');
+                                errorDiv.querySelector('span').innerText = data.conflicts[index];
+                            }
+                        }
+                    });
+                }
+            })
+            .catch(err => console.error('Error checking clashes:', err));
+        }
+
+        // Jalankan validasi bentrok saat ada input/perubahan di form
+        const debouncedCheck = debounce(checkAllClashes, 500);
+        container.addEventListener('change', debouncedCheck);
+        container.addEventListener('input', debouncedCheck);
+
+        document.getElementById('addRowBtn').addEventListener('click', () => {
+            addRow(null);
+            checkAllClashes();
+        });
 
         document.addEventListener('DOMContentLoaded', () => {
             if (existingData.length > 0) {
                 existingData.forEach(data => addRow(data));
             } else {
-                addRow(null); // Tambah 1 baris kosong jika belum ada data
+                addRow(null);
             }
+            // Jalankan pemeriksaan awal setelah data di-load
+            setTimeout(checkAllClashes, 300);
         });
 
         function validateManageJadwal(event) {
@@ -192,6 +275,19 @@
             // Jika container kosong (Sapu Bersih), beri peringatan foreign key
             if (container.children.length === 0) {
                 confirmDelete(event, 'Aksi ini akan menghapus seluruh jadwal pelajaran di kelas ini beserta SEMUA riwayat presensi (absensi) yang sudah tercatat. Anda yakin ingin melanjutkan?');
+            }
+            
+            // Cek jika ada elemen error-message yang tidak tersembunyi (berarti masih ada bentrok)
+            const activeErrors = container.querySelectorAll('.error-message:not(.hidden)');
+            if (activeErrors.length > 0) {
+                event.preventDefault();
+                Swal.fire({
+                    title: 'Jadwal Bentrok!',
+                    text: 'Harap perbaiki jadwal yang bentrok terlebih dahulu sebelum menyimpan.',
+                    icon: 'error',
+                    confirmButtonColor: '#ea580c'
+                });
+                return false;
             }
         }
     </script>

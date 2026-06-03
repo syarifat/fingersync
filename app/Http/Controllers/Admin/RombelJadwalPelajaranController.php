@@ -178,4 +178,109 @@ class RombelJadwalPelajaranController extends Controller
 
         return redirect()->route('admin.rombel-jadwal.index')->with('success', 'Jadwal pelajaran berhasil disimpan dan bebas dari bentrok!');
     }
+
+    public function checkClash(Request $request, $id_kelas)
+    {
+        $activeYear = session('tahun_ajar_id');
+
+        if (!$request->has('hari')) {
+            return response()->json(['has_conflict' => false, 'conflicts' => []]);
+        }
+
+        $plottingMapelList = RombelMataPelajaran::where('id_tahun_ajar', $activeYear)->get()->keyBy('id');
+
+        // Ambil semua jadwal dari KELAS LAIN
+        $jadwalKelasLain = RombelJadwalPelajaran::with(['rombelMapel.kelas', 'rombelMapel.mataPelajaran', 'rombelMapel.guru', 'ruangan'])
+            ->whereHas('rombelMapel', function($q) use ($activeYear, $id_kelas) {
+                $q->where('id_tahun_ajar', $activeYear)
+                  ->where('id_kelas', '!=', $id_kelas);
+            })->get();
+
+        $conflicts = [];
+        $count = count($request->hari);
+        $validRows = [];
+
+        for ($i = 0; $i < $count; $i++) {
+            $hari_i = $request->hari[$i];
+            $id_plot_i = $request->id_rombel_mata_pelajaran[$i];
+            $mulai_i = $request->jam_mulai[$i] ? $request->jam_mulai[$i] . ':00' : null;
+            $selesai_i = $request->jam_selesai[$i] ? $request->jam_selesai[$i] . ':00' : null;
+            $ruangan_i = $request->id_ruangan[$i];
+
+            // Abaikan jika baris belum lengkap
+            if (empty($hari_i) || empty($id_plot_i) || empty($mulai_i) || empty($selesai_i) || empty($ruangan_i)) {
+                continue; 
+            }
+
+            // Validasi Logika Waktu
+            if ($mulai_i >= $selesai_i) {
+                $conflicts[$i] = "Waktu Mulai harus lebih kecil dari Waktu Selesai.";
+                continue;
+            }
+
+            $guru_id_i = $plottingMapelList[$id_plot_i]->id_guru ?? null;
+
+            // A. CEK BENTROK INTERNAL (dengan baris lain di form ini)
+            $bentrokInternal = false;
+            foreach ($validRows as $j => $rowJ) {
+                if ($rowJ['hari'] == $hari_i) {
+                    if ($mulai_i < $rowJ['jam_selesai'] && $selesai_i > $rowJ['jam_mulai']) {
+                        // Cek bentrok ruangan
+                        if ($ruangan_i == $rowJ['id_ruangan']) {
+                            $conflicts[$i] = "Bentrok Ruangan! Tumpang tindih dengan baris ke-" . ($j + 1) . ".";
+                            $bentrokInternal = true;
+                            break;
+                        }
+
+                        // Cek bentrok guru
+                        if ($guru_id_i == $rowJ['id_guru']) {
+                            $conflicts[$i] = "Bentrok Guru! Tumpang tindih mengajar dengan baris ke-" . ($j + 1) . ".";
+                            $bentrokInternal = true;
+                            break;
+                        }
+                    }
+                }
+            }
+
+            if ($bentrokInternal) {
+                continue;
+            }
+
+            $validRows[$i] = [
+                'hari' => $hari_i,
+                'jam_mulai' => $mulai_i,
+                'jam_selesai' => $selesai_i,
+                'id_ruangan' => $ruangan_i,
+                'id_guru' => $guru_id_i
+            ];
+
+            // B. CEK BENTROK EKSTERNAL (dengan kelas lain di DB)
+            foreach ($jadwalKelasLain as $db) {
+                if ($db->hari == $hari_i) {
+                    if ($mulai_i < $db->jam_selesai && $selesai_i > $db->jam_mulai) {
+                        // Bentrok Ruangan
+                        if ($ruangan_i == $db->id_ruangan) {
+                            $nama_ruangan = $db->ruangan->nama_ruangan ?? 'Ruangan';
+                            $nama_kelas = $db->rombelMapel->kelas->nama ?? 'Kelas Lain';
+                            $conflicts[$i] = "BENTROK RUANGAN! $nama_ruangan sedang digunakan oleh $nama_kelas pada jam " . substr($db->jam_mulai, 0, 5) . " - " . substr($db->jam_selesai, 0, 5) . ".";
+                            break;
+                        }
+
+                        // Bentrok Guru
+                        if ($guru_id_i == $db->rombelMapel->id_guru) {
+                            $nama_guru = $db->rombelMapel->guru->nama ?? 'Guru';
+                            $nama_kelas = $db->rombelMapel->kelas->nama ?? 'Kelas Lain';
+                            $conflicts[$i] = "BENTROK GURU! $nama_guru sudah memiliki jadwal mengajar di $nama_kelas pada jam " . substr($db->jam_mulai, 0, 5) . " - " . substr($db->jam_selesai, 0, 5) . ".";
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+
+        return response()->json([
+            'has_conflict' => !empty($conflicts),
+            'conflicts' => $conflicts
+        ]);
+    }
 }

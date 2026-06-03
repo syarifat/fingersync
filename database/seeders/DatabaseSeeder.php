@@ -104,8 +104,9 @@ class DatabaseSeeder extends Seeder
         ]);
 
         // Guru BK (2 Orang. Maksimal mengampu 2 kelas)
+        // Guru BK (3 Orang. 1 Guru BK per kelas agar tidak bentrok)
         $guruBkIds = [];
-        for ($i=1; $i<=2; $i++) {
+        for ($i=1; $i<=3; $i++) {
             $gName = $faker->firstName;
             $username = 'gurubk' . $i;
             $uid = DB::table('users')->insertGetId([
@@ -156,8 +157,8 @@ class DatabaseSeeder extends Seeder
                 'nama' => $namaKelas, 'id_jurusan' => $jurusanId, 'created_at' => now(), 'updated_at' => now()
             ]);
 
-            // Guru BK: Index 0 dan 1 dapat BK 1. Index 2 dapat BK 2. (Maksimal 2 kelas per Guru BK)
-            $guruBkAssigned = ($index < 2) ? $guruBkIds[0] : $guruBkIds[1];
+            // Guru BK: Masing-masing kelas memiliki Guru BK yang berbeda agar tidak bentrok jadwal
+            $guruBkAssigned = $guruBkIds[$index];
             // Setiap kelas punya wali kelas beda
             $waliKelasAssigned = $waliKelasIds[$index];
 
@@ -238,7 +239,7 @@ class DatabaseSeeder extends Seeder
         $rombelMapelIds = []; // Key: kelas_id => [mapel_nama => id]
         $classMapels = [];
 
-        foreach ($kelasData as $k) {
+        foreach ($kelasData as $cIndex => $k) {
             $rombelMapelIds[$k['id']]['Bimbingan Konseling'] = DB::table('rombel_mata_pelajaran')->insertGetId([
                 'id_kelas' => $k['id'],
                 'id_mata_pelajaran' => $mapelDbIds['Bimbingan Konseling'],
@@ -254,11 +255,20 @@ class DatabaseSeeder extends Seeder
                 'index' => 0
             ];
 
+            // Bagi guru pengampu mapel agar terpisah antar kelas demi menghindari bentrok jadwal di seeder
+            if ($cIndex === 0) {
+                $guruKelas = array_slice($guruMapelIds, 0, 3);
+            } elseif ($cIndex === 1) {
+                $guruKelas = array_slice($guruMapelIds, 3, 3);
+            } else {
+                $guruKelas = array_slice($guruMapelIds, 6);
+            }
+
             foreach ($shuffledMapels as $mapelNama) {
                 $rombelMapelIds[$k['id']][$mapelNama] = DB::table('rombel_mata_pelajaran')->insertGetId([
                     'id_kelas' => $k['id'],
                     'id_mata_pelajaran' => $mapelDbIds[$mapelNama],
-                    'id_guru' => $faker->randomElement($guruMapelIds),
+                    'id_guru' => $faker->randomElement($guruKelas),
                     'id_tahun_ajar' => $tahunAjarId,
                     'created_at' => now(), 'updated_at' => now()
                 ]);
