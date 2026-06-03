@@ -60,10 +60,25 @@ class DeviceController extends Controller
                 ], 200);
             }
 
-            // 5. Cari Jadwal Pelajaran (Sesuai Ruangan Device & Jam Sekarang)
-            $jadwal = RombelJadwalPelajaran::with(['rombelMapel.mataPelajaran', 'rombelMapel.kelas'])
+            // Cari rombel aktif siswa untuk tahun ajaran berjalan
+            $activeYear = \App\Models\TahunAjar::where('status_aktif', true)->value('id');
+            $rombel = \App\Models\RombelKelas::where('id_siswa', $siswa->id)
+                ->where('id_tahun_ajar', $activeYear)
+                ->first();
+
+            if (!$rombel) {
+                return response()->json([
+                    'status' => 'ERROR', 
+                    'message' => 'Siswa belum terdaftar di kelas manapun!'
+                ], 200);
+            }
+
+            // 5. Cari Jadwal Pelajaran (Sesuai Kelas Siswa & Jam Sekarang)
+            $jadwal = RombelJadwalPelajaran::with(['rombelMapel.mataPelajaran', 'rombelMapel.kelas', 'ruangan'])
                 ->where('hari', $hariIni)
-                ->where('id_ruangan', $device->id_ruangan)
+                ->whereHas('rombelMapel', function($q) use ($rombel) {
+                    $q->where('id_kelas', $rombel->id_kelas);
+                })
                 ->where('jam_mulai', '<=', $jamSekarang)
                 ->where('jam_selesai', '>=', $jamSekarang)
                 ->first();
@@ -72,7 +87,15 @@ class DeviceController extends Controller
             if (!$jadwal) {
                 return response()->json([
                     'status' => 'INFO', 
-                    'message' => 'Tidak ada KBM aktif di ruangan ' . $device->ruangan->nama_ruangan . ' pada jam ' . $jamSekarang
+                    'message' => 'Tidak ada KBM aktif untuk kelas Anda saat ini!'
+                ], 200);
+            }
+
+            // Cek apakah ruangan tempat scan (device) sama dengan ruangan terjadwal
+            if ($jadwal->id_ruangan != $device->id_ruangan) {
+                return response()->json([
+                    'status' => 'ERROR', 
+                    'message' => 'Salah Ruangan! Kelas Anda di ' . $jadwal->ruangan->nama_ruangan
                 ], 200);
             }
 

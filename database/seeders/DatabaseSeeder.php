@@ -53,8 +53,7 @@ class DatabaseSeeder extends Seeder
             'created_at' => now(), 'updated_at' => now()
         ]);
 
-        // ==========================================
-        // 3. RUANGAN & DEVICE (3 Ruangan untuk 3 Kelas)
+        // 3. RUANGAN & DEVICE (3 Ruangan Lab TKJ)
         // ==========================================
         $ruangans = ['Lab TKJ 1', 'Lab TKJ 2', 'Lab TKJ 3'];
         $ruanganIds = []; 
@@ -235,65 +234,79 @@ class DatabaseSeeder extends Seeder
 
         $jadwalData = []; 
 
-        foreach ($kelasData as $k) {
-            $shuffledMapels = array_diff($mapels, ['Bimbingan Konseling']);
-            shuffle($shuffledMapels);
-            $mapelIndex = 0;
+        // 7.a. Rombel Mapel (Buat plotting mapel terlebih dahulu secara berkelompok)
+        $rombelMapelIds = []; // Key: kelas_id => [mapel_nama => id]
+        $classMapels = [];
 
-            // 7.a. Rombel Mapel khusus Bimbingan Konseling (Diajar oleh Guru BK)
-            $rombelBkId = DB::table('rombel_mata_pelajaran')->insertGetId([
+        foreach ($kelasData as $k) {
+            $rombelMapelIds[$k['id']]['Bimbingan Konseling'] = DB::table('rombel_mata_pelajaran')->insertGetId([
                 'id_kelas' => $k['id'],
                 'id_mata_pelajaran' => $mapelDbIds['Bimbingan Konseling'],
-                'id_guru' => $k['guru_bk'], // Guru BK sesuai pembagian kelas
+                'id_guru' => $k['guru_bk'],
                 'id_tahun_ajar' => $tahunAjarId,
                 'created_at' => now(), 'updated_at' => now()
             ]);
 
-            // Jadwalkan BK di hari Jumat, Sesi ke-3
-            $jadwalIdBk = DB::table('rombel_jadwal_pelajaran')->insertGetId([
-                'id_rombel_mata_pelajaran' => $rombelBkId,
-                'hari' => 'Jumat',
-                'jam_mulai' => $jamPelajaran[2][0],
-                'jam_selesai' => $jamPelajaran[2][1],
-                'id_ruangan' => $k['ruangan_id'], 
-                'created_at' => now(), 'updated_at' => now()
-            ]);
-
-            $jadwalData[] = [
-                'id' => $jadwalIdBk, 'hari' => 'Jumat', 'jam_mulai' => $jamPelajaran[2][0],
-                'id_device' => $deviceIds[$k['ruangan_id']], 'id_kelas' => $k['id']
+            $shuffledMapels = array_diff($mapels, ['Bimbingan Konseling']);
+            shuffle($shuffledMapels);
+            $classMapels[$k['id']] = [
+                'list' => $shuffledMapels,
+                'index' => 0
             ];
 
-            // 7.b. Jadwalkan sisa pelajaran
-            foreach ($hariSekolah as $hari) {
-                for ($j=0; $j<count($jamPelajaran); $j++) {
-                    // Skip jika ini jadwalnya BK (Jumat Sesi 3)
-                    if ($hari == 'Jumat' && $j == 2) continue;
+            foreach ($shuffledMapels as $mapelNama) {
+                $rombelMapelIds[$k['id']][$mapelNama] = DB::table('rombel_mata_pelajaran')->insertGetId([
+                    'id_kelas' => $k['id'],
+                    'id_mata_pelajaran' => $mapelDbIds[$mapelNama],
+                    'id_guru' => $faker->randomElement($guruMapelIds),
+                    'id_tahun_ajar' => $tahunAjarId,
+                    'created_at' => now(), 'updated_at' => now()
+                ]);
+            }
+        }
 
-                    if ($mapelIndex >= count($shuffledMapels)) $mapelIndex = 0;
-                    $mapelNama = $shuffledMapels[$mapelIndex];
-                    $mapelIndex++;
+        // 7.b. Penjadwalan Pelajaran secara Konflik-Free & Dinamis
+        foreach ($hariSekolah as $hari) {
+            for ($j = 0; $j < count($jamPelajaran); $j++) {
+                
+                // Shuffle ruangan untuk sesi ini agar dinamis & bebas tabrakan (conflict-free)
+                $sessionRuangans = $ruanganIds;
+                shuffle($sessionRuangans);
 
-                    $rombelMapelId = DB::table('rombel_mata_pelajaran')->insertGetId([
-                        'id_kelas' => $k['id'],
-                        'id_mata_pelajaran' => $mapelDbIds[$mapelNama],
-                        'id_guru' => $faker->randomElement($guruMapelIds),
-                        'id_tahun_ajar' => $tahunAjarId,
-                        'created_at' => now(), 'updated_at' => now()
-                    ]);
+                foreach ($kelasData as $cIndex => $k) {
+                    $ruanganId = $sessionRuangans[$cIndex];
+                    $deviceId = $deviceIds[$ruanganId] ?? null;
+
+                    if ($hari === 'Jumat' && $j === 2) {
+                        // Sesi ke-3 hari Jumat khusus untuk BK
+                        $rombelMapelId = $rombelMapelIds[$k['id']]['Bimbingan Konseling'];
+                    } else {
+                        // Ambil mapel berikutnya secara bergiliran
+                        $mapelInfo = &$classMapels[$k['id']];
+                        if ($mapelInfo['index'] >= count($mapelInfo['list'])) {
+                            $mapelInfo['index'] = 0;
+                        }
+                        $mapelNama = $mapelInfo['list'][$mapelInfo['index']];
+                        $mapelInfo['index']++;
+
+                        $rombelMapelId = $rombelMapelIds[$k['id']][$mapelNama];
+                    }
 
                     $jadwalId = DB::table('rombel_jadwal_pelajaran')->insertGetId([
                         'id_rombel_mata_pelajaran' => $rombelMapelId,
                         'hari' => $hari,
                         'jam_mulai' => $jamPelajaran[$j][0],
                         'jam_selesai' => $jamPelajaran[$j][1],
-                        'id_ruangan' => $k['ruangan_id'],
+                        'id_ruangan' => $ruanganId,
                         'created_at' => now(), 'updated_at' => now()
                     ]);
 
                     $jadwalData[] = [
-                        'id' => $jadwalId, 'hari' => $hari, 'jam_mulai' => $jamPelajaran[$j][0],
-                        'id_device' => $deviceIds[$k['ruangan_id']], 'id_kelas' => $k['id']
+                        'id' => $jadwalId, 
+                        'hari' => $hari, 
+                        'jam_mulai' => $jamPelajaran[$j][0],
+                        'id_device' => $deviceId, 
+                        'id_kelas' => $k['id']
                     ];
                 }
             }
