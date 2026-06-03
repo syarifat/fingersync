@@ -51,7 +51,7 @@ class PresensiController extends Controller
                   ->whereYear('tanggal', date('Y', strtotime($request->bulan)));
         }
 
-        $dataPresensi = $query->latest()->paginate(10);
+        $dataPresensi = $query->latest()->paginate(10)->withQueryString();
 
         return view('admin.presensi.index', compact('dataPresensi', 'kelasList', 'mapelList'));
     }

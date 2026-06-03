@@ -22,7 +22,7 @@ class KelasController extends Controller
             $query->where('id_jurusan', $request->id_jurusan);
         }
 
-        $kelas = $query->latest()->paginate(10);
+        $kelas = $query->latest()->paginate(10)->withQueryString();
         return view('admin.kelas.index', compact('kelas', 'jurusan'));
     }
 

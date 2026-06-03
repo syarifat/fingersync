@@ -17,7 +17,7 @@ class RuanganController extends Controller
         }
 
         // Urutkan berdasarkan nama ruangan
-        $ruangan = $query->orderBy('nama_ruangan', 'asc')->paginate(10);
+        $ruangan = $query->orderBy('nama_ruangan', 'asc')->paginate(10)->withQueryString();
         return view('admin.ruangan.index', compact('ruangan'));
     }
 

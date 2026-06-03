@@ -17,7 +17,7 @@ class MataPelajaranController extends Controller
             $query->where('nama', 'like', '%' . $request->search . '%');
         }
 
-        $mapel = $query->orderBy('nama', 'asc')->paginate(10);
+        $mapel = $query->orderBy('nama', 'asc')->paginate(10)->withQueryString();
         return view('admin.mata-pelajaran.index', compact('mapel'));
     }
 

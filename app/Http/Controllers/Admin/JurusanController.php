@@ -18,7 +18,7 @@ class JurusanController extends Controller
             $query->where('nama', 'like', '%' . $request->search . '%');
         }
 
-        $jurusan = $query->latest()->paginate(10);
+        $jurusan = $query->latest()->paginate(10)->withQueryString();
         return view('admin.jurusan.index', compact('jurusan'));
     }
 
