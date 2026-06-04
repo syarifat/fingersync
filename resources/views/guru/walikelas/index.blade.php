@@ -11,7 +11,7 @@
             {{-- HEADER KELAS & FILTER BULAN --}}
             <div class="bg-white overflow-hidden shadow-sm rounded-[2rem] border border-gray-100 p-8 flex flex-col md:flex-row justify-between items-center gap-6">
                 <div class="flex items-center gap-4">
-                    <div class="p-4 bg-blue-50 text-blue-600 rounded-2xl">
+                    <div class="p-4 bg-orange-50 text-orange-600 rounded-2xl">
                         <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
                     </div>
                     <div>
@@ -23,7 +23,7 @@
                 <form method="GET" action="{{ route('guru.walikelas.index') }}" class="flex items-end gap-3 bg-gray-50 p-3 rounded-2xl border border-gray-200">
                     <div>
                         <label for="bulan" class="block text-xs font-bold text-gray-500 uppercase mb-1">Pilih Bulan</label>
-                        <input type="month" name="bulan" id="bulan" value="{{ $bulanFilter }}" class="rounded-xl border-gray-300 text-sm focus:ring-blue-500 focus:border-blue-500 shadow-sm" onchange="this.form.submit()">
+                        <input type="month" name="bulan" id="bulan" value="{{ $bulanFilter }}" class="rounded-xl border-gray-300 text-sm focus:ring-orange-500 focus:border-orange-500 shadow-sm" onchange="this.form.submit()">
                     </div>
                 </form>
             </div>
@@ -32,10 +32,10 @@
             <div class="bg-white overflow-hidden shadow-sm rounded-[2rem] border border-gray-100 p-8">
                 <div class="mb-6 flex justify-between items-center">
                     <h3 class="text-lg font-black text-gray-800">Rekapitulasi Kehadiran Siswa</h3>
-                    <button type="button" onclick="window.print()" class="px-4 py-2 bg-gray-800 text-white rounded-xl text-sm font-bold hover:bg-gray-700 transition-colors shadow-sm flex items-center gap-2">
+                    <a href="{{ route('guru.walikelas.export_pdf', ['bulan' => $bulanFilter]) }}" class="px-4 py-2 bg-orange-600 text-white rounded-xl text-sm font-bold hover:bg-orange-700 transition-colors shadow-sm flex items-center gap-2">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2-2v4h10z"></path></svg>
-                        Cetak Laporan
-                    </button>
+                        Cetak Laporan (PDF)
+                    </a>
                 </div>
 
                 <div class="overflow-x-auto">
@@ -52,7 +52,7 @@
                         </thead>
                         <tbody class="divide-y divide-gray-100">
                             @foreach ($siswaKelas as $index => $rs)
-                            <tr class="hover:bg-blue-50/30 transition-colors">
+                            <tr class="hover:bg-orange-50/20 transition-colors">
                                 <td class="p-4 font-medium text-gray-500">
                                     {{ $index + 1 }}
                                 </td>

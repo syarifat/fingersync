@@ -120,6 +120,7 @@ Route::middleware(['auth', 'role:guru'])->prefix('guru')->as('guru.')->group(fun
     Route::get('/jadwal', [\App\Http\Controllers\Guru\JadwalController::class, 'index'])->name('jadwal.index');
     // Menu Wali Kelas
     Route::get('/wali-kelas', [\App\Http\Controllers\Guru\WaliKelasController::class, 'index'])->name('walikelas.index');
+    Route::get('/wali-kelas/export-pdf', [\App\Http\Controllers\Guru\WaliKelasController::class, 'exportPdf'])->name('walikelas.export_pdf');
     // Riwayat Presensi (Berdasarkan Tanggal & Jadwal)
     Route::get('/riwayat-absensi', [\App\Http\Controllers\Guru\RiwayatAbsensiController::class, 'index'])->name('riwayat-absensi.index');
     Route::get('/riwayat-absensi/{id_jadwal}', [\App\Http\Controllers\Guru\RiwayatAbsensiController::class, 'show'])->name('riwayat-absensi.show');
