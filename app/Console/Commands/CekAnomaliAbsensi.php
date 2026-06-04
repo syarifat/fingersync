@@ -94,8 +94,14 @@ class CekAnomaliAbsensi extends Command
                 $noWali = $infoKelas->first()->waliKelas->nohp ?? null;
                 $noBk = $infoKelas->first()->guruBk->nohp ?? null;
 
-                if ($noWali) WhatsAppService::send($noWali, $pesan);
-                if ($noBk && $noBk != $noWali) WhatsAppService::send($noBk, $pesan);
+                if ($noWali) {
+                    WhatsAppService::send($noWali, $pesan);
+                    sleep(2); // Jeda anti-spam
+                }
+                if ($noBk && $noBk != $noWali) {
+                    WhatsAppService::send($noBk, $pesan);
+                    sleep(2); // Jeda anti-spam
+                }
 
                 $jumlahLaporan++;
             }

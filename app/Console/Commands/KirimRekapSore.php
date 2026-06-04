@@ -116,8 +116,18 @@ class KirimRekapSore extends Command
 
             // 4. KIRIM WA! (Hanya jika orang tua memiliki nomor HP)
             if (!empty($siswa->nohp_ortu)) {
+                // Cek limit pengiriman jika dikonfigurasi di .env
+                $limit = env('WA_LIMIT_PER_RUN', 0); // 0 = tidak terbatas
+                if ($limit > 0 && $totalTerkirim >= $limit) {
+                    $this->info("Batas pengiriman WA harian tercapai ({$limit}). Sisa pesan untuk siswa berikutnya dibatalkan kirim WA (data Alpha tetap diproses).");
+                    continue; 
+                }
+
                 \App\Services\WhatsAppService::send($siswa->nohp_ortu, $pesan, $siswa->id);
                 $totalTerkirim++;
+
+                // Beri jeda 2 detik per pengiriman agar nomor WA tidak terkena ban spam
+                sleep(2);
             }
         }
 

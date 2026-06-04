@@ -24,12 +24,14 @@ use App\Http\Controllers\Admin\UserController;
 // Route khusus untuk eksekusi Cron Job via Web (cron-job.org)
 Route::get('/cron/cek-anomali/{token}', function ($token) {
     if ($token !== 'FINGERSYNC-SECURE-123') return abort(403, 'Unauthorized');
+    set_time_limit(0); // Mencegah timeout jika proses pengiriman WA lambat
     Artisan::call('absensi:cek-anomali');
     return 'Cek Anomali dieksekusi: ' . Artisan::output();
 });
 
 Route::get('/cron/rekap-sore/{token}', function ($token) {
     if ($token !== 'FINGERSYNC-SECURE-123') return abort(403, 'Unauthorized');
+    set_time_limit(0); // Mencegah timeout jika proses pengiriman WA lambat
     Artisan::call('absensi:rekap-sore');
     return 'Rekap Sore dieksekusi: ' . Artisan::output();
 });
