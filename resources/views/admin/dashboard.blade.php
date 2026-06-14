@@ -68,6 +68,45 @@
 
             </div>
 
+            {{-- SISWA TERLAMBAT HARI INI --}}
+            @if($terlambatByKelas->count() > 0)
+            <div class="bg-white overflow-hidden shadow-sm rounded-2xl border border-gray-100 p-8 mb-8">
+                <div class="mb-6">
+                    <h3 class="text-lg font-black text-gray-800 tracking-tight flex items-center gap-2">
+                        <span class="p-1 bg-red-100 text-red-600 rounded-lg">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                        </span>
+                        Siswa Terlambat Kehadiran ({{ \Carbon\Carbon::parse($tanggalTerakhir)->format('d M Y') }})
+                    </h3>
+                    <p class="text-sm text-gray-500 font-medium">Daftar siswa terlambat yang dikelompokkan berdasarkan nama kelas.</p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    @foreach($terlambatByKelas as $namaKelas => $listPresensi)
+                        <div class="bg-rose-50/30 border border-rose-100 rounded-2xl p-5 hover:shadow-md transition-all duration-200">
+                            <h4 class="font-black text-rose-700 text-sm mb-3 flex items-center justify-between border-b border-rose-100 pb-2">
+                                <span>🏫 Kelas {{ $namaKelas }}</span>
+                                <span class="bg-rose-200/50 text-rose-800 text-xs px-2.5 py-0.5 rounded-full font-black">{{ $listPresensi->count() }} Siswa</span>
+                            </h4>
+                            <ul class="space-y-2 text-xs">
+                                @foreach($listPresensi as $p)
+                                    <li class="flex justify-between items-center py-1.5 border-b border-rose-100/30 last:border-b-0">
+                                        <div class="flex flex-col">
+                                            <span class="font-bold text-gray-800 text-sm">{{ $p->siswa->nama }}</span>
+                                            <span class="text-[10px] text-gray-400 font-mono">NIS: {{ $p->siswa->nis }}</span>
+                                        </div>
+                                        <span class="font-mono text-orange-600 font-black bg-white px-2 py-1 rounded-lg border border-orange-100 shadow-sm">{{ substr($p->jam_scan, 0, 5) }}</span>
+                                    </li>
+                                @endforeach
+                            </ul>
+                        </div>
+                    @endforeach
+                </div>
+            </div>
+            @endif
+
             {{-- TABEL PRESENSI TERBARU --}}
             <div class="bg-white overflow-hidden shadow-sm rounded-2xl border border-gray-100">
                 <div class="p-8">

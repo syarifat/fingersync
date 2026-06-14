@@ -84,7 +84,7 @@
                         <th rowspan="2" class="th-no">No</th>
                         <th rowspan="2" class="th-nama">Nama Siswa</th>
                         <th colspan="{{ count($datesInfo) }}" class="th-tgl" style="border-bottom: 1px solid #cbd5e1;">Tanggal</th>
-                        <th colspan="4" class="th-total" style="border-bottom: 1px solid #cbd5e1;">Total</th>
+                        <th colspan="5" class="th-total" style="border-bottom: 1px solid #cbd5e1;">Total</th>
                     </tr>
                     <tr>
                         @foreach($datesInfo as $info)
@@ -94,6 +94,7 @@
                         <th class="th-total">I</th>
                         <th class="th-total">S</th>
                         <th class="th-total">A</th>
+                        <th class="th-total" style="background: #fee2e2; color: #b91c1c; font-weight: bold;">AIS</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -125,6 +126,7 @@
                         <td class="td-total I">{{ $countI ?: '' }}</td>
                         <td class="td-total S">{{ $countS ?: '' }}</td>
                         <td class="td-total A">{{ $countA ?: '' }}</td>
+                        <td class="td-total" style="font-weight: bold; background: #fff1f2; color: #be123c;">{{ ($countI + $countS + $countA) ?: '' }}</td>
                     </tr>
                     @endforeach
                 </tbody>
@@ -136,6 +138,7 @@
                 <span class="leg-item"><span class="leg-box I">I</span> Izin</span>
                 <span class="leg-item"><span class="leg-box S">S</span> Sakit</span>
                 <span class="leg-item"><span class="leg-box A">A</span> Alpa</span>
+                <span class="leg-item"><span class="leg-box" style="background: #fee2e2; color: #b91c1c; font-weight: bold; padding: 0 4px;">AIS</span> Alpha + Izin + Sakit</span>
                 <span class="leg-item"><span class="leg-box weekend"></span> Hari Libur (Sabtu/Minggu)</span>
                 <span class="leg-item">- = Tidak ada kegiatan</span>
             </div>

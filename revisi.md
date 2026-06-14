@@ -9,8 +9,18 @@
 ---
 
 ### 2. 📊 Menampilkan informasi siswa terlambat dikelompokkan berdasarkan nama kelas
-*Status: ⏳ Belum dikerjakan*
-*   **Deskripsi**: Mengelompokkan riwayat presensi siswa dengan status 'Terlambat' berdasarkan nama kelas masing-masing di dashboard admin/guru.
+*Status: ✅ Selesai (14 Juni 2026)*
+
+#### 📝 Walkthrough Implementasi:
+*   **Logika di Sisi Admin (`AdminController`)**: Mengambil tanggal presensi terakhir (`Presensi::max('tanggal')`), mencari semua siswa dengan status `'Terlambat'` pada tanggal tersebut, dan mengelompokkannya menggunakan method `groupBy` dari Collection Laravel berdasarkan nama kelas (`rombelJadwalPelajaran.rombelMataPelajaran.kelas.nama`).
+*   **Logika di Sisi Guru (`DashboardController`)**:
+    *   Mencari tanggal presensi terakhir dan nama harinya.
+    *   Mengambil daftar ID kelas yang terhubung dengan Guru yang sedang login, baik kelas di mana ia bertindak sebagai Wali Kelas (`rombel_kelas`) maupun kelas yang diajarnya pada hari presensi terakhir tersebut/hari kalender ini (`rombel_jadwal_pelajaran` -> `rombel_mata_pelajaran`).
+    *   Mengambil presensi siswa dengan status `'Terlambat'` pada tanggal terakhir tersebut yang merupakan bagian dari kelas-kelas milik Guru tersebut, lalu mengelompokkannya berdasarkan nama kelas.
+*   **Tampilan Halaman (UI/UX - Admin & Guru)**:
+    *   Ditambahkan kartu info khusus **"Siswa Terlambat Kehadiran"** di Dashboard Admin dan Dashboard Guru (hanya jika ada siswa terlambat pada tanggal presensi terakhir).
+    *   Menggunakan kartu premium dengan border/latar belakang rose lembut (`bg-rose-50/30`), badge jumlah siswa terlambat per kelas, dan list detail nama siswa beserta jam scan sidik jari mereka untuk kemudahan monitoring.
+    *   Telah dirapikan pula kode duplikat nama kelas pada jadwal mengajar di Dashboard Guru.
 
 ---
 
@@ -27,8 +37,11 @@
 ---
 
 ### 4. 📈 Ditambahkan informasi jumlah AIS(Alpha, Izin, Sakit) yang nantinya bisa pengembangan untuk menentukan SP siswa
-*Status: ⏳ Belum dikerjakan*
-*   **Deskripsi**: Menghitung akumulasi jumlah ketidakhadiran (Alpha, Izin, Sakit) siswa di rekapitulasi, yang dapat digunakan oleh admin/BK untuk menentukan Surat Peringatan (SP).
+*Status: ✅ Selesai (14 Juni 2026)*
+
+#### 📝 Walkthrough Implementasi:
+*   **Tampilan Web (Panel Wali Kelas)**: Memperbarui view [index.blade.php](file:///Users/syarifat/Data/my_project/fingersync/resources/views/guru/walikelas/index.blade.php). Menambahkan kolom baru **"Jumlah AIS"** di tabel rekapitulasi kehadiran bulanan siswa. Kolom ini menghitung akumulasi total ketidakhadiran siswa (`Alpha` + `Izin` + `Sakit`) dan menampilkan jumlahnya dengan badge berwarna merah (*rose*) untuk memudahkan pemantauan dan dasar pengajuan Surat Peringatan (SP) siswa oleh Guru BK/Wali Kelas.
+*   **Laporan PDF (Hasil Export)**: Memperbarui template PDF [pdf.blade.php](file:///Users/syarifat/Data/my_project/fingersync/resources/views/admin/presensi/pdf.blade.php) yang digunakan oleh Admin dan Wali Kelas saat melakukan export laporan presensi bulanan. Menambahkan kolom **"AIS"** di baris Total sebelah kanan setelah kolom `A` (Alpa) serta memperluas header. Kolom ini secara otomatis menjumlahkan total ketidakhadiran siswa (`A` + `I` + `S`) pada bulan berjalan dan menyorotinya dengan latar belakang merah muda (*rose*) serta teks merah tebal. Legend keterangan di bawah tabel PDF juga telah diperbarui dengan penjelasan kolom AIS.
 
 ---
 
@@ -47,5 +60,22 @@
 ---
 
 ### 6. 🔄 Logika kondisi khusus guru izin, absen, atau diganti, serta kegiatan sekolah serentak
-*Status: ⏳ Belum dikerjakan*
-*   **Deskripsi**: Membuat sistem custom kegiatan di sisi admin yang mempengaruhi pesan notifikasi serta perizinan scan (hanya datang/pulang jika kegiatan serentak tanpa kelas reguler).
+*Status: ✅ Selesai (14 Juni 2026)*
+
+#### 📝 Walkthrough Implementasi:
+*   **Database & Migrasi**:
+    *   Tabel `kegiatan_sekolah`: menyimpan agenda kegiatan serentak sekolah (PORSENI, Ujian Tengah Semester, dll.) beserta konfigurasi window waktu absen datang dan pulang.
+    *   Tabel `guru_kbm_khusus`: mencatat status khusus guru (izin, absen, diganti) pada tanggal dan jadwal tertentu, termasuk relasi ke `id_guru_pengganti`.
+    *   Tabel `presensi`: kolom `id_rombel_jadwal_pelajaran` dibuat nullable, ditambahkan foreign key `id_kegiatan_sekolah` dan string `tipe_scan_kegiatan` ('datang' atau 'pulang').
+*   **Logika API Scan Alat (`DeviceController@scan`)**:
+    *   **Bypass KBM Reguler**: Jika ada kegiatan serentak hari ini, verifikasi jadwal dan ruangan kelas dilewati. Siswa dapat menempelkan jari di alat mana saja. Scan dalam rentang waktu pagi tercatat sebagai "Datang", sedangkan siang/sore tercatat sebagai "Pulang" untuk kegiatan sekolah tersebut. Notifikasi WhatsApp ke orang tua otomatis menyesuaikan detail nama kegiatan.
+    *   **Kondisi Guru**: Jika ada record KBM khusus untuk guru:
+        *   Jika Guru **Izin/Absen**: Scan sidik jari siswa tetap diterima (Hadir/Terlambat), respons LCD alat berubah menjadi "KBM Mandiri / Guru Izin", dan notifikasi WhatsApp orang tua mengabarkan bahwa KBM mandiri karena guru berhalangan.
+        *   Jika Guru **Diganti**: Scan siswa diterima normal, LCD menampilkan nama mapel (Pengganti) & nama Guru Pengganti, serta memberikan hak akses absensi kelas kepada Guru Pengganti di dashboard mereka.
+*   **Dashboard & Riwayat Guru**:
+    *   Di `DashboardController` & `RiwayatAbsensiController`, jika guru utama digantikan hari ini, jadwal reguler disembunyikan/diberi label "Digantikan oleh [Guru Pengganti]" dan tombol "Lihat Presensi" dinonaktifkan.
+    *   Jika guru login bertindak sebagai Guru Pengganti hari ini, jadwal mengajar tambahan otomatis muncul di dashboard mereka.
+    *   Pengecekan otorisasi di `PresensiController` & `RiwayatAbsensiController` diperluas agar memperbolehkan Guru Pengganti mengelola absensi kelas tersebut khusus pada tanggal penggantian.
+*   **Interface Admin (CRUD Premium)**:
+    *   Dibuat CRUD **Kegiatan Sekolah** dan **KBM Khusus Guru** dengan tampilan modern, responsif, dan konsisten menggunakan skema warna orange/gray fingersync.
+    *   Sidebar navigation telah diperbarui untuk menyertakan tautan menu baru tersebut tepat di bawah menu Hari Libur.

@@ -40,4 +40,10 @@ class Presensi extends Model
     {
         return $this->belongsTo(TahunAjar::class, 'id_tahun_ajar');
     }
+
+    // Relasi ke Kegiatan Sekolah
+    public function kegiatanSekolah()
+    {
+        return $this->belongsTo(KegiatanSekolah::class, 'id_kegiatan_sekolah');
+    }
 }

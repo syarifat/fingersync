@@ -78,6 +78,8 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->as('admin.')->group(
     Route::post('tahun-ajar/switch', [TahunAjarController::class, 'switch'])->name('tahun-ajar.switch');
     Route::post('hari-libur/sync', [HariLiburController::class, 'sync'])->name('hari-libur.sync');
     Route::resource('hari-libur', HariLiburController::class);
+    Route::resource('kegiatan-sekolah', \App\Http\Controllers\Admin\KegiatanSekolahController::class);
+    Route::resource('kbm-khusus', \App\Http\Controllers\Admin\GuruKbmKhususController::class);
 
     // Rombel
     // ROMBEL KELAS (Konsep Baru)

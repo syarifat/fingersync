@@ -19,9 +19,16 @@ class PresensiController extends Controller
         $jadwal = RombelJadwalPelajaran::with(['rombelMapel.kelas', 'rombelMapel.mataPelajaran'])
             ->findOrFail($id);
 
-        // Keamanan: Pastikan jadwal ini milik guru yang login
+        // Keamanan: Pastikan jadwal ini milik guru yang login ATAU guru tersebut adalah guru pengganti hari ini
         $guru_id = \App\Models\Guru::where('user_id', Auth::id())->value('id');
-        if ($jadwal->rombelMapel->id_guru != $guru_id) {
+        
+        $isSubstitute = \App\Models\GuruKbmKhusus::where('id_rombel_jadwal_pelajaran', $jadwal->id)
+            ->whereDate('tanggal', Carbon::now()->format('Y-m-d'))
+            ->where('status', 'diganti')
+            ->where('id_guru_pengganti', $guru_id)
+            ->exists();
+
+        if ($jadwal->rombelMapel->id_guru != $guru_id && !$isSubstitute) {
             abort(403, 'Akses Ditolak. Ini bukan jadwal Anda.');
         }
 

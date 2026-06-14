@@ -32,7 +32,20 @@ class AdminController extends Controller
                                     ->where('status', 'Terlambat')
                                     ->count();
 
-        // 3. Ambil 5 Data Presensi Terakhir (Realtime Feed)
+        // 3. Ambil Siswa Terlambat dikelompokkan berdasarkan kelas
+        $siswaTerlambat = Presensi::with([
+            'siswa', 
+            'rombelJadwalPelajaran.rombelMataPelajaran.kelas'
+        ])
+        ->whereDate('tanggal', $hariIni)
+        ->where('status', 'Terlambat')
+        ->get();
+
+        $terlambatByKelas = $siswaTerlambat->groupBy(function($p) {
+            return $p->rombelJadwalPelajaran->rombelMataPelajaran->kelas->nama ?? 'Lainnya';
+        });
+
+        // 4. Ambil 5 Data Presensi Terakhir (Realtime Feed)
         $presensiTerbaru = Presensi::with(['siswa', 'rombelJadwalPelajaran.rombelMataPelajaran.mataPelajaran'])
                                    ->orderBy('tanggal', 'desc')
                                    ->orderBy('jam_scan', 'desc')
@@ -45,7 +58,9 @@ class AdminController extends Controller
             'inboxPending', 
             'hadirHariIni', 
             'terlambatHariIni', 
-            'presensiTerbaru'
+            'presensiTerbaru',
+            'terlambatByKelas',
+            'tanggalTerakhir'
         ));
     }
 }

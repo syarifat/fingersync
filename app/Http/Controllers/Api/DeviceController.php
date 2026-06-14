@@ -83,6 +83,82 @@ class DeviceController extends Controller
                 ], 200);
             }
 
+            // 4.a. Cek Kegiatan Sekolah Serentak hari ini
+            $kegiatanSerentak = \App\Models\KegiatanSekolah::whereDate('tanggal', $tanggalScan)
+                ->where('tipe', 'serentak')
+                ->first();
+
+            if ($kegiatanSerentak) {
+                // Tentukan tipe scan (datang / pulang) berdasarkan jam saat ini
+                $tipeScan = null;
+                $jamSkrgStr = $jamSekarang;
+
+                if ($jamSkrgStr >= $kegiatanSerentak->jam_mulai_datang && $jamSkrgStr <= $kegiatanSerentak->jam_selesai_datang) {
+                    $tipeScan = 'datang';
+                } elseif ($jamSkrgStr >= $kegiatanSerentak->jam_mulai_pulang && $jamSkrgStr <= $kegiatanSerentak->jam_selesai_pulang) {
+                    $tipeScan = 'pulang';
+                }
+
+                if (!$tipeScan) {
+                    return response()->json([
+                        'status' => 'INFO',
+                        'message' => 'Bukan waktu absen untuk Kegiatan: ' . $kegiatanSerentak->nama_kegiatan
+                    ], 200);
+                }
+
+                // Cek apakah sudah absen untuk tipe scan ini hari ini
+                $sudahAbsenKegiatan = Presensi::where('id_siswa', $siswa->id)
+                    ->where('id_kegiatan_sekolah', $kegiatanSerentak->id)
+                    ->where('tipe_scan_kegiatan', $tipeScan)
+                    ->whereDate('tanggal', $tanggalScan)
+                    ->exists();
+
+                if ($sudahAbsenKegiatan) {
+                    return response()->json([
+                        'status' => 'WARN',
+                        'message' => 'Sudah Absen ' . ucfirst($tipeScan) . '!',
+                        'nama' => $siswa->nama
+                    ]);
+                }
+
+                // Kirim notifikasi WA
+                if (!empty($siswa->nohp_ortu)) {
+                    $waktuWA = $now->format('H:i');
+                    $pesanOrtu = "Halo Ayah/Ibu dari *{$siswa->nama}*,\n\n";
+                    if ($tipeScan === 'datang') {
+                        $pesanOrtu .= "Kami menginformasikan bahwa ananda telah *Tiba di Sekolah* untuk mengikuti kegiatan *{$kegiatanSerentak->nama_kegiatan}* pada jam *{$waktuWA} WIB*.\n\n";
+                    } else {
+                        $pesanOrtu .= "Kami menginformasikan bahwa ananda telah melakukan presensi *Pulang Kegiatan* *{$kegiatanSerentak->nama_kegiatan}* pada jam *{$waktuWA} WIB*.\n\n";
+                    }
+                    $pesanOrtu .= "Terima kasih.";
+                    WhatsAppService::send($siswa->nohp_ortu, $pesanOrtu, $siswa->id);
+                }
+
+                // Simpan presensi kegiatan
+                Presensi::create([
+                    'id_siswa' => $siswa->id,
+                    'id_rombel_jadwal_pelajaran' => null,
+                    'id_kegiatan_sekolah' => $kegiatanSerentak->id,
+                    'tipe_scan_kegiatan' => $tipeScan,
+                    'tanggal' => $tanggalScan,
+                    'jam_scan' => $jamSekarang,
+                    'id_device' => $device->id,
+                    'status' => 'Hadir',
+                    'id_tahun_ajar' => $activeYear,
+                ]);
+
+                $rombelKelas = \App\Models\Kelas::where('id', $rombel->id_kelas)->value('nama');
+
+                return response()->json([
+                    'status' => 'SUCCESS',
+                    'message' => 'Berhasil Absen',
+                    'nama' => $siswa->nama,
+                    'kelas' => $rombelKelas ?? '-',
+                    'mapel' => 'Kegiatan: ' . $kegiatanSerentak->nama_kegiatan,
+                    'stat' => 'Hadir (' . ucfirst($tipeScan) . ')'
+                ]);
+            }
+
             // 5. Cari Jadwal Pelajaran (Sesuai Kelas Siswa & Jam Sekarang)
             $jadwal = RombelJadwalPelajaran::with(['rombelMapel.mataPelajaran', 'rombelMapel.kelas', 'ruangan'])
                 ->where('hari', $hariIni)
@@ -109,10 +185,16 @@ class DeviceController extends Controller
                 ], 200);
             }
 
+            // Cek kondisi khusus Guru pada jadwal ini
+            $kbmKhusus = \App\Models\GuruKbmKhusus::with('guruPengganti')
+                ->where('id_rombel_jadwal_pelajaran', $jadwal->id)
+                ->whereDate('tanggal', $tanggalScan)
+                ->first();
+
             // 6. Cek Duplikasi (Jangan sampai absen 2x di mapel yang sama)
             $sudahAbsen = Presensi::where('id_siswa', $siswa->id)
                 ->where('id_rombel_jadwal_pelajaran', $jadwal->id)
-                ->whereDate('tanggal', $now->format('Y-m-d'))
+                ->whereDate('tanggal', $tanggalScan)
                 ->exists();
 
             if ($sudahAbsen) {
@@ -126,18 +208,26 @@ class DeviceController extends Controller
             // =====================================================================
             // LOGIKA BARU: CEK ABSENSI PERTAMA HARI INI & KIRIM WA KE ORTU
             // =====================================================================
-            // Kita cek sebelum data di-insert, apakah anak ini sudah absen HARI INI di jadwal manapun?
             $absenPertamaHariIni = Presensi::where('id_siswa', $siswa->id)
-                ->whereDate('tanggal', $now->format('Y-m-d'))
+                ->whereDate('tanggal', $tanggalScan)
                 ->doesntExist();
 
             if ($absenPertamaHariIni && !empty($siswa->nohp_ortu)) {
                 $waktuWA = $now->format('H:i');
                 $pesanOrtu = "Halo Ayah/Ibu dari *{$siswa->nama}*,\n\n";
-                $pesanOrtu .= "Kami menginformasikan bahwa ananda telah *Tiba di Sekolah* dan melakukan presensi pertama pada jam *{$waktuWA} WIB*.\n\n";
+
+                if ($kbmKhusus && in_array($kbmKhusus->status, ['izin', 'absen'])) {
+                    $keteranganTugas = $kbmKhusus->keterangan ? "Tugas: {$kbmKhusus->keterangan}" : "Belajar Mandiri";
+                    $pesanOrtu .= "Kami menginformasikan bahwa ananda telah *Tiba di Sekolah* pada jam *{$waktuWA} WIB*.\n";
+                    $pesanOrtu .= "Pada KBM jam ini, Guru mata pelajaran *{$jadwal->rombelMapel->mataPelajaran->nama}* sedang berhalangan hadir ({$kbmKhusus->status}). Ananda belajar mandiri di kelas. ({$keteranganTugas})\n\n";
+                } elseif ($kbmKhusus && $kbmKhusus->status === 'diganti' && $kbmKhusus->guruPengganti) {
+                    $pesanOrtu .= "Kami menginformasikan bahwa ananda telah *Tiba di Sekolah* pada jam *{$waktuWA} WIB*.\n";
+                    $pesanOrtu .= "KBM *{$jadwal->rombelMapel->mataPelajaran->nama}* hari ini didampingi oleh Guru Pengganti *{$kbmKhusus->guruPengganti->nama}*.\n\n";
+                } else {
+                    $pesanOrtu .= "Kami menginformasikan bahwa ananda telah *Tiba di Sekolah* dan melakukan presensi pertama pada jam *{$waktuWA} WIB*.\n\n";
+                }
+
                 $pesanOrtu .= "Semoga ananda belajar dengan baik hari ini. Terima kasih.";
-                
-                // Panggil layanan pengirim WA (akan jalan di background)
                 WhatsAppService::send($siswa->nohp_ortu, $pesanOrtu, $siswa->id);
             }
             // =====================================================================
@@ -151,19 +241,33 @@ class DeviceController extends Controller
             Presensi::create([
                 'id_siswa' => $siswa->id,
                 'id_rombel_jadwal_pelajaran' => $jadwal->id,
-                'tanggal' => $now->format('Y-m-d'),
+                'tanggal' => $tanggalScan,
                 'jam_scan' => $jamSekarang,
                 'id_device' => $device->id,
                 'status' => $statusKehadiran,
                 'id_tahun_ajar' => $jadwal->rombelMapel->id_tahun_ajar,
             ]);
 
+            // Tentukan pesan respons sukses berdasarkan kondisi guru
+            $customMessage = 'Berhasil Absen';
+            $customMapel = $jadwal->rombelMapel->mataPelajaran->nama;
+
+            if ($kbmKhusus) {
+                if (in_array($kbmKhusus->status, ['izin', 'absen'])) {
+                    $customMessage = 'KBM Mandiri (' . ucfirst($kbmKhusus->status) . ')';
+                    $customMapel = $jadwal->rombelMapel->mataPelajaran->nama . ' (Mandiri)';
+                } elseif ($kbmKhusus->status === 'diganti' && $kbmKhusus->guruPengganti) {
+                    $customMessage = 'Guru Pengganti: ' . $kbmKhusus->guruPengganti->nama;
+                    $customMapel = $jadwal->rombelMapel->mataPelajaran->nama . ' (Pengganti)';
+                }
+            }
+
             return response()->json([
                 'status' => 'SUCCESS',
-                'message' => 'Berhasil Absen',
+                'message' => $customMessage,
                 'nama' => $siswa->nama,
                 'kelas' => $jadwal->rombelMapel->kelas->nama,
-                'mapel' => $jadwal->rombelMapel->mataPelajaran->nama,
+                'mapel' => $customMapel,
                 'stat' => $statusKehadiran
             ]);
 

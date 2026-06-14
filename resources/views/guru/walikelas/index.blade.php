@@ -47,7 +47,8 @@
                                 <th class="p-4 font-black text-center text-emerald-600">Hadir</th>
                                 <th class="p-4 font-black text-center text-blue-600">Sakit</th>
                                 <th class="p-4 font-black text-center text-orange-600">Izin</th>
-                                <th class="p-4 font-black text-center text-red-600 rounded-tr-xl">Alpha</th>
+                                <th class="p-4 font-black text-center text-red-600">Alpha</th>
+                                <th class="p-4 font-black text-center text-rose-700 rounded-tr-xl">Jumlah AIS</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-gray-100">
@@ -78,6 +79,11 @@
                                 <td class="p-4 text-center">
                                     <span class="inline-flex items-center justify-center w-8 h-8 rounded-full {{ $rs->total_alpha > 0 ? 'bg-red-100 text-red-700 font-bold' : 'text-gray-300' }}">
                                         {{ $rs->total_alpha }}
+                                    </span>
+                                </td>
+                                <td class="p-4 text-center">
+                                    <span class="inline-flex items-center justify-center w-10 h-8 rounded-full {{ ($rs->total_alpha + $rs->total_izin + $rs->total_sakit) > 0 ? 'bg-rose-100 text-rose-700 font-black' : 'text-gray-300' }}">
+                                        {{ $rs->total_alpha + $rs->total_izin + $rs->total_sakit }}
                                     </span>
                                 </td>
                             </tr>

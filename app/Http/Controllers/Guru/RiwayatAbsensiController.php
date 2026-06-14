@@ -27,16 +27,45 @@ class RiwayatAbsensiController extends Controller
         Carbon::setLocale('id');
         $hariFilter = Carbon::parse($tanggalFilter)->isoFormat('dddd');
 
-        // Ambil kelas untuk Dropdown
-        $kelasIdsYangDiajar = RombelMataPelajaran::where('id_guru', $guru->id)->pluck('id_kelas')->unique();
-        $kelasList = Kelas::whereIn('id', $kelasIdsYangDiajar)->orderBy('nama', 'asc')->get();
+        $guru_id = $guru->id;
 
-        // Cari Jadwal Mengajar (Dibuat persis seperti DashboardController)
+        // Ambil ID jadwal di mana guru ini adalah guru pengganti pada tanggal tersebut
+        $idJadwalPengganti = \App\Models\GuruKbmKhusus::whereDate('tanggal', $tanggalFilter)
+            ->where('status', 'diganti')
+            ->where('id_guru_pengganti', $guru_id)
+            ->pluck('id_rombel_jadwal_pelajaran')
+            ->toArray();
+
+        // Ambil ID jadwal di mana guru ini izin/absen/diganti (tidak aktif mengajar) pada tanggal tersebut
+        $idJadwalNonAktif = \App\Models\GuruKbmKhusus::whereDate('tanggal', $tanggalFilter)
+            ->whereIn('status', ['izin', 'absen', 'diganti'])
+            ->pluck('id_rombel_jadwal_pelajaran')
+            ->toArray();
+
+        // Ambil kelas untuk Dropdown (termasuk kelas pengganti)
+        $kelasIdsYangDiajar = RombelMataPelajaran::where('id_guru', $guru_id)->pluck('id_kelas')->toArray();
+        $kelasIdsPengganti = RombelJadwalPelajaran::whereIn('id', $idJadwalPengganti)
+            ->get()
+            ->map(fn($j) => $j->rombelMataPelajaran->id_kelas ?? null)
+            ->filter()
+            ->toArray();
+        $kelasIdsAll = array_unique(array_merge($kelasIdsYangDiajar, $kelasIdsPengganti));
+        $kelasList = Kelas::whereIn('id', $kelasIdsAll)->orderBy('nama', 'asc')->get();
+
+        // Cari Jadwal Mengajar reguler minus yang dinonaktifkan
         $query = RombelJadwalPelajaran::with(['rombelMataPelajaran.kelas', 'rombelMataPelajaran.mataPelajaran', 'ruangan'])
-            ->whereHas('rombelMataPelajaran', function ($q) use ($guru) {
-                $q->where('id_guru', $guru->id);
-            })
-            ->where('hari', $hariFilter);
+            ->where(function($q) use ($guru_id, $hariFilter, $idJadwalNonAktif) {
+                $q->whereHas('rombelMataPelajaran', function ($sub) use ($guru_id) {
+                    $sub->where('id_guru', $guru_id);
+                })
+                ->where('hari', $hariFilter)
+                ->whereNotIn('id', $idJadwalNonAktif);
+            });
+
+        // Gabungkan jadwal di mana dia menjadi guru pengganti
+        if (!empty($idJadwalPengganti)) {
+            $query->orWhereIn('id', $idJadwalPengganti);
+        }
 
         if ($kelasFilter != '') {
             $query->whereHas('rombelMataPelajaran', function ($q) use ($kelasFilter) {
@@ -58,7 +87,14 @@ class RiwayatAbsensiController extends Controller
             ->findOrFail($id_jadwal);
 
         $guru_id = Guru::where('user_id', Auth::id())->value('id');
-        if ($jadwal->rombelMataPelajaran->id_guru != $guru_id) {
+        
+        $isSubstitute = \App\Models\GuruKbmKhusus::where('id_rombel_jadwal_pelajaran', $id_jadwal)
+            ->whereDate('tanggal', $tanggalFilter)
+            ->where('status', 'diganti')
+            ->where('id_guru_pengganti', $guru_id)
+            ->exists();
+
+        if ($jadwal->rombelMataPelajaran->id_guru != $guru_id && !$isSubstitute) {
             abort(403, 'Akses Ditolak.');
         }
 
