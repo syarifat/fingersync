@@ -42,6 +42,16 @@ class DeviceController extends Controller
 
             $jamSekarang = $now->format('H:i:s');
 
+            // 2.a. Cek Hari Libur
+            $tanggalScan = $now->format('Y-m-d');
+            if (\App\Models\HariLibur::isHoliday($tanggalScan)) {
+                $namaLibur = \App\Models\HariLibur::getHolidayName($tanggalScan);
+                return response()->json([
+                    'status' => 'ERROR',
+                    'message' => 'Hari Libur: ' . $namaLibur
+                ], 200);
+            }
+
             // 3. Cek Device (Apakah terdaftar?)
             $device = Device::where('id_device', $request->id_device)->first();
             if (!$device) {

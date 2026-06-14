@@ -32,6 +32,13 @@ class KirimRekapSore extends Command
             $tanggalIni = $now->format('Y-m-d');
         }
 
+        // Cek Hari Libur
+        if (\App\Models\HariLibur::isHoliday($tanggalIni)) {
+            $namaLibur = \App\Models\HariLibur::getHolidayName($tanggalIni);
+            $this->info("Hari ini libur ({$namaLibur}). Pengiriman rekap sore dibatalkan.");
+            return 0;
+        }
+
         $tanggalFormat = Carbon::parse($tanggalIni)->isoFormat('DD MMMM YYYY');
         $this->info("Memulai pengisian Alpha otomatis dan pengiriman rekap sore untuk tanggal $tanggalFormat...");
 

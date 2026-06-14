@@ -35,6 +35,13 @@ class CekAnomaliAbsensi extends Command
             $tanggalIni = $now->format('Y-m-d');
         }
 
+        // Cek Hari Libur
+        if (\App\Models\HariLibur::isHoliday($tanggalIni)) {
+            $namaLibur = \App\Models\HariLibur::getHolidayName($tanggalIni);
+            $this->info("Hari ini libur ({$namaLibur}). Razia anomali dibatalkan.");
+            return 0;
+        }
+
         // Trik Anti-Spam: Cari mapel yang mulainya antara 90 menit sampai 60 menit yang lalu.
         // Jika Command ini jalan tiap 30 menit, tidak akan ada kelas yang kena razia dua kali.
         $batasBawah = (clone $now)->subMinutes(90)->format('H:i:s');

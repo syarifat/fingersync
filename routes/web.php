@@ -20,6 +20,7 @@ use App\Http\Controllers\Admin\RombelMataPelajaranController;
 use App\Http\Controllers\Admin\RombelJadwalPelajaranController;
 use App\Http\Controllers\Admin\PresensiController;
 use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\Admin\HariLiburController;
 
 // Route khusus untuk eksekusi Cron Job via Web (cron-job.org)
 Route::get('/cron/cek-anomali/{token}', function ($token) {
@@ -75,6 +76,8 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->as('admin.')->group(
     Route::resource('tahun-ajar', TahunAjarController::class);
     Route::resource('device', DeviceController::class);
     Route::post('tahun-ajar/switch', [TahunAjarController::class, 'switch'])->name('tahun-ajar.switch');
+    Route::post('hari-libur/sync', [HariLiburController::class, 'sync'])->name('hari-libur.sync');
+    Route::resource('hari-libur', HariLiburController::class);
 
     // Rombel
     // ROMBEL KELAS (Konsep Baru)
