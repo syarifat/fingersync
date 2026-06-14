@@ -1,8 +1,0 @@
-1 guru maish bisa bersamaan di Waktu yang sama
-menubaru khusus guru bk untuk melihat rekap absensi dari kelas yang di ampu
-ubah semua absensi menjadi presensi
-
-menu pendaftaran fixing tidak bisa satu ruanga ada 2 alat(laporan bab 5)
-menu tahun ajar juga sama
-
-admin bisa edit presensi(jadi bukan hanya guru) sesuai laporan 5.12
