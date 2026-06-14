@@ -33,8 +33,16 @@
 ---
 
 ### 5. 💬 Notifikasi rekap harian kalau bisa dikirim ke grub wali siswa per kelas
-*Status: ⏳ Belum dikerjakan*
-*   **Deskripsi**: Mengirimkan ringkasan rekap kehadiran harian kelas langsung ke grup WhatsApp wali siswa per kelas menggunakan API Fonnte.
+*Status: ✅ Selesai (14 Juni 2026)*
+
+#### 📝 Walkthrough Implementasi:
+*   **Database & Model (`kelas`)**: Menambahkan kolom `id_grup_wa` di tabel `kelas` untuk menyimpan WhatsApp Group ID unik dari Fonnte (contoh: `120363073948572834@g.us`).
+*   **Sync Grup Fonnte (`WhatsAppService`)**: Dibuat method helper `WhatsAppService::getGroups()` untuk menyinkronkan dan mengambil daftar grup WhatsApp aktif langsung dari Fonnte API.
+*   **UI Manajemen Admin**: Memperbarui form edit kelas dan daftar kelas di panel admin. Admin kini dapat memilih grup WhatsApp wali kelas dari select dropdown secara langsung berdasarkan daftar grup aktif dari Fonnte.
+*   **Logic Pengiriman Terkelompok (`KirimRekapSore`)**: Merombak total logic di `absensi:rekap-sore` agar mengelompokkan laporan kehadiran berdasarkan kelas. 
+    *   Jika kelas memiliki grup WA yang terhubung, rekap seluruh siswa dalam kelas tersebut digabungkan menjadi satu pesan terformat rapi dan dikirim langsung ke grup WA.
+    *   Pesan grup dipecah secara cerdas (maksimal 10 siswa per pesan) untuk menghindari kegagalan pengiriman di Fonnte karena batas panjang karakter WhatsApp.
+    *   Jika kelas belum dihubungkan ke grup WA, sistem otomatis menggunakan opsi cadangan (*fallback*), yaitu mengirimkan laporan individu ke WhatsApp orang tua masing-masing siswa.
 
 ---
 

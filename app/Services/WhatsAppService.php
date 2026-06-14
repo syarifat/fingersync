@@ -44,4 +44,37 @@ class WhatsAppService
             return false;
         }
     }
+
+    /**
+     * Fetch WhatsApp groups connected to the Fonnte token
+     *
+     * @return array
+     */
+    public static function getGroups()
+    {
+        $token = env('FONNTE_TOKEN');
+        if (!$token) return [];
+
+        try {
+            // Sync groups from WhatsApp device to Fonnte
+            Http::timeout(10)->withHeaders([
+                'Authorization' => $token,
+            ])->post('https://api.fonnte.com/fetch-group');
+
+            // Fetch the updated groups list from Fonnte
+            $response = Http::timeout(10)->withHeaders([
+                'Authorization' => $token,
+            ])->post('https://api.fonnte.com/get-whatsapp-group');
+
+            if ($response->successful()) {
+                $data = $response->json();
+                if (isset($data['status']) && $data['status'] == true && isset($data['data'])) {
+                    return $data['data'];
+                }
+            }
+            return [];
+        } catch (\Throwable $e) {
+            return [];
+        }
+    }
 }

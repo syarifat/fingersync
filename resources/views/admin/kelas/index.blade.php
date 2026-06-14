@@ -77,6 +77,7 @@
                                 <tr class="text-gray-400 text-xs uppercase tracking-widest border-b border-gray-100">
                                     <th class="pb-4 font-black px-4">Nama Kelas</th>
                                     <th class="pb-4 font-black">Jurusan</th>
+                                    <th class="pb-4 font-black text-center">Grup WhatsApp</th>
                                     <th class="pb-4 font-black text-right px-4">Aksi</th>
                                 </tr>
                             </thead>
@@ -88,6 +89,18 @@
                                         <span class="px-3 py-1 bg-blue-50 text-blue-600 rounded-lg text-xs font-black uppercase">
                                             {{ $k->jurusan->nama }}
                                         </span>
+                                    </td>
+                                    <td class="py-5 text-center">
+                                        @if($k->id_grup_wa)
+                                        <span class="inline-flex items-center px-3 py-1 bg-green-50 text-green-700 rounded-full text-xs font-bold ring-1 ring-green-200" title="{{ $k->id_grup_wa }}">
+                                            <span class="w-1.5 h-1.5 bg-green-500 rounded-full mr-1.5"></span>
+                                            Terhubung
+                                        </span>
+                                        @else
+                                        <span class="inline-flex items-center px-3 py-1 bg-gray-50 text-gray-400 rounded-full text-xs font-semibold">
+                                            Belum Terhubung
+                                        </span>
+                                        @endif
                                     </td>
                                     <td class="py-5 px-4 text-right">
                                         <div class="flex justify-end gap-3">

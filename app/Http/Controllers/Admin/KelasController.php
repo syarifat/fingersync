@@ -82,7 +82,12 @@ class KelasController extends Controller
     public function edit(Kelas $kela) // Laravel resource defaultnya $kela untuk singular Kelas
     {
         $jurusan = Jurusan::all();
-        return view('admin.kelas.edit', ['kelas' => $kela, 'jurusan' => $jurusan]);
+        $waGroups = \App\Services\WhatsAppService::getGroups();
+        return view('admin.kelas.edit', [
+            'kelas' => $kela,
+            'jurusan' => $jurusan,
+            'waGroups' => $waGroups
+        ]);
     }
 
     public function update(Request $request, Kelas $kela)
@@ -90,6 +95,7 @@ class KelasController extends Controller
         $request->validate([
             'nama' => 'required|unique:kelas,nama,' . $kela->id,
             'id_jurusan' => 'required|exists:jurusan,id',
+            'id_grup_wa' => 'nullable|string',
         ]);
 
         $kela->update($request->all());

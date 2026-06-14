@@ -45,6 +45,24 @@
                                 </select>
                                 <x-input-error :messages="$errors->get('id_jurusan')" class="mt-1" />
                             </div>
+
+                            <div>
+                                <x-input-label for="id_grup_wa" value="Hubungkan ke Grup WhatsApp Wali Murid (Laporan Rekap Harian)" class="font-bold text-gray-700" />
+                                <select name="id_grup_wa" 
+                                    class="w-full border-gray-200 focus:border-orange-500 focus:ring-orange-500 rounded-xl shadow-sm mt-2 transition-all">
+                                    <option value="">-- Pilih Grup WA (Opsional) --</option>
+                                    @forelse($waGroups as $group)
+                                        <option value="{{ $group['id'] }}" 
+                                            {{ old('id_grup_wa', $kelas->id_grup_wa) == $group['id'] ? 'selected' : '' }}>
+                                            {{ $group['name'] }} ({{ $group['id'] }})
+                                        </option>
+                                    @empty
+                                        <option value="" disabled>-- Tidak ada grup WA aktif di Fonnte / Cek Koneksi --</option>
+                                    @endforelse
+                                </select>
+                                <x-input-error :messages="$errors->get('id_grup_wa')" class="mt-1" />
+                                <p class="text-xs text-orange-600 mt-2">*Jika dihubungkan, laporan sore rekap harian akan dikirim terkelompok ke grup ini, bukan individu ke orang tua.</p>
+                            </div>
                         </div>
                     </div>
 
