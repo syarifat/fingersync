@@ -3,8 +3,26 @@
 ---
 
 ### 1. 🚪 Ada absensi untuk pulang
-*Status: ⏳ Belum dikerjakan*
-*   **Deskripsi**: Menambahkan pencatatan scan pulang pada alat absensi (ESP32) dan rekap data presensi pulang di database.
+*Status: ✅ Selesai (16 Juni 2026)*
+
+#### 📝 Walkthrough Implementasi:
+*   **Database & Migrasi**: Menambahkan kolom `tipe_scan` (string, default `'datang'`) ke tabel `presensi`. Kolom `id_rombel_jadwal_pelajaran` dibuat nullable karena scan pulang tidak terikat pada satu jadwal mapel tertentu.
+*   **Logika API Alat (`DeviceController@scan`)**:
+    *   Mendeteksi kelas siswa dari rombel aktif tahun ajaran berjalan.
+    *   Mencari jadwal pelajaran terakhir kelas tersebut pada hari berjalan.
+    *   **Jendela Absen Pulang**: Dimulai dari jam selesai pelajaran terakhir hingga pukul 16:00:00. Jika tidak ada jadwal hari ini, fallback ke 12:00:00 s.d 16:00:00.
+    *   Jika scan sidik jari dilakukan dalam jendela waktu tersebut, maka dicatat sebagai **Absen Pulang** (dengan `tipe_scan = 'pulang'` dan `id_rombel_jadwal_pelajaran = null`), mengirim notifikasi WA Pulang ke orang tua siswa, dan mengembalikan respons sukses pulang ke alat ESP32.
+*   **Tampilan Admin & Guru (UI/UX)**:
+    *   **Manajemen Presensi Admin**: Data scan pulang ditampilkan dengan deskripsi **"Absen Pulang Sekolah"** di kolom Jadwal/Mapel dan badge status **"PULANG"** (berwarna teal lembut `bg-teal-50 text-teal-600`).
+    *   **Edit Presensi**: Detail "Absen Pulang Sekolah" dan waktu "Selesai KBM - 16:00" ditampilkan menggantikan "Mapel Tidak Ditemukan" untuk memudahkan pengeditan oleh admin.
+    *   **Dashboard Admin & Guru**: Tabel log presensi terbaru mendeteksi scan pulang dan menampilkannya dengan label "Absen Pulang Sekolah" dan status "PULANG" (bg-teal-100 text-teal-800).
+*   **Laporan & Rekap Sore WA (`KirimRekapSore`)**:
+    *   Di rekap sore (pukul 16:00), sistem secara dinamis mengecek apakah siswa bersangkutan telah melakukan scan pulang hari ini.
+    *   Menambahkan status checkout di baris terbawah info kehadiran harian siswa, baik di grup kelas maupun pesan individu wali murid:
+        *   Jika sudah scan: `🚪 *Scan Pulang:* [Jam Scan] WIB (Sudah Pulang)`
+        *   Jika belum scan: `🚪 *Scan Pulang:* - (Belum Scan Pulang / Bolos)`
+*   **Seeder Database (`DatabaseSeeder`)**:
+    *   Memperbarui seeder agar secara realistis menghasilkan data scan pulang untuk siswa-siswi pada jam pulang sekolah setelah jadwal pelajaran terakhir selesai (antara pukul 12:00 s.d 13:00) dengan probabilitas kehadiran yang disesuaikan berdasarkan profil siswa (teladan, biasa, bermasalah).
 
 ---
 

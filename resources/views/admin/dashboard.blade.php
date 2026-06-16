@@ -114,7 +114,9 @@
                                         {{ $p->siswa->rombelKelas->kelas->nama ?? '-' }}
                                     </td>
                                     <td class="py-4 text-sm text-gray-600">
-                                        @if($p->rombelJadwalPelajaran)
+                                        @if($p->tipe_scan === 'pulang')
+                                            <span class="text-teal-600 font-bold">Absen Pulang Sekolah</span>
+                                        @elseif($p->rombelJadwalPelajaran)
                                             {{ $p->rombelJadwalPelajaran->rombelMataPelajaran->mataPelajaran->nama ?? 'Tidak Ada Jadwal' }}
                                         @elseif($p->kegiatanSekolah)
                                             <span class="text-orange-600 font-bold">Kegiatan: {{ $p->kegiatanSekolah->nama_kegiatan }}</span>
@@ -123,7 +125,9 @@
                                         @endif
                                     </td>
                                     <td class="py-4 text-right pr-4">
-                                        @if($p->status == 'Hadir')
+                                        @if($p->tipe_scan === 'pulang')
+                                            <span class="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-bold bg-teal-100 text-teal-800">PULANG</span>
+                                        @elseif($p->status == 'Hadir')
                                             <span class="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-bold bg-emerald-100 text-emerald-800">HADIR</span>
                                         @elseif($p->status == 'Terlambat')
                                             <span class="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-bold bg-red-100 text-red-800">TERLAMBAT</span>

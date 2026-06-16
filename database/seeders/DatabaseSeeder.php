@@ -542,6 +542,64 @@ class DatabaseSeeder extends Seeder
                     }
                 }
             }
+
+            // Seeding Absen Pulang setelah KBM selesai
+            foreach ($kelasData as $k) {
+                $siswaIdsDiKelas = DB::table('rombel_kelas')
+                    ->where('id_kelas', $k['id'])
+                    ->where('id_tahun_ajar', $tahunAjarId)
+                    ->pluck('id_siswa');
+
+                $deviceId = $deviceIds[$k['ruangan_id']] ?? null;
+
+                foreach ($siswaIdsDiKelas as $sid) {
+                    $profileType = $siswaProfiles[$sid] ?? 'biasa';
+                    
+                    // Probabilitas scan pulang realistis
+                    $randPulang = rand(1, 100);
+                    $shouldSeedPulang = false;
+                    
+                    if ($profileType == 'teladan') {
+                        $shouldSeedPulang = true;
+                    } elseif ($profileType == 'bermasalah') {
+                        // Hanya 60% yang scan pulang, sisanya bolos pulang
+                        if ($randPulang <= 60) {
+                            $shouldSeedPulang = true;
+                        }
+                    } else { // Biasa
+                        // 95% scan pulang
+                        if ($randPulang <= 95) {
+                            $shouldSeedPulang = true;
+                        }
+                    }
+
+                    if ($shouldSeedPulang) {
+                        // Jam selesai KBM hari itu adalah 12:00:00
+                        $jamScanPulang = Carbon::parse('12:00:00')->addMinutes(rand(5, 55))->format('H:i:s');
+                        
+                        $presensiBatch[] = [
+                            'id_siswa' => $sid,
+                            'id_rombel_jadwal_pelajaran' => null,
+                            'id_kegiatan_sekolah' => null,
+                            'tipe_scan_kegiatan' => null,
+                            'tipe_scan' => 'pulang',
+                            'tanggal' => $tglStr,
+                            'jam_scan' => $jamScanPulang,
+                            'id_device' => $deviceId,
+                            'status' => 'Hadir',
+                            'id_tahun_ajar' => $tahunAjarId,
+                            'created_at' => $date->format('Y-m-d') . ' ' . $jamScanPulang,
+                            'updated_at' => $date->format('Y-m-d') . ' ' . $jamScanPulang
+                        ];
+
+                        // Insert jika batch mencapai 500
+                        if (count($presensiBatch) >= 500) {
+                            DB::table('presensi')->insert($presensiBatch);
+                            $presensiBatch = [];
+                        }
+                    }
+                }
+            }
         }
 
         if (count($presensiBatch) > 0) {

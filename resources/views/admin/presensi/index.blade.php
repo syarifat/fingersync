@@ -142,7 +142,11 @@
 
                                     {{-- Kolom Jadwal --}}
                                     <td class="py-5">
-                                        @if($row->rombelJadwalPelajaran)
+                                        @if($row->tipe_scan === 'pulang')
+                                        <span class="px-3 py-1 bg-teal-50 text-teal-600 rounded-lg text-xs font-black uppercase">
+                                            Absen Pulang Sekolah
+                                        </span>
+                                        @elseif($row->rombelJadwalPelajaran)
                                         <span class="px-3 py-1 bg-blue-50 text-blue-600 rounded-lg text-xs font-black uppercase">
                                             {{ $row->rombelJadwalPelajaran->rombelMataPelajaran->mataPelajaran->nama ?? 'Mapel Tidak Ditemukan' }}
                                         </span>
@@ -164,17 +168,23 @@
                                     {{-- Kolom Status --}}
                                     <td class="py-5 text-center">
                                         @php
-                                        $badgeClass = match($row->status) {
-                                        'Hadir' => 'bg-emerald-50 text-emerald-600',
-                                        'Terlambat' => 'bg-amber-50 text-amber-600',
-                                        'Alpa' => 'bg-rose-50 text-rose-600',
-                                        'Sakit' => 'bg-purple-50 text-purple-600',
-                                        'Izin' => 'bg-indigo-50 text-indigo-600',
-                                        default => 'bg-gray-50 text-gray-600'
-                                        };
+                                        if ($row->tipe_scan === 'pulang') {
+                                            $badgeClass = 'bg-teal-50 text-teal-600';
+                                            $statusText = 'PULANG';
+                                        } else {
+                                            $badgeClass = match($row->status) {
+                                                'Hadir' => 'bg-emerald-50 text-emerald-600',
+                                                'Terlambat' => 'bg-amber-50 text-amber-600',
+                                                'Alpa' => 'bg-rose-50 text-rose-600',
+                                                'Sakit' => 'bg-purple-50 text-purple-600',
+                                                'Izin' => 'bg-indigo-50 text-indigo-600',
+                                                default => 'bg-gray-50 text-gray-600'
+                                            };
+                                            $statusText = $row->status;
+                                        }
                                         @endphp
                                         <span class="px-3 py-1 rounded-lg text-xs font-black uppercase {{ $badgeClass }}">
-                                            {{ $row->status }}
+                                            {{ $statusText }}
                                         </span>
                                     </td>
 

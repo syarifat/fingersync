@@ -162,6 +162,20 @@ class KirimRekapSore extends Command
                             $displayStatus = ($status == 'Alpha') ? 'Alpha' : $status;
                             $pesanGrup .= "   {$icon} *{$jam}* | {$mapel} (_{$displayStatus}_)\n";
                         }
+
+                        // Tampilkan status scan pulang
+                        $scanPulang = Presensi::where('id_siswa', $siswaId)
+                            ->where('tanggal', $tanggalIni)
+                            ->where('tipe_scan', 'pulang')
+                            ->first();
+
+                        if ($scanPulang) {
+                            $jamPulang = substr($scanPulang->jam_scan, 0, 5);
+                            $pesanGrup .= "   🚪 *Scan Pulang:* {$jamPulang} WIB (Sudah Pulang)\n";
+                        } else {
+                            $pesanGrup .= "   🚪 *Scan Pulang:* - (Belum Scan Pulang / Bolos)\n";
+                        }
+
                         $pesanGrup .= "\n";
                         $hasContent = true;
                     }
@@ -219,6 +233,19 @@ class KirimRekapSore extends Command
 
                         $pesan .= "{$icon} *{$jam}* | {$mapel}\n";
                         $pesan .= "Status: _{$displayStatus}_\n\n";
+                    }
+
+                    // Tampilkan status scan pulang
+                    $scanPulang = Presensi::where('id_siswa', $siswa->id)
+                        ->where('tanggal', $tanggalIni)
+                        ->where('tipe_scan', 'pulang')
+                        ->first();
+
+                    if ($scanPulang) {
+                        $jamPulang = substr($scanPulang->jam_scan, 0, 5);
+                        $pesan .= "🚪 *Scan Pulang:* {$jamPulang} WIB (Sudah Pulang)\n\n";
+                    } else {
+                        $pesan .= "🚪 *Scan Pulang:* - (Belum Scan Pulang / Bolos)\n\n";
                     }
 
                     $pesan .= "----------------------------------\n";

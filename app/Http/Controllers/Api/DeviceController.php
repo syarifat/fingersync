@@ -159,6 +159,68 @@ class DeviceController extends Controller
                 ]);
             }
 
+            // 4.b. Tentukan apakah ini scan pulang dinamis (setelah KBM terakhir selesai s/d jam 16:00)
+            $lastJadwal = RombelJadwalPelajaran::where('hari', $hariIni)
+                ->whereHas('rombelMataPelajaran', function($q) use ($rombel, $activeYear) {
+                    $q->where('id_kelas', $rombel->id_kelas)
+                      ->where('id_tahun_ajar', $activeYear);
+                })
+                ->orderBy('jam_selesai', 'desc')
+                ->first();
+
+            $jamMulaiPulang = $lastJadwal ? $lastJadwal->jam_selesai : '12:00:00';
+            $jamSelesaiPulang = '16:00:00';
+
+            $isScanPulang = ($jamSekarang >= $jamMulaiPulang && $jamSekarang <= $jamSelesaiPulang);
+
+            if ($isScanPulang) {
+                // Cek apakah sudah absen pulang hari ini
+                $sudahAbsenPulang = Presensi::where('id_siswa', $siswa->id)
+                    ->whereDate('tanggal', $tanggalScan)
+                    ->where('tipe_scan', 'pulang')
+                    ->exists();
+
+                if ($sudahAbsenPulang) {
+                    return response()->json([
+                        'status' => 'WARN',
+                        'message' => 'Sudah Absen Pulang!',
+                        'nama' => $siswa->nama
+                    ]);
+                }
+
+                // Kirim notifikasi WA Pulang
+                if (!empty($siswa->nohp_ortu)) {
+                    $waktuWA = $now->format('H:i');
+                    $pesanOrtu = "Halo Ayah/Ibu dari *{$siswa->nama}*,\n\n";
+                    $pesanOrtu .= "Kami menginformasikan bahwa ananda telah melakukan presensi *Pulang Sekolah* pada jam *{$waktuWA} WIB*.\n\n";
+                    $pesanOrtu .= "Terima kasih.";
+                    WhatsAppService::send($siswa->nohp_ortu, $pesanOrtu, $siswa->id);
+                }
+
+                // Simpan presensi pulang
+                Presensi::create([
+                    'id_siswa' => $siswa->id,
+                    'id_rombel_jadwal_pelajaran' => null,
+                    'tanggal' => $tanggalScan,
+                    'jam_scan' => $jamSekarang,
+                    'id_device' => $device->id,
+                    'status' => 'Hadir',
+                    'tipe_scan' => 'pulang',
+                    'id_tahun_ajar' => $activeYear,
+                ]);
+
+                $rombelKelas = \App\Models\Kelas::where('id', $rombel->id_kelas)->value('nama');
+
+                return response()->json([
+                    'status' => 'SUCCESS',
+                    'message' => 'Berhasil Absen Pulang',
+                    'nama' => $siswa->nama,
+                    'kelas' => $rombelKelas ?? '-',
+                    'mapel' => 'Pulang Sekolah',
+                    'stat' => 'Pulang'
+                ]);
+            }
+
             // 5. Cari Jadwal Pelajaran (Sesuai Kelas Siswa & Jam Sekarang)
             $jadwal = RombelJadwalPelajaran::with(['rombelMapel.mataPelajaran', 'rombelMapel.kelas', 'ruangan'])
                 ->where('hari', $hariIni)

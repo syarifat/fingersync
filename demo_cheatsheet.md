@@ -161,3 +161,41 @@ Panduan praktis langkah demi langkah untuk mendemokan seluruh hasil revisi siste
      * Guru B memiliki hak akses penuh untuk mengklik **Lihat Presensi** dan mengubah kehadiran siswa kelas tersebut secara manual khusus pada hari itu.
    * Lakukan scan siswa pada jam tersebut -> LCD menampilkan *"Guru Pengganti: [Nama Guru B]"*.
    * Notifikasi WA Orang Tua: *"...KBM hari ini didampingi oleh Guru Pengganti [Nama Guru B]."*
+
+---
+
+## 🚪 POIN 6: Absensi Pulang Sekolah Dinamis (Revisi 1)
+*Tujuan: Menunjukkan logika absensi pulang sekolah yang dinamis berdasarkan jadwal pelajaran terakhir siswa, serta pelaporannya.*
+
+### Langkah-langkah Demo:
+1. **Simulasi Scan Pulang Sekolah**:
+   * Ambil contoh siswa kelas X TKJ 1 yang jadwal pelajaran terakhirnya hari ini selesai pukul 12:00.
+   * Lakukan scan sidik jari siswa tersebut pada pukul 12:30 (atau kirim payload scan via API Simulator/Postman).
+   * **Hasil yang Diharapkan**:
+     * Alat ESP32 merespons dengan:
+       ```
+       ABSENSI BERHASIL!
+       [Nama Siswa]
+       Status: Pulang
+       Mapel: Pulang Sekolah
+       ```
+     * Notifikasi WhatsApp dikirim ke nomor orang tua siswa: *"Kami menginformasikan bahwa ananda telah melakukan presensi Pulang Sekolah pada jam 12:30 WIB. Terima kasih."*
+2. **Verifikasi Dashboard & Menu Presensi**:
+   * Login ke panel **Admin**.
+   * Di tabel **Log Presensi Terbaru** pada Dashboard, tunjukkan log scan siswa tersebut menampilkan mata pelajaran sebagai **"Absen Pulang Sekolah"** dengan status **"PULANG"** (badge berwarna teal).
+   * Masuk ke menu **Manajemen Data Presensi**, filter berdasarkan kelas siswa.
+   * Tunjukkan record presensi pulang tercatat dengan deskripsi **"Absen Pulang Sekolah"** dan badge status **"PULANG"**.
+   * Klik tombol **Edit** pada baris presensi pulang tersebut. Tunjukkan bahwa form edit menampilkan informasi mata pelajaran *"Absen Pulang Sekolah"* dan waktu KBM *"Selesai KBM - 16:00"* (tidak lagi menampilkan *Mapel Tidak Ditemukan*).
+3. **Simulasi Diluar Jendela Absen Pulang**:
+   * Lakukan scan siswa tersebut pada pukul 16:15 WIB.
+   * **Hasil yang Diharapkan**:
+     * Scan akan ditolak atau diproses sebagai scan KBM reguler baru (jika ada jadwal di jam tersebut), karena jendela scan pulang dibatasi maksimal hingga pukul 16:00 WIB.
+4. **Verifikasi Laporan Rekap Sore WA**:
+   * Jalankan simulasi rekap harian via terminal:
+     ```bash
+     php artisan absensi:rekap-sore
+     ```
+   * Periksa isi pesan WhatsApp rekap (baik di grup maupun individu).
+   * Tunjukkan baris status pulang di paling bawah detail laporan kehadiran siswa tersebut:
+     * Siswa yang sudah melakukan scan pulang: `🚪 *Scan Pulang:* 12:30 WIB (Sudah Pulang)`
+     * Siswa yang tidak scan pulang (bolos/belum scan): `🚪 *Scan Pulang:* - (Belum Scan Pulang / Bolos)`
