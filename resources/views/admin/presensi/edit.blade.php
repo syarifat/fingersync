@@ -31,12 +31,28 @@
                                 <span class="font-black text-gray-800">{{ $presensi->siswa->nis ?? '-' }}</span>
                             </div>
                             <div>
-                                <span class="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Mata Pelajaran</span>
-                                <span class="font-black text-gray-800">{{ $presensi->rombelJadwalPelajaran->rombelMataPelajaran->mataPelajaran->nama ?? 'Mapel Tidak Ditemukan' }}</span>
+                                <span class="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Mata Pelajaran / Kegiatan</span>
+                                <span class="font-black text-gray-800">
+                                    @if($presensi->rombelJadwalPelajaran)
+                                        {{ $presensi->rombelJadwalPelajaran->rombelMataPelajaran->mataPelajaran->nama }}
+                                    @elseif($presensi->kegiatanSekolah)
+                                        Kegiatan: {{ $presensi->kegiatanSekolah->nama_kegiatan }}
+                                    @else
+                                        Diluar Jadwal
+                                    @endif
+                                </span>
                             </div>
                             <div>
-                                <span class="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Waktu Pelajaran</span>
-                                <span class="font-black text-gray-800">{{ $presensi->rombelJadwalPelajaran->jam_mulai ?? '-' }} - {{ $presensi->rombelJadwalPelajaran->jam_selesai ?? '-' }}</span>
+                                <span class="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Waktu Pelajaran / Kegiatan</span>
+                                <span class="font-black text-gray-800">
+                                    @if($presensi->rombelJadwalPelajaran)
+                                        {{ substr($presensi->rombelJadwalPelajaran->jam_mulai, 0, 5) }} - {{ substr($presensi->rombelJadwalPelajaran->jam_selesai, 0, 5) }}
+                                    @elseif($presensi->kegiatanSekolah)
+                                        Datang: {{ substr($presensi->kegiatanSekolah->jam_mulai_datang, 0, 5) }} | Pulang: {{ substr($presensi->kegiatanSekolah->jam_mulai_pulang, 0, 5) }}
+                                    @else
+                                        - - -
+                                    @endif
+                                </span>
                             </div>
                         </div>
 

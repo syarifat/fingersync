@@ -28,7 +28,7 @@ class DatabaseSeeder extends Seeder
             'users', 'admin', 'guru', 'siswa', 'jurusan', 'kelas', 
             'mata_pelajaran', 'tahun_ajar', 'ruangan', 'device', 
             'rombel_kelas', 'rombel_mata_pelajaran', 'rombel_jadwal_pelajaran', 'presensi',
-            'fingerprint_inboxes', 'device_tasks'
+            'fingerprint_inboxes', 'device_tasks', 'hari_liburs', 'kegiatan_sekolah', 'guru_kbm_khusus'
         ];
         foreach ($tables as $table) {
             DB::table($table)->truncate();
@@ -321,6 +321,71 @@ class DatabaseSeeder extends Seeder
                 }
             }
         }
+          // ==========================================
+        // 7.c. HARI LIBUR, KEGIATAN SEKOLAH, GURU KBM KHUSUS
+        // ==========================================
+        echo "📅 Menyemai Hari Libur, Kegiatan Sekolah, dan Guru KBM Khusus...\n";
+        
+        // Seed Hari Libur (e.g. 2026-05-14)
+        $tglLibur = '2026-05-14';
+        DB::table('hari_liburs')->insert([
+            'nama' => 'Kenaikan Isa Almasih',
+            'tanggal_mulai' => $tglLibur,
+            'tanggal_selesai' => $tglLibur,
+            'jenis' => 'nasional',
+            'keterangan' => 'Libur Nasional',
+            'created_at' => now(), 'updated_at' => now()
+        ]);
+
+        // Seed Kegiatan Sekolah Serentak (e.g. 2026-05-20)
+        $tglKegiatan = '2026-05-20';
+        $kegiatanId = DB::table('kegiatan_sekolah')->insertGetId([
+            'nama_kegiatan' => 'PORSENI Sekolah',
+            'tanggal' => $tglKegiatan,
+            'tipe' => 'serentak',
+            'jam_mulai_datang' => '06:30:00',
+            'jam_selesai_datang' => '09:00:00',
+            'jam_mulai_pulang' => '12:00:00',
+            'jam_selesai_pulang' => '16:00:00',
+            'keterangan' => 'Pekan Olahraga dan Seni Antar Kelas',
+            'created_at' => now(), 'updated_at' => now()
+        ]);
+
+        // Seed Guru KBM Khusus (e.g. 2026-05-15, ambil jadwal pertama kelas pertama)
+        $tglKhusus = '2026-05-15';
+        $hariKhususIndo = 'Jumat';
+        $jadwalIzin = collect($jadwalData)->first(fn($j) => $j['hari'] == $hariKhususIndo);
+        if ($jadwalIzin) {
+            DB::table('guru_kbm_khusus')->insert([
+                'id_rombel_jadwal_pelajaran' => $jadwalIzin['id'],
+                'tanggal' => $tglKhusus,
+                'status' => 'izin',
+                'id_guru_pengganti' => null,
+                'keterangan' => 'Belajar Mandiri: Kerjakan LKS Hal 50',
+                'created_at' => now(), 'updated_at' => now()
+            ]);
+        }
+        
+        // Ambil jadwal lain di hari yang sama untuk Guru Digantikan
+        $jadwalDiganti = collect($jadwalData)->first(fn($j) => $j['hari'] == $hariKhususIndo && $j['id'] != ($jadwalIzin['id'] ?? null));
+        if ($jadwalDiganti) {
+            // Guru Pengganti: cari guru lain selain yang mengampu jadwal ini
+            $guruUtamaId = DB::table('rombel_jadwal_pelajaran')
+                ->join('rombel_mata_pelajaran', 'rombel_jadwal_pelajaran.id_rombel_mata_pelajaran', '=', 'rombel_mata_pelajaran.id')
+                ->where('rombel_jadwal_pelajaran.id', $jadwalDiganti['id'])
+                ->value('rombel_mata_pelajaran.id_guru');
+                
+            $guruPenggantiId = collect($guruMapelIds)->first(fn($g) => $g != $guruUtamaId);
+
+            DB::table('guru_kbm_khusus')->insert([
+                'id_rombel_jadwal_pelajaran' => $jadwalDiganti['id'],
+                'tanggal' => $tglKhusus,
+                'status' => 'diganti',
+                'id_guru_pengganti' => $guruPenggantiId,
+                'keterangan' => 'Didampingi guru pengganti untuk materi praktikum.',
+                'created_at' => now(), 'updated_at' => now()
+            ]);
+        }
 
         // ==========================================
         // 8. GENERATE PRESENSI
@@ -333,7 +398,73 @@ class DatabaseSeeder extends Seeder
         $presensiBatch = [];
 
         foreach ($period as $date) {
+            $tglStr = $date->format('Y-m-d');
             if ($date->isWeekend()) continue; // Senin sampai Jumat saja
+
+            // Skip jika Hari Libur
+            if ($tglStr == $tglLibur) {
+                continue;
+            }
+
+            // Jika tanggal kegiatan sekolah serentak, buat presensi datang & pulang kegiatan
+            if ($tglStr == $tglKegiatan) {
+                foreach ($kelasData as $k) {
+                    $siswaIdsDiKelas = DB::table('rombel_kelas')
+                        ->where('id_kelas', $k['id'])
+                        ->where('id_tahun_ajar', $tahunAjarId)
+                        ->pluck('id_siswa');
+
+                    $deviceId = $deviceIds[$k['ruangan_id']] ?? null;
+
+                    foreach ($siswaIdsDiKelas as $sid) {
+                        $profileType = $siswaProfiles[$sid];
+                        $jamDatang = '07:00:00';
+                        $jamPulang = '13:00:00';
+
+                        if ($profileType == 'teladan') {
+                            $jamDatang = Carbon::parse('07:00:00')->addMinutes(rand(-20, -5))->format('H:i:s');
+                            $jamPulang = Carbon::parse('13:00:00')->addMinutes(rand(5, 30))->format('H:i:s');
+                        } elseif ($profileType == 'bermasalah') {
+                            $jamDatang = Carbon::parse('07:00:00')->addMinutes(rand(-5, 45))->format('H:i:s');
+                            $jamPulang = Carbon::parse('13:00:00')->addMinutes(rand(-10, 15))->format('H:i:s');
+                        } else {
+                            $jamDatang = Carbon::parse('07:00:00')->addMinutes(rand(-15, 15))->format('H:i:s');
+                            $jamPulang = Carbon::parse('13:00:00')->addMinutes(rand(-5, 20))->format('H:i:s');
+                        }
+
+                        // Presensi Datang Kegiatan
+                        $presensiBatch[] = [
+                            'id_siswa' => $sid,
+                            'id_rombel_jadwal_pelajaran' => null,
+                            'id_kegiatan_sekolah' => $kegiatanId,
+                            'tipe_scan_kegiatan' => 'datang',
+                            'tanggal' => $tglStr,
+                            'jam_scan' => $jamDatang,
+                            'id_device' => $deviceId,
+                            'status' => 'Hadir',
+                            'id_tahun_ajar' => $tahunAjarId,
+                            'created_at' => $date->format('Y-m-d') . ' ' . $jamDatang,
+                            'updated_at' => $date->format('Y-m-d') . ' ' . $jamDatang
+                        ];
+
+                        // Presensi Pulang Kegiatan
+                        $presensiBatch[] = [
+                            'id_siswa' => $sid,
+                            'id_rombel_jadwal_pelajaran' => null,
+                            'id_kegiatan_sekolah' => $kegiatanId,
+                            'tipe_scan_kegiatan' => 'pulang',
+                            'tanggal' => $tglStr,
+                            'jam_scan' => $jamPulang,
+                            'id_device' => $deviceId,
+                            'status' => 'Hadir',
+                            'id_tahun_ajar' => $tahunAjarId,
+                            'created_at' => $date->format('Y-m-d') . ' ' . $jamPulang,
+                            'updated_at' => $date->format('Y-m-d') . ' ' . $jamPulang
+                        ];
+                    }
+                }
+                continue; // Lanjut ke tanggal berikutnya
+            }
 
             $hariIndo = match($date->format('l')) {
                 'Monday' => 'Senin', 'Tuesday' => 'Selasa', 'Wednesday' => 'Rabu', 
