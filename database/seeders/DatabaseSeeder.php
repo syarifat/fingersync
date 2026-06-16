@@ -397,6 +397,21 @@ class DatabaseSeeder extends Seeder
         
         $presensiBatch = [];
 
+        $basePresensi = [
+            'id_siswa' => null,
+            'id_rombel_jadwal_pelajaran' => null,
+            'id_kegiatan_sekolah' => null,
+            'tipe_scan_kegiatan' => null,
+            'tipe_scan' => 'datang',
+            'tanggal' => null,
+            'jam_scan' => null,
+            'id_device' => null,
+            'status' => 'Hadir',
+            'id_tahun_ajar' => null,
+            'created_at' => null,
+            'updated_at' => null,
+        ];
+
         foreach ($period as $date) {
             $tglStr = $date->format('Y-m-d');
             if ($date->isWeekend()) continue; // Senin sampai Jumat saja
@@ -433,34 +448,30 @@ class DatabaseSeeder extends Seeder
                         }
 
                         // Presensi Datang Kegiatan
-                        $presensiBatch[] = [
+                        $presensiBatch[] = array_merge($basePresensi, [
                             'id_siswa' => $sid,
-                            'id_rombel_jadwal_pelajaran' => null,
                             'id_kegiatan_sekolah' => $kegiatanId,
                             'tipe_scan_kegiatan' => 'datang',
                             'tanggal' => $tglStr,
                             'jam_scan' => $jamDatang,
                             'id_device' => $deviceId,
-                            'status' => 'Hadir',
                             'id_tahun_ajar' => $tahunAjarId,
                             'created_at' => $date->format('Y-m-d') . ' ' . $jamDatang,
                             'updated_at' => $date->format('Y-m-d') . ' ' . $jamDatang
-                        ];
+                        ]);
 
                         // Presensi Pulang Kegiatan
-                        $presensiBatch[] = [
+                        $presensiBatch[] = array_merge($basePresensi, [
                             'id_siswa' => $sid,
-                            'id_rombel_jadwal_pelajaran' => null,
                             'id_kegiatan_sekolah' => $kegiatanId,
                             'tipe_scan_kegiatan' => 'pulang',
                             'tanggal' => $tglStr,
                             'jam_scan' => $jamPulang,
                             'id_device' => $deviceId,
-                            'status' => 'Hadir',
                             'id_tahun_ajar' => $tahunAjarId,
                             'created_at' => $date->format('Y-m-d') . ' ' . $jamPulang,
                             'updated_at' => $date->format('Y-m-d') . ' ' . $jamPulang
-                        ];
+                        ]);
                     }
                 }
                 continue; // Lanjut ke tanggal berikutnya
@@ -523,7 +534,7 @@ class DatabaseSeeder extends Seeder
                         }
                     }
 
-                    $presensiBatch[] = [
+                    $presensiBatch[] = array_merge($basePresensi, [
                         'id_siswa' => $sid,
                         'id_rombel_jadwal_pelajaran' => $jadwal['id'],
                         'tanggal' => $date->format('Y-m-d'),
@@ -533,7 +544,7 @@ class DatabaseSeeder extends Seeder
                         'id_tahun_ajar' => $tahunAjarId,
                         'created_at' => $date->format('Y-m-d H:i:s'),
                         'updated_at' => $date->format('Y-m-d H:i:s')
-                    ];
+                    ]);
 
                     // Insert jika batch mencapai 500
                     if (count($presensiBatch) >= 500) {
@@ -577,20 +588,16 @@ class DatabaseSeeder extends Seeder
                         // Jam selesai KBM hari itu adalah 12:00:00
                         $jamScanPulang = Carbon::parse('12:00:00')->addMinutes(rand(5, 55))->format('H:i:s');
                         
-                        $presensiBatch[] = [
+                        $presensiBatch[] = array_merge($basePresensi, [
                             'id_siswa' => $sid,
-                            'id_rombel_jadwal_pelajaran' => null,
-                            'id_kegiatan_sekolah' => null,
-                            'tipe_scan_kegiatan' => null,
                             'tipe_scan' => 'pulang',
                             'tanggal' => $tglStr,
                             'jam_scan' => $jamScanPulang,
                             'id_device' => $deviceId,
-                            'status' => 'Hadir',
                             'id_tahun_ajar' => $tahunAjarId,
                             'created_at' => $date->format('Y-m-d') . ' ' . $jamScanPulang,
                             'updated_at' => $date->format('Y-m-d') . ' ' . $jamScanPulang
-                        ];
+                        ]);
 
                         // Insert jika batch mencapai 500
                         if (count($presensiBatch) >= 500) {
