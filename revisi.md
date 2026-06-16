@@ -79,3 +79,14 @@
 *   **Interface Admin (CRUD Premium)**:
     *   Dibuat CRUD **Kegiatan Sekolah** dan **KBM Khusus Guru** dengan tampilan modern, responsif, dan konsisten menggunakan skema warna orange/gray fingersync.
     *   Sidebar navigation telah diperbarui untuk menyertakan tautan menu baru tersebut tepat di bawah menu Hari Libur.
+
+
+
+HASIL
+- point 1 done
+- point 2 sudah oke tapi ubah jangan buat card baru, tapi pakai card tabel log presensi terbaru tambahkan kolom kelas, dan mungkin atasnya berikan filter kelas gitu saja. lalu fungsikan tombol lihat semua daftar, soalnya hanya tombol tidak punya action saat ini (REVISI DONE: Card terlambat terpisah dihapus, dropdown filter kelas & kolom kelas ditambahkan ke log presensi terbaru di dashboard admin/guru, tombol lihat semua data sudah difungsikan)
+- point 3 sudah sesuai, tapi saya lupa untuk hasil download nya, buat gini. hanya menampilkan kolom tanggal yang ada mapel itu. misal mapel itu hanya ada di ari jumat. maka kolomnya ya tanggal haru jumat saja. kan yang sekarang masih genap 30 hari keliatan banyak yang bolong soalnya yang dipakai hanya tanggal hari jumat saja (REVISI DONE: PDF export hanya menampilkan tanggal terjadwal mapel tersebut)
+- point 4 sudah sesuai done
+- point 5.1(kegiatan serentak) sudah done tapi saya bingung dimana melihat hasil data presensinya? di menu presensi tidak ada, apakah perlu mengubah tampilan logika di menu presensi, lalu hasilnya di export harusnya juga berpengaruh kan tulisannya apa? apa ya Hsaja? (REVISI DONE: Presensi kegiatan serentak kini muncul di menu presensi dengan badge & detail khusus, filter kelas disesuaikan berdasarkan kelas siswa, dan rekap PDF memuat tabel virtual Kegiatan Sekolah dengan tanda H pada tanggal kegiatan)
+- point 5.2(guru berhalangan hadir) done
+- point 5.3(guru digantikan) done

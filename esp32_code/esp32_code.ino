@@ -348,6 +348,12 @@ void kirimAbsensi(int fingerprintID) {
           lcd.setCursor(0,0); lcd.print("ABSENSI BERHASIL!");
           lcd.setCursor(0,1); lcd.print(responseDoc["nama"].as<String>().substring(0, 20));
           lcd.setCursor(0,2); lcd.print("Status: "); lcd.print(responseDoc["stat"].as<String>());
+          
+          String mapel = responseDoc["mapel"] | "";
+          if (mapel != "") {
+              lcd.setCursor(0, 3);
+              lcd.print(mapel.substring(0, 20));
+          }
           beep(1);
       } 
       else if (statusStr == "WARN") {
@@ -359,8 +365,21 @@ void kirimAbsensi(int fingerprintID) {
       else if (statusStr == "INFO") {
           Serial.println("[API] Ditolak: Tidak ada KBM/Jadwal aktif.");
           lcd.setCursor(0,0); lcd.print("AKSES DITOLAK!");
-          lcd.setCursor(0,1); lcd.print("TIDAK ADA JADWAL");
-          lcd.setCursor(0,2); lcd.print("SAAT INI");
+          
+          String msg = responseDoc["message"] | "";
+          if (msg != "") {
+              lcd.setCursor(0, 1);
+              if (msg.length() > 20) {
+                  lcd.print(msg.substring(0, 20));
+                  lcd.setCursor(0, 2);
+                  lcd.print(msg.substring(20, 40));
+              } else {
+                  lcd.print(msg);
+              }
+          } else {
+              lcd.setCursor(0,1); lcd.print("TIDAK ADA JADWAL");
+              lcd.setCursor(0,2); lcd.print("SAAT INI");
+          }
           beep(3); 
       }
       else if (statusStr == "ERROR" || statusStr == "FATAL_ERROR") {

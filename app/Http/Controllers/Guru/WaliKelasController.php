@@ -116,6 +116,53 @@ class WaliKelasController extends Controller
             // Jika benar-benar kosong presensi mapel ini, boleh dilewati agar pdf tidak memunculkan tabel kosong melompong
             if ($presensiList->isEmpty()) continue; 
 
+            // Hitung jadwal khusus hari mapel ini
+            $hariJadwal = \App\Models\RombelJadwalPelajaran::whereHas('rombelMataPelajaran', function($q) use ($mapel, $infoKelas, $tahunAjar) {
+                $q->where('id_mata_pelajaran', $mapel->id)
+                  ->where('id_kelas', $infoKelas->id_kelas);
+                if ($tahunAjar) {
+                    $q->where('id_tahun_ajar', $tahunAjar->id);
+                }
+            })->pluck('hari')->unique()->toArray();
+
+            $indoToEngDays = [
+                'Senin' => 'Monday',
+                'Selasa' => 'Tuesday',
+                'Rabu' => 'Wednesday',
+                'Kamis' => 'Thursday',
+                'Jumat' => 'Friday',
+                'Sabtu' => 'Saturday',
+                'Minggu' => 'Sunday'
+            ];
+
+            $scheduledEngDays = [];
+            foreach ($hariJadwal as $h) {
+                if (isset($indoToEngDays[$h])) {
+                    $scheduledEngDays[] = $indoToEngDays[$h];
+                }
+            }
+
+            $datesInfoForThisMapel = [];
+            for ($d = 1; $d <= $daysInMonth; $d++) {
+                $dateObj = Carbon::createFromDate($tahun, $bulan, $d);
+                $dayNameEng = $dateObj->format('l');
+                if (in_array($dayNameEng, $scheduledEngDays)) {
+                    $datesInfoForThisMapel[$d] = [
+                        'day' => $d,
+                        'isWeekend' => $dateObj->isWeekend()
+                    ];
+                }
+            }
+
+            if (empty($datesInfoForThisMapel)) {
+                for ($d = 1; $d <= $daysInMonth; $d++) {
+                    $datesInfoForThisMapel[$d] = [
+                        'day' => $d,
+                        'isWeekend' => Carbon::createFromDate($tahun, $bulan, $d)->isWeekend()
+                    ];
+                }
+            }
+
             $matrix = [];
             foreach ($siswaList as $siswa) {
                 $row = [];
@@ -142,13 +189,64 @@ class WaliKelasController extends Controller
             $dataPerMapel[] = [
                 'nama_mapel'    => $mapel->nama,
                 'matrix'        => $matrix,
+                'datesInfo'     => $datesInfoForThisMapel
+            ];
+        }
+
+        // Tambahkan virtual mapel untuk "Kegiatan Sekolah (Serentak)" jika ada kegiatan
+        $kegiatanSekolahList = \App\Models\KegiatanSekolah::where('tipe', 'serentak')
+            ->whereMonth('tanggal', $bulan)
+            ->whereYear('tanggal', $tahun)
+            ->get();
+
+        if ($kegiatanSekolahList->isNotEmpty()) {
+            $presensiKegiatan = Presensi::whereNotNull('id_siswa')
+                ->whereNotNull('id_kegiatan_sekolah')
+                ->whereHas('siswa.rombelKelas', function($q) use ($infoKelas) {
+                    $q->where('id_kelas', $infoKelas->id_kelas);
+                })
+                ->whereMonth('tanggal', $bulan)
+                ->whereYear('tanggal', $tahun)
+                ->get();
+
+            $datesInfoForKegiatan = [];
+            foreach ($kegiatanSekolahList as $kegiatan) {
+                $dateObj = Carbon::parse($kegiatan->tanggal);
+                $d = (int) $dateObj->format('d');
+                $datesInfoForKegiatan[$d] = [
+                    'day' => $d,
+                    'isWeekend' => $dateObj->isWeekend()
+                ];
+            }
+            ksort($datesInfoForKegiatan); // Urutkan tanggal
+
+            $matrixKegiatan = [];
+            foreach ($siswaList as $siswa) {
+                $row = [];
+                for ($d = 1; $d <= $daysInMonth; $d++) {
+                    $row[$d] = '';
+                }
+                foreach ($datesInfoForKegiatan as $day => $info) {
+                    $tglStr = Carbon::createFromDate($tahun, $bulan, $day)->format('Y-m-d');
+                    $hasPresensi = $presensiKegiatan->where('id_siswa', $siswa->id)
+                        ->where('tanggal', $tglStr)
+                        ->isNotEmpty();
+                    $row[$day] = $hasPresensi ? 'H' : '';
+                }
+                $matrixKegiatan[$siswa->id] = $row;
+            }
+
+            $dataPerMapel[] = [
+                'nama_mapel'    => 'Kegiatan Sekolah (Serentak)',
+                'matrix'        => $matrixKegiatan,
+                'datesInfo'     => $datesInfoForKegiatan
             ];
         }
 
         $kelasSafe = str_replace(['/', '\\', ':', '*', '?', '"', '<', '>', '|'], '-', $kelas->nama);
         $fileName = "Data Rekap Presensi_{$bulanLabel}_{$kelasSafe}.pdf";
 
-        $pdf = Pdf::loadView('admin.presensi.pdf', compact('kelas', 'siswaList', 'dataPerMapel', 'datesInfo', 'bulanLabel'))
+        $pdf = Pdf::loadView('admin.presensi.pdf', compact('kelas', 'siswaList', 'dataPerMapel', 'bulanLabel'))
                   ->setPaper('a4', 'landscape');
                   
         return $pdf->download($fileName);

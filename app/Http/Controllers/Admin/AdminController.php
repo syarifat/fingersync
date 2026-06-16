@@ -12,7 +12,7 @@ use App\Models\FingerprintInbox;
 
 class AdminController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         // Cari tanggal terakhir ada presensi untuk demo data, fallback ke hari ini jika kosong
         $tanggalTerakhir = Presensi::max('tanggal') ?? Carbon::today('Asia/Jakarta')->toDateString();
@@ -32,25 +32,26 @@ class AdminController extends Controller
                                     ->where('status', 'Terlambat')
                                     ->count();
 
-        // 3. Ambil Siswa Terlambat dikelompokkan berdasarkan kelas
-        $siswaTerlambat = Presensi::with([
-            'siswa', 
-            'rombelJadwalPelajaran.rombelMataPelajaran.kelas'
+        // 3. Ambil List Kelas untuk dropdown filter
+        $kelasList = \App\Models\Kelas::orderBy('nama', 'asc')->get();
+        $filterKelasId = $request->kelas_id;
+
+        // 4. Ambil 5 Data Presensi Terakhir (Realtime Feed) dengan filter kelas
+        $presensiTerbaruQuery = Presensi::with([
+            'siswa.rombelKelas.kelas', 
+            'rombelJadwalPelajaran.rombelMataPelajaran.mataPelajaran',
+            'kegiatanSekolah'
         ])
-        ->whereDate('tanggal', $hariIni)
-        ->where('status', 'Terlambat')
-        ->get();
+        ->orderBy('tanggal', 'desc')
+        ->orderBy('jam_scan', 'desc');
 
-        $terlambatByKelas = $siswaTerlambat->groupBy(function($p) {
-            return $p->rombelJadwalPelajaran->rombelMataPelajaran->kelas->nama ?? 'Lainnya';
-        });
+        if ($filterKelasId) {
+            $presensiTerbaruQuery->whereHas('siswa.rombelKelas', function($q) use ($filterKelasId) {
+                $q->where('id_kelas', $filterKelasId);
+            });
+        }
 
-        // 4. Ambil 5 Data Presensi Terakhir (Realtime Feed)
-        $presensiTerbaru = Presensi::with(['siswa', 'rombelJadwalPelajaran.rombelMataPelajaran.mataPelajaran'])
-                                   ->orderBy('tanggal', 'desc')
-                                   ->orderBy('jam_scan', 'desc')
-                                   ->take(5)
-                                   ->get();
+        $presensiTerbaru = $presensiTerbaruQuery->take(5)->get();
 
         return view('admin.dashboard', compact(
             'totalSiswa', 
@@ -59,8 +60,9 @@ class AdminController extends Controller
             'hadirHariIni', 
             'terlambatHariIni', 
             'presensiTerbaru',
-            'terlambatByKelas',
-            'tanggalTerakhir'
+            'tanggalTerakhir',
+            'kelasList',
+            'filterKelasId'
         ));
     }
 }

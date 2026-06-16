@@ -38,46 +38,80 @@
                 </div>
             </div>
 
-            {{-- SISWA TERLAMBAT HARI INI --}}
-            @if($terlambatByKelas->count() > 0)
+            {{-- TABEL PRESENSI TERBARU --}}
             <div class="bg-white overflow-hidden shadow-sm rounded-[2rem] border border-gray-100 p-8">
-                <div class="mb-6 flex justify-between items-center border-b border-gray-100 pb-4">
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 gap-4 border-b border-gray-100 pb-4">
                     <div>
-                        <h3 class="text-lg font-black text-rose-600 uppercase tracking-wide flex items-center gap-2">
-                            <span class="p-1 bg-rose-100 text-rose-600 rounded-lg">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                                </svg>
-                            </span>
-                            Siswa Terlambat Kehadiran ({{ \Carbon\Carbon::parse($tanggalTerakhir)->format('d M Y') }})
-                        </h3>
-                        <p class="text-sm text-gray-500 font-medium mt-1">Daftar siswa terlambat yang dikelompokkan berdasarkan nama kelas Anda.</p>
+                        <h3 class="text-lg font-black text-orange-600 uppercase tracking-wide">Log Presensi Terbaru</h3>
+                        <p class="text-sm text-gray-500 font-medium mt-1">Menampilkan 5 siswa terakhir dari kelas Anda yang menempelkan jari.</p>
+                    </div>
+                    <div class="flex items-center gap-4">
+                        <form method="GET" action="{{ route('guru.dashboard') }}" id="filterForm" class="flex items-center">
+                            <select name="kelas_id" onchange="this.form.submit()" class="rounded-xl border-gray-200 bg-white text-xs font-bold text-gray-600 focus:border-orange-500 focus:ring-orange-500 shadow-sm py-1.5 pl-3 pr-8">
+                                <option value="">-- Semua Kelas --</option>
+                                @foreach($kelasList as $k)
+                                    <option value="{{ $k->id }}" {{ $filterKelasId == $k->id ? 'selected' : '' }}>{{ $k->nama }}</option>
+                                @endforeach
+                            </select>
+                        </form>
+                        <a href="{{ route('guru.riwayat-absensi.index', ['kelas_id' => $filterKelasId]) }}" class="text-sm font-bold text-orange-600 hover:text-orange-700 whitespace-nowrap">Lihat Semua Data &rarr;</a>
                     </div>
                 </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    @foreach($terlambatByKelas as $namaKelas => $listPresensi)
-                        <div class="bg-rose-50/30 border border-rose-100 rounded-2xl p-5 hover:shadow-md transition-all duration-200">
-                            <h4 class="font-black text-rose-700 text-sm mb-3 flex items-center justify-between border-b border-rose-100 pb-2">
-                                <span>🏫 Kelas {{ $namaKelas }}</span>
-                                <span class="bg-rose-200/50 text-rose-800 text-xs px-2.5 py-0.5 rounded-full font-black">{{ $listPresensi->count() }} Siswa</span>
-                            </h4>
-                            <ul class="space-y-2 text-xs">
-                                @foreach($listPresensi as $p)
-                                    <li class="flex justify-between items-center py-1.5 border-b border-rose-100/30 last:border-b-0">
-                                        <div class="flex flex-col">
-                                            <span class="font-bold text-gray-800 text-sm">{{ $p->siswa->nama }}</span>
-                                            <span class="text-[10px] text-gray-400 font-mono">NIS: {{ $p->siswa->nis }}</span>
-                                        </div>
-                                        <span class="font-mono text-orange-600 font-black bg-white px-2 py-1 rounded-lg border border-orange-100 shadow-sm">{{ substr($p->jam_scan, 0, 5) }}</span>
-                                    </li>
-                                @endforeach
-                            </ul>
-                        </div>
-                    @endforeach
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left">
+                        <thead>
+                            <tr class="text-gray-400 text-xs uppercase tracking-widest border-b border-gray-100">
+                                <th class="pb-4 font-semibold pl-4">Jam Scan</th>
+                                <th class="pb-4 font-semibold">Nama Siswa</th>
+                                <th class="pb-4 font-semibold">Kelas</th>
+                                <th class="pb-4 font-semibold">Mata Pelajaran / Kegiatan</th>
+                                <th class="pb-4 font-semibold text-right pr-4">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-50">
+                            @forelse ($presensiTerbaru as $p)
+                            <tr class="hover:bg-gray-50/50 transition-colors">
+                                <td class="py-4 pl-4 font-mono text-sm text-gray-600 font-bold">
+                                    {{ \Carbon\Carbon::parse($p->jam_scan)->format('H:i:s') }}
+                                </td>
+                                <td class="py-4">
+                                    <div class="text-sm font-bold text-gray-900">{{ $p->siswa->nama ?? 'Siswa Tidak Ditemukan' }}</div>
+                                    <div class="text-xs text-gray-400">NIS: {{ $p->siswa->nis ?? '-' }}</div>
+                                </td>
+                                <td class="py-4 text-sm text-gray-600 font-medium">
+                                    {{ $p->siswa->rombelKelas->kelas->nama ?? '-' }}
+                                </td>
+                                <td class="py-4 text-sm text-gray-600">
+                                    @if($p->rombelJadwalPelajaran)
+                                        {{ $p->rombelJadwalPelajaran->rombelMataPelajaran->mataPelajaran->nama ?? 'Tidak Ada Jadwal' }}
+                                    @elseif($p->kegiatanSekolah)
+                                        <span class="text-orange-600 font-bold">Kegiatan: {{ $p->kegiatanSekolah->nama_kegiatan }}</span>
+                                    @else
+                                        <span class="text-gray-400 italic">Diluar Jadwal</span>
+                                    @endif
+                                </td>
+                                <td class="py-4 text-right pr-4">
+                                    @if($p->status == 'Hadir')
+                                        <span class="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-bold bg-emerald-100 text-emerald-800">HADIR</span>
+                                    @elseif($p->status == 'Terlambat')
+                                        <span class="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-bold bg-red-100 text-red-800">TERLAMBAT</span>
+                                    @else
+                                        <span class="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-bold bg-gray-100 text-gray-800">{{ strtoupper($p->status) }}</span>
+                                    @endif
+                                </td>
+                            </tr>
+                            @empty
+                            <tr>
+                                <td colspan="5" class="py-12 text-center text-gray-400">
+                                    Belum ada data presensi yang masuk.
+                                </td>
+                            </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
                 </div>
             </div>
-            @endif
 
             {{-- JADWAL HARI INI --}}
             <div class="bg-white overflow-hidden shadow-sm rounded-[2rem] border border-gray-100 p-8">

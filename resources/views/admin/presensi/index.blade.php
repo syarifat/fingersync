@@ -1,4 +1,4 @@
-﻿<x-app-layout>
+<x-app-layout>
     <x-slot name="header">
         <h2 class="font-semibold text-2xl text-gray-800 leading-tight italic">
             {{ __('Manajemen Data Presensi') }}
@@ -148,6 +148,13 @@
                                         </span>
                                         <div class="text-xs text-gray-400 mt-1 pl-1">
                                             {{ $row->rombelJadwalPelajaran->jam_mulai }} - {{ $row->rombelJadwalPelajaran->jam_selesai }}
+                                        </div>
+                                        @elseif($row->kegiatanSekolah)
+                                        <span class="px-3 py-1 bg-orange-50 text-orange-600 rounded-lg text-xs font-black uppercase">
+                                            Kegiatan: {{ $row->kegiatanSekolah->nama_kegiatan }}
+                                        </span>
+                                        <div class="text-xs text-gray-400 mt-1 pl-1">
+                                            Tipe: {{ ucfirst($row->kegiatanSekolah->tipe) }} (Scan: {{ ucfirst($row->tipe_scan_kegiatan) }})
                                         </div>
                                         @else
                                         <span class="text-gray-300 italic text-xs font-bold">- Diluar Jadwal -</span>

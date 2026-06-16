@@ -11,7 +11,7 @@ use Carbon\Carbon;
 
 class DashboardController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         // 1. Cari data profil Guru berdasarkan user_id yang sedang login
         $guru = Guru::where('user_id', Auth::id())->firstOrFail();
@@ -55,50 +55,42 @@ class DashboardController extends Controller
             $query->where('id_guru', $guru->id);
         })->count();
 
-        // 5. Cek apakah guru ini adalah Wali Kelas (opsional jika ada session tahun_ajar)
+        // 5. Cek apakah guru ini adalah Wali Kelas
         $isWaliKelas = \App\Models\RombelKelas::with('kelas')
             ->where('id_guru_wali_kelas', $guru->id)
-            // ->where('id_tahun_ajar', session('tahun_ajar_id')) // Buka komentar ini jika Anda pakai session tahun ajar
             ->first();
 
-        // 6. Ambil Siswa Terlambat dikelompokkan berdasarkan kelas yang diajar / diwalikan
-        $tanggalTerakhir = \App\Models\Presensi::max('tanggal') ?? Carbon::today('Asia/Jakarta')->toDateString();
-        $hariTerakhir = Carbon::parse($tanggalTerakhir)->isoFormat('dddd');
-
-        // Kelas di mana guru adalah wali kelas
+        // 6. Ambil List Kelas & Log Presensi Terbaru (Khusus kelas yang diampu / diwalikan)
         $kelasWaliIds = \App\Models\RombelKelas::where('id_guru_wali_kelas', $guru->id)
             ->pluck('id_kelas')
             ->toArray();
 
-        // Kelas di mana guru mengajar pada hari terakhir absensi atau hari kalender ini
-        $kelasAjarIds = RombelJadwalPelajaran::whereIn('hari', [$hariTerakhir, $hariIni])
-            ->whereHas('rombelMataPelajaran', function ($query) use ($guru) {
-                $query->where('id_guru', $guru->id);
-            })
-            ->get()
-            ->map(function ($jadwal) {
-                return $jadwal->rombelMataPelajaran->id_kelas ?? null;
-            })
-            ->filter()
-            ->unique()
+        $kelasAjarIds = \App\Models\RombelMataPelajaran::where('id_guru', $guru->id)
+            ->pluck('id_kelas')
             ->toArray();
 
         $classIds = array_unique(array_merge($kelasWaliIds, $kelasAjarIds));
+        $kelasList = \App\Models\Kelas::whereIn('id', $classIds)->orderBy('nama', 'asc')->get();
+        $filterKelasId = $request->kelas_id;
 
-        $siswaTerlambat = \App\Models\Presensi::with([
-            'siswa',
-            'rombelJadwalPelajaran.rombelMataPelajaran.kelas'
+        $presensiTerbaruQuery = \App\Models\Presensi::with([
+            'siswa.rombelKelas.kelas', 
+            'rombelJadwalPelajaran.rombelMataPelajaran.mataPelajaran',
+            'kegiatanSekolah'
         ])
-        ->whereDate('tanggal', $tanggalTerakhir)
-        ->where('status', 'Terlambat')
-        ->whereHas('rombelJadwalPelajaran.rombelMataPelajaran', function($query) use ($classIds) {
+        ->whereHas('siswa.rombelKelas', function($query) use ($classIds) {
             $query->whereIn('id_kelas', $classIds);
         })
-        ->get();
+        ->orderBy('tanggal', 'desc')
+        ->orderBy('jam_scan', 'desc');
 
-        $terlambatByKelas = $siswaTerlambat->groupBy(function($p) {
-            return $p->rombelJadwalPelajaran->rombelMataPelajaran->kelas->nama ?? 'Lainnya';
-        });
+        if ($filterKelasId && in_array($filterKelasId, $classIds)) {
+            $presensiTerbaruQuery->whereHas('siswa.rombelKelas', function($q) use ($filterKelasId) {
+                $q->where('id_kelas', $filterKelasId);
+            });
+        }
+
+        $presensiTerbaru = $presensiTerbaruQuery->take(5)->get();
 
         return view('guru.dashboard', compact(
             'guru', 
@@ -106,8 +98,9 @@ class DashboardController extends Controller
             'jadwalHariIni', 
             'totalJadwalSeminggu', 
             'isWaliKelas',
-            'terlambatByKelas',
-            'tanggalTerakhir',
+            'presensiTerbaru',
+            'kelasList',
+            'filterKelasId',
             'kbmKhususUtama',
             'jadwalHariIniPengganti'
         ));

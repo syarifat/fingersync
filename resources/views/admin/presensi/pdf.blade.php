@@ -83,11 +83,11 @@
                     <tr>
                         <th rowspan="2" class="th-no">No</th>
                         <th rowspan="2" class="th-nama">Nama Siswa</th>
-                        <th colspan="{{ count($datesInfo) }}" class="th-tgl" style="border-bottom: 1px solid #cbd5e1;">Tanggal</th>
+                        <th colspan="{{ count($item['datesInfo']) }}" class="th-tgl" style="border-bottom: 1px solid #cbd5e1;">Tanggal</th>
                         <th colspan="5" class="th-total" style="border-bottom: 1px solid #cbd5e1;">Total</th>
                     </tr>
                     <tr>
-                        @foreach($datesInfo as $info)
+                        @foreach($item['datesInfo'] as $info)
                             <th class="th-tgl {{ $info['isWeekend'] ? 'weekend' : '' }}">{{ $info['day'] }}</th>
                         @endforeach
                         <th class="th-total">H</th>
@@ -107,7 +107,7 @@
                             $countH = 0; $countT = 0; $countI = 0; $countS = 0; $countA = 0;
                         @endphp
                         
-                        @foreach($datesInfo as $info)
+                        @foreach($item['datesInfo'] as $info)
                             @php
                                 $status = $matrixRow[$info['day']] ?? '';
                                 if ($status == 'H') $countH++;
