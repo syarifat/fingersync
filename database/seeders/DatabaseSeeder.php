@@ -326,10 +326,10 @@ class DatabaseSeeder extends Seeder
         // ==========================================
         echo "📅 Menyemai Hari Libur, Kegiatan Sekolah, dan Guru KBM Khusus...\n";
         
-        // Seed Hari Libur (e.g. 2026-05-14)
-        $tglLibur = '2026-05-14';
+        // Seed Hari Libur (e.g. 2026-06-04)
+        $tglLibur = '2026-06-04';
         DB::table('hari_liburs')->insert([
-            'nama' => 'Kenaikan Isa Almasih',
+            'nama' => 'Hari Raya Keagamaan',
             'tanggal_mulai' => $tglLibur,
             'tanggal_selesai' => $tglLibur,
             'jenis' => 'nasional',
@@ -337,8 +337,8 @@ class DatabaseSeeder extends Seeder
             'created_at' => now(), 'updated_at' => now()
         ]);
 
-        // Seed Kegiatan Sekolah Serentak (e.g. 2026-05-20)
-        $tglKegiatan = '2026-05-20';
+        // Seed Kegiatan Sekolah Serentak (e.g. 2026-06-10)
+        $tglKegiatan = '2026-06-10';
         $kegiatanId = DB::table('kegiatan_sekolah')->insertGetId([
             'nama_kegiatan' => 'PORSENI Sekolah',
             'tanggal' => $tglKegiatan,
@@ -351,8 +351,8 @@ class DatabaseSeeder extends Seeder
             'created_at' => now(), 'updated_at' => now()
         ]);
 
-        // Seed Guru KBM Khusus (e.g. 2026-05-15, ambil jadwal pertama kelas pertama)
-        $tglKhusus = '2026-05-15';
+        // Seed Guru KBM Khusus (e.g. 2026-06-05, ambil jadwal pertama kelas pertama)
+        $tglKhusus = '2026-06-05';
         $hariKhususIndo = 'Jumat';
         $jadwalIzin = collect($jadwalData)->first(fn($j) => $j['hari'] == $hariKhususIndo);
         if ($jadwalIzin) {
