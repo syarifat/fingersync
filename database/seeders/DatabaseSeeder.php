@@ -131,11 +131,19 @@ class DatabaseSeeder extends Seeder
                 'nama' => $gName . ' ' . $faker->lastName . ', S.Pd', 
                 'username' => $username, 'password' => Hash::make('password'), 'role' => 'guru', 'created_at' => now(), 'updated_at' => now()
             ]);
+
+            $nohpGuru = $faker->phoneNumber;
+            if ($i == 1) {
+                $nohpGuru = '087859017087';
+            } elseif ($i == 2) {
+                $nohpGuru = '0895414397561';
+            }
+
             $guruMapelIds[] = DB::table('guru')->insertGetId([
                 'user_id' => $uid, 'nidn' => $faker->unique()->numerify('20########'),
                 'nama' => DB::table('users')->where('id', $uid)->value('nama'),
                 'gender' => $faker->randomElement(['Laki-laki', 'Perempuan']), 'alamat' => $faker->address,
-                'username' => $username, 'password' => Hash::make('password'), 'nohp' => $faker->phoneNumber,
+                'username' => $username, 'password' => Hash::make('password'), 'nohp' => $nohpGuru,
                 'is_bk' => 0, 'image' => 'default.png', 'status' => 'Aktif', 'created_at' => now(), 'updated_at' => now()
             ]);
         }
@@ -153,8 +161,18 @@ class DatabaseSeeder extends Seeder
 
         // Buat kelas terlebih dahulu
         foreach ($kelasNames as $index => $namaKelas) {
+            $grupWa = null;
+            if ($index === 0) {
+                $grupWa = '087859017087';
+            } elseif ($index === 1) {
+                $grupWa = '0895414397561';
+            }
+
             $kelasId = DB::table('kelas')->insertGetId([
-                'nama' => $namaKelas, 'id_jurusan' => $jurusanId, 'created_at' => now(), 'updated_at' => now()
+                'nama' => $namaKelas, 
+                'id_jurusan' => $jurusanId, 
+                'id_grup_wa' => $grupWa,
+                'created_at' => now(), 'updated_at' => now()
             ]);
 
             // Guru BK: Masing-masing kelas memiliki Guru BK yang berbeda agar tidak bentrok jadwal
@@ -199,7 +217,7 @@ class DatabaseSeeder extends Seeder
                     'agama' => 'Islam',
                     'alamat' => $faker->address,
                     'nohp_siswa' => $faker->phoneNumber,
-                    'nohp_ortu' => $faker->phoneNumber,
+                    'nohp_ortu' => ($fingerprintCounter == 1) ? '087842949212' : (($fingerprintCounter == 2) ? '085536949348' : $faker->phoneNumber),
                     'email' => strtolower(str_replace(' ', '', $namaSiswaAsli)) . $fingerprintCounter . '@siswa.sch.id',
                     'image' => 'default.png',
                     'status' => 'Aktif',
