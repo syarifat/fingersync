@@ -68,7 +68,7 @@ class DatabaseSeeder extends Seeder
             $ruanganIds[] = $rId;
 
             $devId = DB::table('device')->insertGetId([
-                'id_device' => 'ESP32-TKJ-' . str_pad($index + 1, 2, '0', STR_PAD_LEFT),
+                'id_device' => 'TKJ' . ($index + 1),
                 'id_ruangan' => $rId,
                 'status' => 'Online',
                 'created_at' => now(), 'updated_at' => now()
