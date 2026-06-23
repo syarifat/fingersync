@@ -79,9 +79,8 @@
                                 <label for="jenis" class="block text-xs font-bold text-gray-500 uppercase mb-1">Jenis Pesan</label>
                                 <select name="jenis" id="jenis" class="block w-full rounded-xl border-gray-200 bg-white text-sm focus:border-orange-500 focus:ring-orange-500 shadow-sm">
                                     <option value="">-- Semua Jenis --</option>
-                                    <option value="absen_pertama" {{ request('jenis') == 'absen_pertama' ? 'selected' : '' }}>Ke Ortu - Absen Pertama</option>
-                                    <option value="rekap_sore" {{ request('jenis') == 'rekap_sore' ? 'selected' : '' }}>Ke Ortu - Rekap Sore</option>
-                                    <option value="anomali" {{ request('jenis') == 'anomali' ? 'selected' : '' }}>Ke Guru - Laporan Bolos</option>
+                                    <option value="rekap_sore" {{ request('jenis') == 'rekap_sore' ? 'selected' : '' }}>Grup - Rekap Sore</option>
+                                    <option value="absen_pulang" {{ request('jenis') == 'absen_pulang' ? 'selected' : '' }}>Grup - Notifikasi Pulang</option>
                                 </select>
                             </div>
 
@@ -147,26 +146,22 @@
                                                 @if($log->siswa->rombelKelas)
                                                     <span class="text-[10px] bg-gray-100 text-gray-600 px-2 py-0.5 rounded mt-1.5 w-max uppercase">{{ $log->siswa->rombelKelas->kelas->nama }}</span>
                                                 @endif
-                                            @elseif($log->kelasGrup)
-                                                <span class="font-bold text-gray-900">Seluruh Siswa</span>
-                                                <span class="text-[10px] bg-orange-50 text-orange-600 px-2 py-0.5 rounded mt-1.5 w-max uppercase">{{ $log->kelasGrup->nama }}</span>
                                             @else
-                                                <span class="font-bold text-gray-900">Siswa Anomali</span>
-                                                <span class="text-[10px] bg-rose-50 text-rose-600 px-2 py-0.5 rounded mt-1.5 w-max uppercase">Daftar di dalam pesan</span>
+                                                <span class="font-bold text-gray-900">Grup / Kolektif</span>
+                                                <span class="text-[10px] bg-teal-50 text-teal-600 px-2 py-0.5 rounded mt-1.5 w-max uppercase">Daftar Terlampir</span>
                                             @endif
                                         </div>
                                     </td>
                                     <td class="py-4 align-top pr-4">
                                         <div class="flex flex-col">
-                                            @if($log->kelasGrup)
-                                                <span class="font-bold text-gray-900">Grup WA Kelas</span>
-                                                <span class="text-[11px] text-gray-500 font-medium">{{ $log->kelasGrup->nama }}</span>
-                                            @elseif($log->siswa)
-                                                <span class="font-bold text-gray-900">Orang Tua (Wali)</span>
-                                                <span class="text-[11px] text-gray-500 font-medium">{{ $log->siswa->nama_ayah ?? ($log->siswa->nama_ibu ?? 'Wali Murid') }}</span>
+                                            @if(strpos($log->pesan, 'PEMBERITAHUAN PULANG') !== false)
+                                                <span class="font-bold text-gray-900">Grup WA Kelas (Pulang)</span>
+                                            @elseif(strpos($log->pesan, 'LAPORAN SISWA BELUM PRESENSI PAGI') !== false)
+                                                <span class="font-bold text-gray-900">Grup WA Kelas (Belum Hadir)</span>
+                                            @elseif(strpos($log->pesan, 'REKAP PRESENSI HARIAN') !== false)
+                                                <span class="font-bold text-gray-900">Grup WA Kelas (Rekap Sore)</span>
                                             @else
-                                                <span class="font-bold text-gray-900">Guru (Wali Kelas / BK)</span>
-                                                <span class="text-[11px] text-gray-500 font-medium">Internal Sekolah</span>
+                                                <span class="font-bold text-gray-900">Grup / Wali Kelas</span>
                                             @endif
                                             
                                             <span class="text-xs text-orange-600 font-bold mt-1">{{ $log->no_wa }}</span>

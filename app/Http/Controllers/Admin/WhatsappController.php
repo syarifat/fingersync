@@ -39,7 +39,7 @@ class WhatsappController extends Controller
         }
 
         // 2. Query Log WhatsApp
-        $query = LogWhatsapp::with(['siswa.rombelKelas.kelas', 'kelasGrup']);
+        $query = LogWhatsapp::with(['siswa.rombelKelas.kelas']);
 
         // Filter Pencarian (Nama / No WA)
         if ($request->has('search') && $request->search != '') {
@@ -57,37 +57,27 @@ class WhatsappController extends Controller
             $kelas_id = $request->kelas_id;
             $kelas = Kelas::find($kelas_id);
             $nama_kelas = $kelas ? $kelas->nama : '';
-            $id_grup_wa = $kelas ? $kelas->id_grup_wa : '';
 
-            $query->where(function($q) use ($kelas_id, $nama_kelas, $id_grup_wa) {
-                // Untuk log Ortu (absen pertama & rekap sore) yang memiliki id_siswa
+            $query->where(function($q) use ($kelas_id, $nama_kelas) {
+                // Untuk log yang memiliki id_siswa
                 $q->whereHas('siswa.rombelKelas', function($qRombel) use ($kelas_id) {
                     $qRombel->where('id_kelas', $kelas_id);
                 });
 
-                // Untuk log yang dikirim langsung ke grup WA kelas tersebut
-                if (!empty($id_grup_wa)) {
-                    $q->orWhere('no_wa', $id_grup_wa);
-                }
-
-                // Untuk log Guru (Anomali) yang tidak memiliki id_siswa, kita cari dari teks pesan
+                // Untuk log yang tidak memiliki id_siswa (kolektif/grup), cari dari isi pesan
                 if ($nama_kelas != '') {
-                    $q->orWhere('pesan', 'like', '%Kelas: *' . $nama_kelas . '*%');
+                    $q->orWhere('pesan', 'like', '%Kelas: *' . $nama_kelas . '*%')
+                      ->orWhere('pesan', 'like', '%KELAS ' . $nama_kelas . '%');
                 }
             });
         }
 
         // Filter Jenis Pesan
         if ($request->has('jenis') && $request->jenis != '') {
-            if ($request->jenis == 'absen_pertama') {
-                $query->where('pesan', 'like', '%Tiba di Sekolah%');
-            } elseif ($request->jenis == 'rekap_sore') {
-                $query->where(function($q) {
-                    $q->where('pesan', 'like', '%LAPORAN PRESENSI HARIAN%')
-                      ->orWhere('pesan', 'like', '%REKAP PRESENSI HARIAN%');
-                });
-            } elseif ($request->jenis == 'anomali') {
-                $query->where('pesan', 'like', '%Peringatan Anomali Kehadiran%');
+            if ($request->jenis == 'rekap_sore') {
+                $query->where('pesan', 'like', '%REKAP PRESENSI HARIAN KELAS%');
+            } elseif ($request->jenis == 'absen_pulang') {
+                $query->where('pesan', 'like', '%PEMBERITAHUAN PULANG%');
             }
         }
 

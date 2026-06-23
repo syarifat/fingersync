@@ -70,8 +70,8 @@ class KirimRekapSore extends Command
                 ->orderBy('jam_mulai', 'asc')
                 ->get();
 
-            // Jika tidak ada jadwal untuk kelas ini hari ini, lewati
-            if ($jadwalHariIni->isEmpty()) {
+            // Jika tidak ada jadwal untuk kelas ini hari ini dan bukan hari kegiatan serentak, lewati
+            if ($jadwalHariIni->isEmpty() && !$kegiatanHariIni) {
                 continue;
             }
 
@@ -118,105 +118,111 @@ class KirimRekapSore extends Command
                 }
             }
 
-            // 4. KELOMPOK PENGIRIMAN WA
+            // 4. KELOMPOK PENGIRIMAN WA (Hanya ke grup kelas, tidak ke nomor pribadi)
             if (!empty($kelas->id_grup_wa)) {
-                // A. JIKA KELAS MEMILIKI GRUP WA (Kirim Terkelompok)
-                
-                // Bagi siswa ke dalam chunk (maksimal 10 siswa per pesan agar tidak kepanjangan di WA)
-                $siswaArray = $rombelSiswaList->values()->toArray();
-                $chunks = array_chunk($siswaArray, 10);
-                
-                foreach ($chunks as $chunkIndex => $studentChunk) {
-                    // Cek limit pengiriman jika dikonfigurasi di .env
-                    $limit = env('WA_LIMIT_PER_RUN', 0);
-                    if ($limit > 0 && $totalTerkirim >= $limit) {
-                        $this->info("Batas pengiriman WA harian tercapai ({$limit}). Sisa pesan grup dibatalkan.");
-                        break;
-                    }
+                // Cek limit pengiriman jika dikonfigurasi di .env
+                $limit = env('WA_LIMIT_PER_RUN', 0);
+                if ($limit > 0 && $totalTerkirim >= $limit) {
+                    $this->info("Batas pengiriman WA harian tercapai ({$limit}). Sisa pesan grup dibatalkan.");
+                    continue;
+                }
 
-                    $pesanGrup = "📝 *REKAP PRESENSI HARIAN KELAS {$kelas->nama}*\n";
-                    $pesanGrup .= "*(Bagian " . ($chunkIndex + 1) . "/" . count($chunks) . ")*\n";
-                    $pesanGrup .= "----------------------------------\n";
-                    $pesanGrup .= "Tanggal: {$tanggalFormat}\n";
-                    $pesanGrup .= "----------------------------------\n\n";
+                $pesanGrup = "📝 *REKAP PRESENSI HARIAN KELAS {$kelas->nama}*\n";
+                $pesanGrup .= "----------------------------------\n";
+                $pesanGrup .= "Kelas: *{$kelas->nama}*\n";
+                $pesanGrup .= "Tanggal: {$tanggalFormat}\n";
+                $pesanGrup .= "----------------------------------\n\n";
 
-                    $hasContent = false;
-                    foreach ($studentChunk as $studentIndexGlobal => $rsData) {
-                        $siswaId = $rsData['id_siswa'];
-                        $siswaNama = $rsData['siswa']['nama'];
-                        $siswaStatus = $rsData['siswa']['status'];
-                        if ($siswaStatus !== 'Aktif') continue;
+                $hasContent = false;
+                $noUrut = 1;
+                foreach ($rombelSiswaList as $rsData) {
+                    $siswa = $rsData->siswa;
+                    if (!$siswa || $siswa->status !== 'Aktif') continue;
 
-                        $noUrut = ($chunkIndex * 10) + $studentIndexGlobal + 1;
-                        $pesanGrup .= "{$noUrut}. *{$siswaNama}*\n";
-                        
-                        if ($kegiatanHariIni) {
-                            $absenDatang = Presensi::where('id_siswa', $siswaId)
-                                ->where('id_kegiatan_sekolah', $kegiatanHariIni->id)
-                                ->where('tipe_scan_kegiatan', 'datang')
-                                ->where('tanggal', $tanggalIni)
-                                ->first();
-                            $statusDatang = $absenDatang ? "Hadir (" . substr($absenDatang->jam_scan, 0, 5) . " WIB)" : "Tidak Hadir";
-                            $iconDatang = $absenDatang ? "✅" : "❌";
-                            
-                            $absenPulang = Presensi::where('id_siswa', $siswaId)
-                                ->where('id_kegiatan_sekolah', $kegiatanHariIni->id)
-                                ->where('tipe_scan_kegiatan', 'pulang')
-                                ->where('tanggal', $tanggalIni)
-                                ->first();
-                            $statusPulang = $absenPulang ? "Sudah Pulang (" . substr($absenPulang->jam_scan, 0, 5) . " WIB)" : "Belum Scan Pulang / Bolos";
-                            $iconPulang = $absenPulang ? "🚪" : "🚪";
+                    $siswaId = $siswa->id;
+                    $siswaNama = $siswa->nama;
 
-                            $pesanGrup .= "   {$iconDatang} *Masuk:* {$statusDatang}\n";
-                            $pesanGrup .= "   {$iconPulang} *Pulang:* {$statusPulang}\n";
+                    $pesanGrup .= "{$noUrut}. *{$siswaNama}*\n";
+                    
+                    if ($kegiatanHariIni) {
+                        $absenDatang = Presensi::where('id_siswa', $siswaId)
+                            ->where('id_kegiatan_sekolah', $kegiatanHariIni->id)
+                            ->where('tipe_scan_kegiatan', 'datang')
+                            ->where('tanggal', $tanggalIni)
+                            ->first();
+                        if ($absenDatang) {
+                            $jamDatang = substr($absenDatang->jam_scan, 0, 5);
+                            $statusDatangText = "hadir pukul {$jamDatang} WIB";
                         } else {
-                            foreach ($jadwalHariIni as $jdwl) {
-                                $mapel = $jdwl->rombelMataPelajaran->mataPelajaran->nama;
-                                $jam = substr($jdwl->jam_mulai, 0, 5);
+                            $statusDatangText = "tidak hadir";
+                        }
+                        
+                        $absenPulang = Presensi::where('id_siswa', $siswaId)
+                            ->where('id_kegiatan_sekolah', $kegiatanHariIni->id)
+                            ->where('tipe_scan_kegiatan', 'pulang')
+                            ->where('tanggal', $tanggalIni)
+                            ->first();
+                        if ($absenPulang) {
+                            $jamPulang = substr($absenPulang->jam_scan, 0, 5);
+                            $statusPulangText = "hadir pukul {$jamPulang} WIB";
+                        } else {
+                            $statusPulangText = "tidak hadir/belum scan pulang";
+                        }
 
-                                $absen = Presensi::where('id_siswa', $siswaId)
-                                    ->where('id_rombel_jadwal_pelajaran', $jdwl->id)
-                                    ->where('tanggal', $tanggalIni)
-                                    ->first();
+                        $pesanGrup .= "   - Hadir Kegiatan ({$statusDatangText})\n";
+                        $pesanGrup .= "   - Pulang Kegiatan ({$statusPulangText})\n";
+                    } else {
+                        foreach ($jadwalHariIni as $jdwl) {
+                            $mapel = $jdwl->rombelMataPelajaran->mataPelajaran->nama;
 
-                                $status = $absen ? $absen->status : 'Alpha';
-                                
-                                $icon = '❌';
-                                if ($status == 'Hadir' || $status == 'Terlambat') $icon = '✅';
-                                if ($status == 'Sakit') $icon = '🤒';
-                                if ($status == 'Izin') $icon = '✉️';
-                                
-                                $displayStatus = ($status == 'Alpha') ? 'Alpha' : $status;
-                                $pesanGrup .= "   {$icon} *{$jam}* | {$mapel} (_{$displayStatus}_)\n";
-                            }
-
-                            // Tampilkan status scan pulang
-                            $scanPulang = Presensi::where('id_siswa', $siswaId)
+                            $absen = Presensi::where('id_siswa', $siswaId)
+                                ->where('id_rombel_jadwal_pelajaran', $jdwl->id)
                                 ->where('tanggal', $tanggalIni)
-                                ->where('tipe_scan', 'pulang')
                                 ->first();
 
-                            if ($scanPulang) {
-                                $jamPulang = substr($scanPulang->jam_scan, 0, 5);
-                                $pesanGrup .= "   🚪 *Scan Pulang:* {$jamPulang} WIB (Sudah Pulang)\n";
+                            $status = $absen ? $absen->status : 'Alpha';
+                            
+                            if ($status === 'Hadir' || $status === 'Terlambat') {
+                                $jamScan = substr($absen->jam_scan, 0, 5);
+                                $statusText = strtolower($status) . " pukul {$jamScan} WIB";
+                            } elseif ($status === 'Sakit') {
+                                $statusText = "sakit";
+                            } elseif ($status === 'Izin') {
+                                $statusText = "izin";
                             } else {
-                                $pesanGrup .= "   🚪 *Scan Pulang:* - (Belum Scan Pulang / Bolos)\n";
+                                $statusText = "tidak hadir";
                             }
+                            
+                            $pesanGrup .= "   - {$mapel} ({$statusText})\n";
                         }
-                        $pesanGrup .= "\n";
-                        $hasContent = true;
-                    }
 
-                    $pesanGrup .= "----------------------------------\n";
-                    $pesanGrup .= "Demikian laporan harian kelas ini disampaikan. Terima kasih.";
+                        // Tampilkan status scan pulang
+                        $scanPulang = Presensi::where('id_siswa', $siswaId)
+                            ->where('tanggal', $tanggalIni)
+                            ->where('tipe_scan', 'pulang')
+                            ->first();
 
-                    if ($hasContent) {
-                        WhatsAppService::send($kelas->id_grup_wa, $pesanGrup);
-                        $totalTerkirim++;
-                        
-                        // Jeda anti-spam
-                        sleep(2);
+                        if ($scanPulang) {
+                            $jamPulang = substr($scanPulang->jam_scan, 0, 5);
+                            $pesanGrup .= "   - Pulang Sekolah (hadir pukul {$jamPulang} WIB)\n";
+                        } else {
+                            $pesanGrup .= "   - Pulang Sekolah (tidak hadir/belum scan pulang)\n";
+                        }
                     }
+                    $pesanGrup .= "\n";
+                    $hasContent = true;
+                    $noUrut++;
+                }
+
+                $pesanGrup .= "----------------------------------\n";
+                $pesanGrup .= "Demikian laporan harian kelas ini disampaikan. Terima kasih.";
+
+                if ($hasContent) {
+                    WhatsAppService::send($kelas->id_grup_wa, $pesanGrup);
+                    $totalTerkirim++;
+                    
+                    // Jeda anti-spam
+                    sleep(2);
                 }
             }
         }
