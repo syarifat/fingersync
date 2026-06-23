@@ -19,6 +19,12 @@ class PresensiController extends Controller
     {
         $kelasList = \App\Models\Kelas::orderBy('nama', 'asc')->get();
         $mapelList = \App\Models\MataPelajaran::orderBy('nama', 'asc')->get();
+        
+        $activeYear = \App\Models\TahunAjar::where('status_aktif', true)->first();
+        $activeYearId = $activeYear ? $activeYear->id : null;
+
+        // Ambil semua status unik dari database untuk filter
+        $statusList = Presensi::whereNotNull('status')->distinct()->pluck('status');
 
         // Kelas wajib dipilih, set default jika kosong
         $kelas_id = $request->kelas_id;
@@ -28,10 +34,18 @@ class PresensiController extends Controller
         }
 
         $query = Presensi::with([
+            'siswa' => function ($q) use ($activeYearId) {
+                $q->withCount(['presensi as total_ais' => function ($pq) use ($activeYearId) {
+                    $pq->whereIn('status', ['Alpa', 'Alpha', 'Izin', 'Sakit']);
+                    if ($activeYearId) {
+                        $pq->where('id_tahun_ajar', $activeYearId);
+                    }
+                }]);
+            },
             'siswa.rombelKelas.kelas', 
             'rombelJadwalPelajaran.rombelMataPelajaran.kelas', 
             'rombelJadwalPelajaran.rombelMataPelajaran.mataPelajaran', 
-            'device', 
+            'device.ruangan', 
             'tahunAjar',
             'kegiatanSekolah'
         ]);
@@ -48,6 +62,11 @@ class PresensiController extends Controller
             $query->whereHas('rombelJadwalPelajaran.rombelMataPelajaran', function ($q) use ($request) {
                 $q->where('id_mata_pelajaran', $request->mapel_id);
             });
+        }
+
+        // 2.b. Filter Status (Opsional)
+        if ($request->has('status') && $request->status != '') {
+            $query->where('status', $request->status);
         }
 
         // 3. Filter Waktu (Harian atau Bulanan)
@@ -69,7 +88,7 @@ class PresensiController extends Controller
 
         $dataPresensi = $query->latest()->paginate(10)->withQueryString();
 
-        return view('admin.presensi.index', compact('dataPresensi', 'kelasList', 'mapelList'));
+        return view('admin.presensi.index', compact('dataPresensi', 'kelasList', 'mapelList', 'statusList'));
     }
 
     public function exportPdf(Request $request)
@@ -255,7 +274,7 @@ class PresensiController extends Controller
         $request->validate([
             'id_siswa'  => 'required|exists:siswa,id',
             'id_device' => 'required|exists:device,id',
-            'status'    => 'required|in:Hadir,Izin,Sakit,Terlambat,Alpa',
+            'status'    => 'required|in:Hadir,Izin,Sakit,Terlambat,Alpa,Alpha',
         ]);
 
         // 2. Tentukan Waktu Sekarang
@@ -317,7 +336,7 @@ class PresensiController extends Controller
     public function update(Request $request, Presensi $presensi)
     {
         $request->validate([
-            'status' => 'required|in:Hadir,Izin,Sakit,Terlambat,Alpa',
+            'status' => 'required|in:Hadir,Izin,Sakit,Terlambat,Alpa,Alpha',
         ]);
 
         $presensi->update([
@@ -325,5 +344,36 @@ class PresensiController extends Controller
         ]);
 
         return redirect()->route('admin.presensi.index')->with('success', 'Status absensi berhasil diperbarui.');
+    }
+
+    public function detailAis($siswa_id)
+    {
+        $siswa = \App\Models\Siswa::with('rombelKelas.kelas')->findOrFail($siswa_id);
+        
+        $activeYear = \App\Models\TahunAjar::where('status_aktif', true)->first();
+        $activeYearId = $activeYear ? $activeYear->id : null;
+
+        $query = Presensi::with([
+            'rombelJadwalPelajaran.rombelMataPelajaran.mataPelajaran',
+            'kegiatanSekolah',
+            'device.ruangan'
+        ])
+        ->where('id_siswa', $siswa_id)
+        ->whereIn('status', ['Alpa', 'Alpha', 'Izin', 'Sakit']);
+
+        if ($activeYearId) {
+            $query->where('id_tahun_ajar', $activeYearId);
+        }
+
+        $records = $query->orderBy('tanggal', 'desc')->orderBy('jam_scan', 'desc')->get();
+
+        // Calculate counts
+        $counts = [
+            'Alpha' => $records->filter(fn($r) => in_array($r->status, ['Alpa', 'Alpha']))->count(),
+            'Izin' => $records->where('status', 'Izin')->count(),
+            'Sakit' => $records->where('status', 'Sakit')->count(),
+        ];
+
+        return view('admin.presensi.detail_ais', compact('siswa', 'records', 'counts'));
     }
 }

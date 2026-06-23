@@ -27,8 +27,8 @@
                     <div class="mb-6 bg-gray-50 p-5 rounded-2xl border border-gray-100">
                         <form method="GET" action="{{ route('admin.presensi.index') }}" class="flex flex-col gap-3">
 
-                            {{-- BARIS 1: Kelas + Mapel + Cari Siswa --}}
-                            <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                            {{-- BARIS 1: Kelas + Mapel + Status + Cari Siswa --}}
+                            <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
                                 <div>
                                     <label for="kelas_id" class="block text-xs font-bold text-gray-500 uppercase mb-1">Kelas <span class="text-orange-500">*</span></label>
                                     <select name="kelas_id" id="kelas_id" required class="block w-full rounded-xl border-gray-200 bg-white text-sm focus:border-orange-500 focus:ring-orange-500 shadow-sm">
@@ -43,6 +43,15 @@
                                         <option value="">-- Semua Mata Pelajaran --</option>
                                         @foreach($mapelList as $m)
                                         <option value="{{ $m->id }}" {{ request('mapel_id') == $m->id ? 'selected' : '' }}>{{ $m->nama }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                                <div>
+                                    <label for="status" class="block text-xs font-bold text-gray-500 uppercase mb-1">Status</label>
+                                    <select name="status" id="status" class="block w-full rounded-xl border-gray-200 bg-white text-sm focus:border-orange-500 focus:ring-orange-500 shadow-sm">
+                                        <option value="">-- Semua Status --</option>
+                                        @foreach($statusList as $s)
+                                        <option value="{{ $s }}" {{ request('status') == $s ? 'selected' : '' }}>{{ $s }}</option>
                                         @endforeach
                                     </select>
                                 </div>
@@ -73,7 +82,7 @@
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
                                         Export PDF
                                     </button>
-                                    @if(request()->hasAny(['mapel_id', 'tanggal', 'bulan', 'search']))
+                                    @if(request()->hasAny(['mapel_id', 'status', 'tanggal', 'bulan', 'search']))
                                     <a href="{{ route('admin.presensi.index') }}" class="px-4 py-2.5 bg-white border border-gray-300 text-gray-600 text-sm font-bold rounded-xl hover:bg-gray-50 transition-colors flex items-center" title="Reset">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
                                     </a>
@@ -110,10 +119,11 @@
                                 <tr class="text-gray-400 text-xs uppercase tracking-widest border-b border-gray-100">
                                     <th class="pb-4 font-black px-4">Waktu</th>
                                     <th class="pb-4 font-black">Siswa</th>
+                                    <th class="pb-4 font-black text-center w-20">AIS</th>
                                     <th class="pb-4 font-black">Jadwal / Mapel</th>
                                     <th class="pb-4 font-black text-center">Status</th>
-                                    <th class="pb-4 font-black px-4">Device</th>
-                                    <th class="pb-4 font-black text-right px-4">Aksi</th>
+                                    <th class="pb-4 font-black px-4">Ruang</th>
+                                    <th class="pb-4 font-black text-right px-4 w-48">Aksi</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-gray-50">
@@ -138,6 +148,13 @@
                                             <span class="font-bold text-gray-900">{{ $row->siswa->nama ?? 'Siswa dihapus' }}</span>
                                             <span class="text-xs text-gray-400 font-bold">{{ $row->siswa->nis ?? '-' }}</span>
                                         </div>
+                                    </td>
+
+                                    {{-- Kolom AIS --}}
+                                    <td class="py-5 text-center">
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-black bg-red-50 text-red-700 border border-red-200">
+                                            {{ $row->siswa->total_ais ?? 0 }}
+                                        </span>
                                     </td>
 
                                     {{-- Kolom Jadwal --}}
@@ -175,7 +192,7 @@
                                             $badgeClass = match($row->status) {
                                                 'Hadir' => 'bg-emerald-50 text-emerald-600',
                                                 'Terlambat' => 'bg-amber-50 text-amber-600',
-                                                'Alpa' => 'bg-rose-50 text-rose-600',
+                                                'Alpa', 'Alpha' => 'bg-rose-50 text-rose-600',
                                                 'Sakit' => 'bg-purple-50 text-purple-600',
                                                 'Izin' => 'bg-indigo-50 text-indigo-600',
                                                 default => 'bg-gray-50 text-gray-600'
@@ -188,19 +205,29 @@
                                         </span>
                                     </td>
 
-                                    {{-- Kolom Device --}}
+                                    {{-- Kolom Ruang --}}
                                     <td class="py-5 px-4">
-                                        <span class="text-xs font-mono text-gray-400 bg-gray-50 px-2 py-1 rounded font-bold">
-                                            {{ $row->device->nama_device ?? $row->id_device }}
+                                        <span class="text-xs text-gray-700 bg-gray-100 px-2.5 py-1 rounded-lg font-bold">
+                                            {{ $row->device->ruangan->nama_ruangan ?? 'Manual/Sistem' }}
                                         </span>
                                     </td>
                                     
                                     {{-- Kolom Aksi --}}
                                     <td class="py-5 px-4 text-right">
-                                        <a href="{{ route('admin.presensi.edit', $row->id) }}" class="inline-flex items-center px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-bold rounded-lg transition-colors">
-                                            <svg class="w-3.5 h-3.5 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
-                                            Edit
-                                        </a>
+                                        <div class="flex justify-end gap-2">
+                                            @if($row->siswa)
+                                            <a href="{{ route('admin.presensi.detail_ais', $row->siswa->id) }}" class="inline-flex items-center px-3 py-1.5 bg-orange-50 hover:bg-orange-100 text-orange-700 text-xs font-bold rounded-lg transition-colors border border-orange-200" title="Detail AIS">
+                                                <svg class="w-3.5 h-3.5 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path>
+                                                </svg>
+                                                Detail AIS
+                                            </a>
+                                            @endif
+                                            <a href="{{ route('admin.presensi.edit', $row->id) }}" class="inline-flex items-center px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-bold rounded-lg transition-colors">
+                                                <svg class="w-3.5 h-3.5 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                                                Edit
+                                            </a>
+                                        </div>
                                     </td>
                                 </tr>
                                 @empty

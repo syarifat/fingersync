@@ -108,3 +108,13 @@ HASIL
 - point 5.1(kegiatan serentak) sudah done tapi saya bingung dimana melihat hasil data presensinya? di menu presensi tidak ada, apakah perlu mengubah tampilan logika di menu presensi, lalu hasilnya di export harusnya juga berpengaruh kan tulisannya apa? apa ya Hsaja? (REVISI DONE: Presensi kegiatan serentak kini muncul di menu presensi dengan badge & detail khusus, filter kelas disesuaikan berdasarkan kelas siswa, dan rekap PDF memuat tabel virtual Kegiatan Sekolah dengan tanda H pada tanggal kegiatan)
 - point 5.2(guru berhalangan hadir) done
 - point 5.3(guru digantikan) done
+
+
+REVISI 230626
+1. Di menu data presensi ditambahkan filter keterangan dari status(untuk pilihannya ambil semua dari datbase saja jangan enum disini).
+2. masih di menu yang sama tambahkan kolom untuk menetahui total AIS dari siswa tersebut (nama kolomnya AIS). 
+3. di menu kbm guru untuk revisi tidak ada lagi sistem pergantian guru. jadi hanya ada izin. lalu ketika izin maka ada pilihan untuk agar alatnya tetap bisa buat absen dengan respon "Mengerjakan Tugas yang Diberikan".lalu jika pilihan dimatkan berarti libur, tidak usah absen dan jika siswa absen maka respon "Jadwal Libur, Guru Sedang Izin". sekaligus apakah bisa jika memilih jadwal di hari senin misal maka di form tangal berhalangan juga hari senin saja yang bisa dipilih jangan selasa-minggu bisa dipilih.
+4. lalu kembali ke konsep sebelumnya. hapus semua pesan yag dikirim ke nomor pirbadi, semua dikirim ke grub. untuk saat ini yang dikirim ke pribadi kan saat hadir dan pulang siswa secara realtime. itu diubah jadi dikirim ke grub kelas. buatkan endpoint api untuk trigger command yang saya hit nantinya dari cron-job.com
+saat hadir itu dikirim jam 8 pagi menampilkan yang sudah hadr dan yang belum urut dari a-z
+untuk rekap tetap jam 4
+untuk pulang, saat ini kan mapel terakhir habis sampai jam 4. nah ini diubah dari mapel terakhir habis sampai jam 17.30 saja. jadi kalau mapel habis jam 1, maka dihitung sampai jam 17.30 untuk melakukan absen pulang. jadi pesan dikirim saatjam 17.30 urut a-z

@@ -100,6 +100,16 @@ class KirimRekapSore extends Command
                     if (!$siswa || $siswa->status !== 'Aktif') continue;
 
                     foreach ($jadwalHariIni as $jdwl) {
+                        // Jika jadwal ini diliburkan karena guru izin, jangan buat Alpha
+                        $kbmLibur = \App\Models\GuruKbmKhusus::where('id_rombel_jadwal_pelajaran', $jdwl->id)
+                            ->whereDate('tanggal', $tanggalIni)
+                            ->where('status', 'izin_libur')
+                            ->exists();
+
+                        if ($kbmLibur) {
+                            continue;
+                        }
+
                         $absen = Presensi::where('id_siswa', $siswa->id)
                             ->where('id_rombel_jadwal_pelajaran', $jdwl->id)
                             ->where('tanggal', $tanggalIni)
@@ -178,22 +188,30 @@ class KirimRekapSore extends Command
                         foreach ($jadwalHariIni as $jdwl) {
                             $mapel = $jdwl->rombelMataPelajaran->mataPelajaran->nama;
 
-                            $absen = Presensi::where('id_siswa', $siswaId)
-                                ->where('id_rombel_jadwal_pelajaran', $jdwl->id)
-                                ->where('tanggal', $tanggalIni)
+                            $kbmKhusus = \App\Models\GuruKbmKhusus::where('id_rombel_jadwal_pelajaran', $jdwl->id)
+                                ->whereDate('tanggal', $tanggalIni)
                                 ->first();
 
-                            $status = $absen ? $absen->status : 'Alpha';
-                            
-                            if ($status === 'Hadir' || $status === 'Terlambat') {
-                                $jamScan = substr($absen->jam_scan, 0, 5);
-                                $statusText = strtolower($status) . " pukul {$jamScan} WIB";
-                            } elseif ($status === 'Sakit') {
-                                $statusText = "sakit";
-                            } elseif ($status === 'Izin') {
-                                $statusText = "izin";
+                            if ($kbmKhusus && $kbmKhusus->status === 'izin_libur') {
+                                $statusText = "libur (guru izin)";
                             } else {
-                                $statusText = "tidak hadir";
+                                $absen = Presensi::where('id_siswa', $siswaId)
+                                    ->where('id_rombel_jadwal_pelajaran', $jdwl->id)
+                                    ->where('tanggal', $tanggalIni)
+                                    ->first();
+
+                                $status = $absen ? $absen->status : 'Alpha';
+                                
+                                if ($status === 'Hadir' || $status === 'Terlambat') {
+                                    $jamScan = substr($absen->jam_scan, 0, 5);
+                                    $statusText = strtolower($status) . " pukul {$jamScan} WIB";
+                                } elseif ($status === 'Sakit') {
+                                    $statusText = "sakit";
+                                } elseif ($status === 'Izin') {
+                                    $statusText = "izin";
+                                } else {
+                                    $statusText = "tidak hadir";
+                                }
                             }
                             
                             $pesanGrup .= "   - {$mapel} ({$statusText})\n";

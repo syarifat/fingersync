@@ -20,10 +20,9 @@ class GuruKbmKhususController extends Controller
 
     public function create()
     {
-        $gurus = Guru::orderBy('nama', 'asc')->get();
         $jadwals = RombelJadwalPelajaran::with(['rombelMapel.kelas', 'rombelMapel.mataPelajaran', 'rombelMapel.guru', 'ruangan'])
             ->get();
-        return view('admin.kbm-khusus.create', compact('gurus', 'jadwals'));
+        return view('admin.kbm-khusus.create', compact('jadwals'));
     }
 
     public function store(Request $request)
@@ -31,20 +30,22 @@ class GuruKbmKhususController extends Controller
         $request->validate([
             'id_rombel_jadwal_pelajaran' => 'required|exists:rombel_jadwal_pelajaran,id',
             'tanggal' => 'required|date',
-            'status' => 'required|in:izin,absen,diganti',
-            'id_guru_pengganti' => 'nullable|required_if:status,diganti|exists:guru,id',
+            'status' => 'required|in:izin_tugas,izin_libur',
             'keterangan' => 'nullable|string',
         ]);
 
-        // Cek guru pengganti tidak boleh sama dengan guru asli
-        if ($request->status === 'diganti') {
-            $jadwal = RombelJadwalPelajaran::with('rombelMapel')->find($request->id_rombel_jadwal_pelajaran);
-            if ($jadwal && $jadwal->rombelMapel->id_guru == $request->id_guru_pengganti) {
-                return back()->withErrors(['id_guru_pengganti' => 'Guru pengganti tidak boleh sama dengan guru mata pelajaran tersebut.'])->withInput();
+        $jadwal = RombelJadwalPelajaran::with('rombelMapel')->find($request->id_rombel_jadwal_pelajaran);
+        if ($jadwal) {
+            $hariIndo = $this->getHariIndo(\Carbon\Carbon::parse($request->tanggal)->format('l'));
+            if (strtolower($hariIndo) !== strtolower($jadwal->hari)) {
+                return back()->withErrors(['tanggal' => "Tanggal berhalangan harus bertepatan dengan hari {$jadwal->hari} (jadwal pelajaran)."])->withInput();
             }
         }
 
-        GuruKbmKhusus::create($request->all());
+        $data = $request->only(['id_rombel_jadwal_pelajaran', 'tanggal', 'status', 'keterangan']);
+        $data['id_guru_pengganti'] = null;
+
+        GuruKbmKhusus::create($data);
 
         return redirect()->route('admin.kbm-khusus.index')->with('success', 'Kondisi KBM khusus guru berhasil ditambahkan.');
     }
@@ -52,10 +53,9 @@ class GuruKbmKhususController extends Controller
     public function edit($id)
     {
         $kbmKhusus = GuruKbmKhusus::findOrFail($id);
-        $gurus = Guru::orderBy('nama', 'asc')->get();
         $jadwals = RombelJadwalPelajaran::with(['rombelMapel.kelas', 'rombelMapel.mataPelajaran', 'rombelMapel.guru', 'ruangan'])
             ->get();
-        return view('admin.kbm-khusus.edit', compact('kbmKhusus', 'gurus', 'jadwals'));
+        return view('admin.kbm-khusus.edit', compact('kbmKhusus', 'jadwals'));
     }
 
     public function update(Request $request, $id)
@@ -63,22 +63,34 @@ class GuruKbmKhususController extends Controller
         $request->validate([
             'id_rombel_jadwal_pelajaran' => 'required|exists:rombel_jadwal_pelajaran,id',
             'tanggal' => 'required|date',
-            'status' => 'required|in:izin,absen,diganti',
-            'id_guru_pengganti' => 'nullable|required_if:status,diganti|exists:guru,id',
+            'status' => 'required|in:izin_tugas,izin_libur',
             'keterangan' => 'nullable|string',
         ]);
 
-        if ($request->status === 'diganti') {
-            $jadwal = RombelJadwalPelajaran::with('rombelMapel')->find($request->id_rombel_jadwal_pelajaran);
-            if ($jadwal && $jadwal->rombelMapel->id_guru == $request->id_guru_pengganti) {
-                return back()->withErrors(['id_guru_pengganti' => 'Guru pengganti tidak boleh sama dengan guru mata pelajaran tersebut.'])->withInput();
+        $jadwal = RombelJadwalPelajaran::with('rombelMapel')->find($request->id_rombel_jadwal_pelajaran);
+        if ($jadwal) {
+            $hariIndo = $this->getHariIndo(\Carbon\Carbon::parse($request->tanggal)->format('l'));
+            if (strtolower($hariIndo) !== strtolower($jadwal->hari)) {
+                return back()->withErrors(['tanggal' => "Tanggal berhalangan harus bertepatan dengan hari {$jadwal->hari} (jadwal pelajaran)."])->withInput();
             }
         }
 
         $kbmKhusus = GuruKbmKhusus::findOrFail($id);
-        $kbmKhusus->update($request->all());
+        $data = $request->only(['id_rombel_jadwal_pelajaran', 'tanggal', 'status', 'keterangan']);
+        $data['id_guru_pengganti'] = null;
+        
+        $kbmKhusus->update($data);
 
         return redirect()->route('admin.kbm-khusus.index')->with('success', 'Kondisi KBM khusus guru berhasil diperbarui.');
+    }
+
+    private function getHariIndo($day)
+    {
+        $days = [
+            'Monday' => 'Senin', 'Tuesday' => 'Selasa', 'Wednesday' => 'Rabu',
+            'Thursday' => 'Kamis', 'Friday' => 'Jumat', 'Saturday' => 'Sabtu', 'Sunday' => 'Minggu'
+        ];
+        return $days[$day] ?? 'Senin';
     }
 
     public function destroy($id)

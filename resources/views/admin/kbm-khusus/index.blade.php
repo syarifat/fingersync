@@ -12,7 +12,7 @@
                     <div class="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
                         <div>
                             <h3 class="text-xl font-bold text-orange-600 uppercase tracking-tighter">Manajemen Kondisi Khusus Guru</h3>
-                            <p class="text-sm text-gray-500">Atur kondisi ketika Guru mata pelajaran berhalangan hadir (Izin / Absen / Digantikan oleh Guru Pengganti) pada tanggal dan jadwal tertentu.</p>
+                            <p class="text-sm text-gray-500">Atur kondisi ketika Guru mata pelajaran berhalangan hadir (Izin) pada tanggal dan jadwal tertentu.</p>
                         </div>
                         <a href="{{ route('admin.kbm-khusus.create') }}" class="w-full md:w-auto px-6 py-3 bg-emerald-600 text-white rounded-2xl font-bold text-xs uppercase tracking-widest hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-100 flex items-center justify-center gap-2 hover:-translate-y-0.5">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -62,19 +62,21 @@
                                         {{ $khusus->rombelJadwalPelajaran->rombelMataPelajaran->guru->nama ?? '-' }}
                                     </td>
                                     <td class="py-5 text-center">
-                                        @if($khusus->status === 'izin')
-                                            <span class="inline-flex items-center px-3 py-1 bg-yellow-50 text-yellow-700 rounded-full text-xs font-bold ring-1 ring-yellow-200 uppercase">Izin</span>
-                                        @elseif($khusus->status === 'absen')
-                                            <span class="inline-flex items-center px-3 py-1 bg-red-50 text-red-700 rounded-full text-xs font-bold ring-1 ring-red-200 uppercase">Absen</span>
-                                        @elseif($khusus->status === 'diganti')
-                                            <span class="inline-flex items-center px-3 py-1 bg-blue-50 text-blue-700 rounded-full text-xs font-bold ring-1 ring-blue-200 uppercase">Diganti</span>
+                                        @if($khusus->status === 'izin_tugas')
+                                            <span class="inline-flex items-center px-3 py-1 bg-emerald-50 text-emerald-700 rounded-full text-xs font-bold ring-1 ring-emerald-200 uppercase">Izin (Ada Tugas)</span>
+                                        @elseif($khusus->status === 'izin_libur')
+                                            <span class="inline-flex items-center px-3 py-1 bg-rose-50 text-rose-700 rounded-full text-xs font-bold ring-1 ring-rose-200 uppercase">Izin (Libur)</span>
+                                        @else
+                                            <span class="inline-flex items-center px-3 py-1 bg-yellow-50 text-yellow-700 rounded-full text-xs font-bold ring-1 ring-yellow-200 uppercase">{{ $khusus->status }}</span>
                                         @endif
                                     </td>
                                     <td class="py-5 text-sm">
-                                        @if($khusus->status === 'diganti')
-                                            <span class="font-bold text-blue-700">Pengganti: {{ $khusus->guruPengganti->nama ?? '-' }}</span>
+                                        @if($khusus->status === 'izin_tugas')
+                                            <span class="text-emerald-700 font-semibold" title="{{ $khusus->keterangan }}">Tugas: {{ $khusus->keterangan ?? 'Mengerjakan Tugas yang Diberikan' }}</span>
+                                        @elseif($khusus->status === 'izin_libur')
+                                            <span class="text-gray-400 italic">Jadwal Libur (Tidak Ada Absensi)</span>
                                         @else
-                                            <span class="text-gray-500 italic" title="{{ $khusus->keterangan }}">Tugas: {{ $khusus->keterangan ?? 'Belajar Mandiri' }}</span>
+                                            <span class="text-gray-500 italic" title="{{ $khusus->keterangan }}">{{ $khusus->keterangan ?? '-' }}</span>
                                         @endif
                                     </td>
                                     <td class="py-5 pr-4 text-right">

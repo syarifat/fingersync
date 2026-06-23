@@ -29,6 +29,20 @@ Route::get('/cron/rekap-sore/{token}', function ($token) {
     return 'Rekap Sore dieksekusi: ' . Artisan::output();
 });
 
+Route::get('/cron/hadir-pagi/{token}', function ($token) {
+    if ($token !== 'FINGERSYNC-SECURE-123') return abort(403, 'Unauthorized');
+    set_time_limit(0);
+    Artisan::call('absensi:rekap-pagi');
+    return 'Rekap Pagi dieksekusi: ' . Artisan::output();
+});
+
+Route::get('/cron/pulang-sore/{token}', function ($token) {
+    if ($token !== 'FINGERSYNC-SECURE-123') return abort(403, 'Unauthorized');
+    set_time_limit(0);
+    Artisan::call('absensi:rekap-pulang');
+    return 'Rekap Pulang dieksekusi: ' . Artisan::output();
+});
+
 
 Route::get('/', function () {
     return view('welcome');
@@ -95,6 +109,7 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->as('admin.')->group(
     Route::post('/presensi', [PresensiController::class, 'store'])->name('presensi.store');
     Route::get('/presensi/{presensi}/edit', [PresensiController::class, 'edit'])->name('presensi.edit');
     Route::put('/presensi/{presensi}', [PresensiController::class, 'update'])->name('presensi.update');
+    Route::get('/presensi/siswa/{id}/detail-ais', [PresensiController::class, 'detailAis'])->name('presensi.detail_ais');
 
     Route::get('/whatsapp', [\App\Http\Controllers\Admin\WhatsappController::class, 'index'])->name('whatsapp.index');
 
