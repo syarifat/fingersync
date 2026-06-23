@@ -85,28 +85,35 @@ class KirimRekapSore extends Command
                 continue;
             }
 
-            // 3. Proses absensi Alpha otomatis terlebih dahulu untuk database
-            foreach ($rombelSiswaList as $rs) {
-                $siswa = $rs->siswa;
-                if (!$siswa || $siswa->status !== 'Aktif') continue;
+            // Cek apakah ada kegiatan serentak hari ini
+            $kegiatanHariIni = \App\Models\KegiatanSekolah::whereDate('tanggal', $tanggalIni)
+                ->where('tipe', 'serentak')
+                ->first();
 
-                foreach ($jadwalHariIni as $jdwl) {
-                    $absen = Presensi::where('id_siswa', $siswa->id)
-                        ->where('id_rombel_jadwal_pelajaran', $jdwl->id)
-                        ->where('tanggal', $tanggalIni)
-                        ->first();
+            // 3. Proses absensi Alpha otomatis terlebih dahulu untuk database (Hanya jika KBM Reguler / Bukan Kegiatan Serentak)
+            if (!$kegiatanHariIni) {
+                foreach ($rombelSiswaList as $rs) {
+                    $siswa = $rs->siswa;
+                    if (!$siswa || $siswa->status !== 'Aktif') continue;
 
-                    if (!$absen) {
-                        Presensi::create([
-                            'id_siswa' => $siswa->id,
-                            'id_rombel_jadwal_pelajaran' => $jdwl->id,
-                            'tanggal' => $tanggalIni,
-                            'jam_scan' => '16:00:00', // Jam 4 sore
-                            'id_device' => $deviceId,
-                            'status' => 'Alpha',
-                            'id_tahun_ajar' => $activeYear,
-                        ]);
-                        $totalAlphaDitambahkan++;
+                    foreach ($jadwalHariIni as $jdwl) {
+                        $absen = Presensi::where('id_siswa', $siswa->id)
+                            ->where('id_rombel_jadwal_pelajaran', $jdwl->id)
+                            ->where('tanggal', $tanggalIni)
+                            ->first();
+
+                        if (!$absen) {
+                            Presensi::create([
+                                'id_siswa' => $siswa->id,
+                                'id_rombel_jadwal_pelajaran' => $jdwl->id,
+                                'tanggal' => $tanggalIni,
+                                'jam_scan' => '16:00:00', // Jam 4 sore
+                                'id_device' => $deviceId,
+                                'status' => 'Alpha',
+                                'id_tahun_ajar' => $activeYear,
+                            ]);
+                            $totalAlphaDitambahkan++;
+                        }
                     }
                 }
             }
@@ -143,39 +150,59 @@ class KirimRekapSore extends Command
                         $noUrut = ($chunkIndex * 10) + $studentIndexGlobal + 1;
                         $pesanGrup .= "{$noUrut}. *{$siswaNama}*\n";
                         
-                        foreach ($jadwalHariIni as $jdwl) {
-                            $mapel = $jdwl->rombelMataPelajaran->mataPelajaran->nama;
-                            $jam = substr($jdwl->jam_mulai, 0, 5);
-
-                            $absen = Presensi::where('id_siswa', $siswaId)
-                                ->where('id_rombel_jadwal_pelajaran', $jdwl->id)
+                        if ($kegiatanHariIni) {
+                            $absenDatang = Presensi::where('id_siswa', $siswaId)
+                                ->where('id_kegiatan_sekolah', $kegiatanHariIni->id)
+                                ->where('tipe_scan_kegiatan', 'datang')
                                 ->where('tanggal', $tanggalIni)
                                 ->first();
-
-                            $status = $absen ? $absen->status : 'Alpha';
+                            $statusDatang = $absenDatang ? "Hadir (" . substr($absenDatang->jam_scan, 0, 5) . " WIB)" : "Tidak Hadir";
+                            $iconDatang = $absenDatang ? "✅" : "❌";
                             
-                            $icon = '❌';
-                            if ($status == 'Hadir' || $status == 'Terlambat') $icon = '✅';
-                            if ($status == 'Sakit') $icon = '🤒';
-                            if ($status == 'Izin') $icon = '✉️';
-                            
-                            $displayStatus = ($status == 'Alpha') ? 'Alpha' : $status;
-                            $pesanGrup .= "   {$icon} *{$jam}* | {$mapel} (_{$displayStatus}_)\n";
-                        }
+                            $absenPulang = Presensi::where('id_siswa', $siswaId)
+                                ->where('id_kegiatan_sekolah', $kegiatanHariIni->id)
+                                ->where('tipe_scan_kegiatan', 'pulang')
+                                ->where('tanggal', $tanggalIni)
+                                ->first();
+                            $statusPulang = $absenPulang ? "Sudah Pulang (" . substr($absenPulang->jam_scan, 0, 5) . " WIB)" : "Belum Scan Pulang / Bolos";
+                            $iconPulang = $absenPulang ? "🚪" : "🚪";
 
-                        // Tampilkan status scan pulang
-                        $scanPulang = Presensi::where('id_siswa', $siswaId)
-                            ->where('tanggal', $tanggalIni)
-                            ->where('tipe_scan', 'pulang')
-                            ->first();
-
-                        if ($scanPulang) {
-                            $jamPulang = substr($scanPulang->jam_scan, 0, 5);
-                            $pesanGrup .= "   🚪 *Scan Pulang:* {$jamPulang} WIB (Sudah Pulang)\n";
+                            $pesanGrup .= "   {$iconDatang} *Masuk:* {$statusDatang}\n";
+                            $pesanGrup .= "   {$iconPulang} *Pulang:* {$statusPulang}\n";
                         } else {
-                            $pesanGrup .= "   🚪 *Scan Pulang:* - (Belum Scan Pulang / Bolos)\n";
-                        }
+                            foreach ($jadwalHariIni as $jdwl) {
+                                $mapel = $jdwl->rombelMataPelajaran->mataPelajaran->nama;
+                                $jam = substr($jdwl->jam_mulai, 0, 5);
 
+                                $absen = Presensi::where('id_siswa', $siswaId)
+                                    ->where('id_rombel_jadwal_pelajaran', $jdwl->id)
+                                    ->where('tanggal', $tanggalIni)
+                                    ->first();
+
+                                $status = $absen ? $absen->status : 'Alpha';
+                                
+                                $icon = '❌';
+                                if ($status == 'Hadir' || $status == 'Terlambat') $icon = '✅';
+                                if ($status == 'Sakit') $icon = '🤒';
+                                if ($status == 'Izin') $icon = '✉️';
+                                
+                                $displayStatus = ($status == 'Alpha') ? 'Alpha' : $status;
+                                $pesanGrup .= "   {$icon} *{$jam}* | {$mapel} (_{$displayStatus}_)\n";
+                            }
+
+                            // Tampilkan status scan pulang
+                            $scanPulang = Presensi::where('id_siswa', $siswaId)
+                                ->where('tanggal', $tanggalIni)
+                                ->where('tipe_scan', 'pulang')
+                                ->first();
+
+                            if ($scanPulang) {
+                                $jamPulang = substr($scanPulang->jam_scan, 0, 5);
+                                $pesanGrup .= "   🚪 *Scan Pulang:* {$jamPulang} WIB (Sudah Pulang)\n";
+                            } else {
+                                $pesanGrup .= "   🚪 *Scan Pulang:* - (Belum Scan Pulang / Bolos)\n";
+                            }
+                        }
                         $pesanGrup .= "\n";
                         $hasContent = true;
                     }
@@ -211,41 +238,65 @@ class KirimRekapSore extends Command
                     $pesan .= "Nama: *{$siswa->nama}*\n";
                     $pesan .= "Tanggal: {$tanggalFormat}\n";
                     $pesan .= "----------------------------------\n\n";
-                    $pesan .= "Berikut detail kehadiran ananda hari ini:\n\n";
 
-                    foreach ($jadwalHariIni as $jdwl) {
-                        $mapel = $jdwl->rombelMataPelajaran->mataPelajaran->nama;
-                        $jam = substr($jdwl->jam_mulai, 0, 5);
-
-                        $absen = Presensi::where('id_siswa', $siswa->id)
-                            ->where('id_rombel_jadwal_pelajaran', $jdwl->id)
+                    if ($kegiatanHariIni) {
+                        $pesan .= "Hari ini sekolah menyelenggarakan kegiatan: *{$kegiatanHariIni->nama_kegiatan}*.\n\n";
+                        
+                        $absenDatang = Presensi::where('id_siswa', $siswa->id)
+                            ->where('id_kegiatan_sekolah', $kegiatanHariIni->id)
+                            ->where('tipe_scan_kegiatan', 'datang')
                             ->where('tanggal', $tanggalIni)
                             ->first();
-
-                        $status = $absen ? $absen->status : 'Alpha';
+                        $statusDatang = $absenDatang ? "Hadir (" . substr($absenDatang->jam_scan, 0, 5) . " WIB)" : "Tidak Hadir";
+                        $iconDatang = $absenDatang ? "✅" : "❌";
                         
-                        $icon = '❌';
-                        if ($status == 'Hadir' || $status == 'Terlambat') $icon = '✅';
-                        if ($status == 'Sakit') $icon = '🤒';
-                        if ($status == 'Izin') $icon = '✉️';
+                        $absenPulang = Presensi::where('id_siswa', $siswa->id)
+                            ->where('id_kegiatan_sekolah', $kegiatanHariIni->id)
+                            ->where('tipe_scan_kegiatan', 'pulang')
+                            ->where('tanggal', $tanggalIni)
+                            ->first();
+                        $statusPulang = $absenPulang ? "Sudah Pulang (" . substr($absenPulang->jam_scan, 0, 5) . " WIB)" : "Belum Scan Pulang / Bolos";
+                        $iconPulang = $absenPulang ? "🚪" : "🚪";
 
-                        $displayStatus = ($status == 'Alpha') ? 'Alpha / Tanpa Keterangan' : $status;
-
-                        $pesan .= "{$icon} *{$jam}* | {$mapel}\n";
-                        $pesan .= "Status: _{$displayStatus}_\n\n";
-                    }
-
-                    // Tampilkan status scan pulang
-                    $scanPulang = Presensi::where('id_siswa', $siswa->id)
-                        ->where('tanggal', $tanggalIni)
-                        ->where('tipe_scan', 'pulang')
-                        ->first();
-
-                    if ($scanPulang) {
-                        $jamPulang = substr($scanPulang->jam_scan, 0, 5);
-                        $pesan .= "🚪 *Scan Pulang:* {$jamPulang} WIB (Sudah Pulang)\n\n";
+                        $pesan .= "{$iconDatang} *Masuk Kegiatan:* {$statusDatang}\n";
+                        $pesan .= "{$iconPulang} *Pulang Kegiatan:* {$statusPulang}\n\n";
                     } else {
-                        $pesan .= "🚪 *Scan Pulang:* - (Belum Scan Pulang / Bolos)\n\n";
+                        $pesan .= "Berikut detail kehadiran ananda hari ini:\n\n";
+
+                        foreach ($jadwalHariIni as $jdwl) {
+                            $mapel = $jdwl->rombelMataPelajaran->mataPelajaran->nama;
+                            $jam = substr($jdwl->jam_mulai, 0, 5);
+
+                            $absen = Presensi::where('id_siswa', $siswa->id)
+                                ->where('id_rombel_jadwal_pelajaran', $jdwl->id)
+                                ->where('tanggal', $tanggalIni)
+                                ->first();
+
+                            $status = $absen ? $absen->status : 'Alpha';
+                            
+                            $icon = '❌';
+                            if ($status == 'Hadir' || $status == 'Terlambat') $icon = '✅';
+                            if ($status == 'Sakit') $icon = '🤒';
+                            if ($status == 'Izin') $icon = '✉️';
+
+                            $displayStatus = ($status == 'Alpha') ? 'Alpha / Tanpa Keterangan' : $status;
+
+                            $pesan .= "{$icon} *{$jam}* | {$mapel}\n";
+                            $pesan .= "Status: _{$displayStatus}_\n\n";
+                        }
+
+                        // Tampilkan status scan pulang
+                        $scanPulang = Presensi::where('id_siswa', $siswa->id)
+                            ->where('tanggal', $tanggalIni)
+                            ->where('tipe_scan', 'pulang')
+                            ->first();
+
+                        if ($scanPulang) {
+                            $jamPulang = substr($scanPulang->jam_scan, 0, 5);
+                            $pesan .= "🚪 *Scan Pulang:* {$jamPulang} WIB (Sudah Pulang)\n\n";
+                        } else {
+                            $pesan .= "🚪 *Scan Pulang:* - (Belum Scan Pulang / Bolos)\n\n";
+                        }
                     }
 
                     $pesan .= "----------------------------------\n";

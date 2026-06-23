@@ -116,14 +116,22 @@ class PresensiController extends Controller
         }
         $mapelList = $mapelQuery->get();
 
-        // Build array of dates properties (for header and weekend formatting)
-        $datesInfo = [];
-        for ($d = 1; $d <= $daysInMonth; $d++) {
-            $datesInfo[$d] = [
-                'day' => $d,
-                'isWeekend' => Carbon::createFromDate($tahun, $bulan, $d)->isWeekend()
-            ];
-        }
+        // Pre-load Kegiatan Sekolah Serentak dates and presensi records for optimization
+        $datesWithKegiatanSerentak = \App\Models\KegiatanSekolah::where('tipe', 'serentak')
+            ->whereMonth('tanggal', $bulan)
+            ->whereYear('tanggal', $tahun)
+            ->pluck('tanggal')
+            ->map(fn($t) => \Carbon\Carbon::parse($t)->toDateString())
+            ->toArray();
+
+        $presensiKegiatanBulanIni = Presensi::whereNotNull('id_siswa')
+            ->whereNotNull('id_kegiatan_sekolah')
+            ->whereHas('siswa.rombelKelas', function($q) use ($request) {
+                $q->where('id_kelas', $request->kelas_id);
+            })
+            ->whereMonth('tanggal', $bulan)
+            ->whereYear('tanggal', $tahun)
+            ->get();
 
         $dataPerMapel = [];
         foreach ($mapelList as $mapel) {
@@ -191,19 +199,28 @@ class PresensiController extends Controller
                 $row = [];
                 for ($d = 1; $d <= $daysInMonth; $d++) {
                     $tglStr = Carbon::createFromDate($tahun, $bulan, $d)->format('Y-m-d');
-                    $pList = $presensiList->where('id_siswa', $siswa->id)->where('tanggal', $tglStr);
                     
-                    if ($pList->isEmpty()) {
-                        $row[$d] = '';
+                    if (in_array($tglStr, $datesWithKegiatanSerentak)) {
+                        $hasPresensiKegiatan = $presensiKegiatanBulanIni
+                            ->where('id_siswa', $siswa->id)
+                            ->where('tanggal', $tglStr)
+                            ->isNotEmpty();
+                        $row[$d] = $hasPresensiKegiatan ? 'H' : '';
                     } else {
-                        // Aggregate daily status: Worst-case logic for this specific mapel
-                        $statuses = $pList->pluck('status')->toArray();
-                        if (in_array('Alpa', $statuses)) $row[$d] = 'A';
-                        elseif (in_array('Sakit', $statuses)) $row[$d] = 'S';
-                        elseif (in_array('Izin', $statuses)) $row[$d] = 'I';
-                        elseif (in_array('Terlambat', $statuses)) $row[$d] = 'T';
-                        elseif (in_array('Hadir', $statuses)) $row[$d] = 'H';
-                        else $row[$d] = '';
+                        $pList = $presensiList->where('id_siswa', $siswa->id)->where('tanggal', $tglStr);
+                        
+                        if ($pList->isEmpty()) {
+                            $row[$d] = '';
+                        } else {
+                            // Aggregate daily status: Worst-case logic for this specific mapel
+                            $statuses = $pList->pluck('status')->toArray();
+                            if (in_array('Alpa', $statuses)) $row[$d] = 'A';
+                            elseif (in_array('Sakit', $statuses)) $row[$d] = 'S';
+                            elseif (in_array('Izin', $statuses)) $row[$d] = 'I';
+                            elseif (in_array('Terlambat', $statuses)) $row[$d] = 'T';
+                            elseif (in_array('Hadir', $statuses)) $row[$d] = 'H';
+                            else $row[$d] = '';
+                        }
                     }
                 }
                 $matrix[$siswa->id] = $row;
@@ -214,58 +231,6 @@ class PresensiController extends Controller
                 'matrix'        => $matrix,
                 'datesInfo'     => $datesInfoForThisMapel
             ];
-        }
-
-        // Tambahkan virtual mapel untuk "Kegiatan Sekolah (Serentak)" jika ada kegiatan dan mapel_id tidak sedang difilter
-        if (!$request->mapel_id) {
-            $kegiatanSekolahList = \App\Models\KegiatanSekolah::where('tipe', 'serentak')
-                ->whereMonth('tanggal', $bulan)
-                ->whereYear('tanggal', $tahun)
-                ->get();
-
-            if ($kegiatanSekolahList->isNotEmpty()) {
-                $presensiKegiatan = Presensi::whereNotNull('id_siswa')
-                    ->whereNotNull('id_kegiatan_sekolah')
-                    ->whereHas('siswa.rombelKelas', function($q) use ($request) {
-                        $q->where('id_kelas', $request->kelas_id);
-                    })
-                    ->whereMonth('tanggal', $bulan)
-                    ->whereYear('tanggal', $tahun)
-                    ->get();
-
-                $datesInfoForKegiatan = [];
-                foreach ($kegiatanSekolahList as $kegiatan) {
-                    $dateObj = Carbon::parse($kegiatan->tanggal);
-                    $d = (int) $dateObj->format('d');
-                    $datesInfoForKegiatan[$d] = [
-                        'day' => $d,
-                        'isWeekend' => $dateObj->isWeekend()
-                    ];
-                }
-                ksort($datesInfoForKegiatan); // Urutkan tanggal
-
-                $matrixKegiatan = [];
-                foreach ($siswaList as $siswa) {
-                    $row = [];
-                    for ($d = 1; $d <= $daysInMonth; $d++) {
-                        $row[$d] = '';
-                    }
-                    foreach ($datesInfoForKegiatan as $day => $info) {
-                        $tglStr = Carbon::createFromDate($tahun, $bulan, $day)->format('Y-m-d');
-                        $hasPresensi = $presensiKegiatan->where('id_siswa', $siswa->id)
-                            ->where('tanggal', $tglStr)
-                            ->isNotEmpty();
-                        $row[$day] = $hasPresensi ? 'H' : '';
-                    }
-                    $matrixKegiatan[$siswa->id] = $row;
-                }
-
-                $dataPerMapel[] = [
-                    'nama_mapel'    => 'Kegiatan Sekolah (Serentak)',
-                    'matrix'        => $matrixKegiatan,
-                    'datesInfo'     => $datesInfoForKegiatan
-                ];
-            }
         }
 
         $namaMapel = $mapelInfo ? $mapelInfo : 'Semua Mapel';
