@@ -75,11 +75,14 @@ class KirimRekapSore extends Command
                 continue;
             }
 
-            // 2. Ambil seluruh anggota siswa di kelas ini
+            // 2. Ambil seluruh anggota siswa di kelas ini (diurutkan berdasarkan nama siswa ASC)
             $rombelSiswaList = \App\Models\RombelKelas::with('siswa')
                 ->where('id_kelas', $kelas->id)
                 ->where('id_tahun_ajar', $activeYear)
-                ->get();
+                ->get()
+                ->sortBy(function ($rk) {
+                    return strtolower($rk->siswa->nama ?? '');
+                });
 
             if ($rombelSiswaList->isEmpty()) {
                 continue;
