@@ -147,6 +147,9 @@
                                                 @if($log->siswa->rombelKelas)
                                                     <span class="text-[10px] bg-gray-100 text-gray-600 px-2 py-0.5 rounded mt-1.5 w-max uppercase">{{ $log->siswa->rombelKelas->kelas->nama }}</span>
                                                 @endif
+                                            @elseif($log->kelasGrup)
+                                                <span class="font-bold text-gray-900">Seluruh Siswa</span>
+                                                <span class="text-[10px] bg-orange-50 text-orange-600 px-2 py-0.5 rounded mt-1.5 w-max uppercase">{{ $log->kelasGrup->nama }}</span>
                                             @else
                                                 <span class="font-bold text-gray-900">Siswa Anomali</span>
                                                 <span class="text-[10px] bg-rose-50 text-rose-600 px-2 py-0.5 rounded mt-1.5 w-max uppercase">Daftar di dalam pesan</span>
@@ -155,7 +158,10 @@
                                     </td>
                                     <td class="py-4 align-top pr-4">
                                         <div class="flex flex-col">
-                                            @if($log->siswa)
+                                            @if($log->kelasGrup)
+                                                <span class="font-bold text-gray-900">Grup WA Kelas</span>
+                                                <span class="text-[11px] text-gray-500 font-medium">{{ $log->kelasGrup->nama }}</span>
+                                            @elseif($log->siswa)
                                                 <span class="font-bold text-gray-900">Orang Tua (Wali)</span>
                                                 <span class="text-[11px] text-gray-500 font-medium">{{ $log->siswa->nama_ayah ?? ($log->siswa->nama_ibu ?? 'Wali Murid') }}</span>
                                             @else

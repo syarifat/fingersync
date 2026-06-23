@@ -121,17 +121,20 @@ class DeviceController extends Controller
                     ]);
                 }
 
-                // Kirim notifikasi WA
-                if (!empty($siswa->nohp_ortu)) {
+                // Kirim notifikasi WA ke Grup Kelas
+                $kelasObj = $rombel ? \App\Models\Kelas::find($rombel->id_kelas) : null;
+                $targetWa = $kelasObj ? $kelasObj->id_grup_wa : null;
+
+                if (!empty($targetWa)) {
                     $waktuWA = $now->format('H:i');
-                    $pesanOrtu = "Halo Ayah/Ibu dari *{$siswa->nama}*,\n\n";
+                    $pesanOrtu = "Halo Bapak/Ibu Wali Murid dari *{$siswa->nama}*,\n\n";
                     if ($tipeScan === 'datang') {
                         $pesanOrtu .= "Kami menginformasikan bahwa ananda telah *Tiba di Sekolah* untuk mengikuti kegiatan *{$kegiatanSerentak->nama_kegiatan}* pada jam *{$waktuWA} WIB*.\n\n";
                     } else {
                         $pesanOrtu .= "Kami menginformasikan bahwa ananda telah melakukan presensi *Pulang Kegiatan* *{$kegiatanSerentak->nama_kegiatan}* pada jam *{$waktuWA} WIB*.\n\n";
                     }
                     $pesanOrtu .= "Terima kasih.";
-                    WhatsAppService::send($siswa->nohp_ortu, $pesanOrtu, $siswa->id);
+                    WhatsAppService::send($targetWa, $pesanOrtu, $siswa->id);
                 }
 
                 // Simpan presensi kegiatan
@@ -188,13 +191,16 @@ class DeviceController extends Controller
                     ]);
                 }
 
-                // Kirim notifikasi WA Pulang
-                if (!empty($siswa->nohp_ortu)) {
+                // Kirim notifikasi WA Pulang ke Grup Kelas
+                $kelasObj = $rombel ? \App\Models\Kelas::find($rombel->id_kelas) : null;
+                $targetWa = $kelasObj ? $kelasObj->id_grup_wa : null;
+
+                if (!empty($targetWa)) {
                     $waktuWA = $now->format('H:i');
-                    $pesanOrtu = "Halo Ayah/Ibu dari *{$siswa->nama}*,\n\n";
+                    $pesanOrtu = "Halo Bapak/Ibu Wali Murid dari *{$siswa->nama}*,\n\n";
                     $pesanOrtu .= "Kami menginformasikan bahwa ananda telah melakukan presensi *Pulang Sekolah* pada jam *{$waktuWA} WIB*.\n\n";
                     $pesanOrtu .= "Terima kasih.";
-                    WhatsAppService::send($siswa->nohp_ortu, $pesanOrtu, $siswa->id);
+                    WhatsAppService::send($targetWa, $pesanOrtu, $siswa->id);
                 }
 
                 // Simpan presensi pulang
@@ -274,9 +280,12 @@ class DeviceController extends Controller
                 ->whereDate('tanggal', $tanggalScan)
                 ->doesntExist();
 
-            if ($absenPertamaHariIni && !empty($siswa->nohp_ortu)) {
+            $kelasObj = $rombel ? \App\Models\Kelas::find($rombel->id_kelas) : null;
+            $targetWa = $kelasObj ? $kelasObj->id_grup_wa : null;
+
+            if ($absenPertamaHariIni && !empty($targetWa)) {
                 $waktuWA = $now->format('H:i');
-                $pesanOrtu = "Halo Ayah/Ibu dari *{$siswa->nama}*,\n\n";
+                $pesanOrtu = "Halo Bapak/Ibu Wali Murid dari *{$siswa->nama}*,\n\n";
 
                 if ($kbmKhusus && in_array($kbmKhusus->status, ['izin', 'absen'])) {
                     $keteranganTugas = $kbmKhusus->keterangan ? "Tugas: {$kbmKhusus->keterangan}" : "Belajar Mandiri";
@@ -290,7 +299,7 @@ class DeviceController extends Controller
                 }
 
                 $pesanOrtu .= "Semoga ananda belajar dengan baik hari ini. Terima kasih.";
-                WhatsAppService::send($siswa->nohp_ortu, $pesanOrtu, $siswa->id);
+                WhatsAppService::send($targetWa, $pesanOrtu, $siswa->id);
             }
             // =====================================================================
 

@@ -97,16 +97,11 @@ class CekAnomaliAbsensi extends Command
                 $pesan .= $daftarSiswa . "\n\n";
                 $pesan .= "Mohon tindak lanjut dari Wali Kelas / Guru BK.";
 
-                // Ambil No WA Wali Kelas dan BK (Pastikan kolom 'nohp' ada di tabel 'guru')
-                $noWali = $infoKelas->first()->waliKelas->nohp ?? null;
-                $noBk = $infoKelas->first()->guruBk->nohp ?? null;
+                // Kirim ke grup WA Kelas saja
+                $targetWa = $jadwal->rombelMapel->kelas->id_grup_wa ?? null;
 
-                if ($noWali) {
-                    WhatsAppService::send($noWali, $pesan);
-                    sleep(2); // Jeda anti-spam
-                }
-                if ($noBk && $noBk != $noWali) {
-                    WhatsAppService::send($noBk, $pesan);
+                if ($targetWa) {
+                    WhatsAppService::send($targetWa, $pesan);
                     sleep(2); // Jeda anti-spam
                 }
 

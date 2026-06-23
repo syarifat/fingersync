@@ -22,4 +22,9 @@ class LogWhatsapp extends Model
     {
         return $this->belongsTo(Siswa::class, 'id_siswa');
     }
+
+    public function kelasGrup()
+    {
+        return $this->belongsTo(Kelas::class, 'no_wa', 'id_grup_wa');
+    }
 }
