@@ -143,10 +143,10 @@
                                 <tr class="text-gray-400 text-xs uppercase tracking-widest border-b border-gray-100">
                                     <th class="pb-4 font-black px-4">Waktu</th>
                                     <th class="pb-4 font-black">Siswa</th>
-                                    <th class="pb-4 font-black text-center w-20">AIS</th>
                                     <th class="pb-4 font-black">Jadwal / Mapel</th>
                                     <th class="pb-4 font-black text-center">Status</th>
                                     <th class="pb-4 font-black px-4">Ruang</th>
+                                    <th class="pb-4 font-black text-center w-20">AIS</th>
                                     <th class="pb-4 font-black text-right px-4 w-48">Aksi</th>
                                 </tr>
                             </thead>
@@ -172,13 +172,6 @@
                                             <span class="font-bold text-gray-900">{{ $row->siswa->nama ?? 'Siswa dihapus' }}</span>
                                             <span class="text-xs text-gray-400 font-bold">{{ $row->siswa->nis ?? '-' }}</span>
                                         </div>
-                                    </td>
-
-                                    {{-- Kolom AIS --}}
-                                    <td class="py-5 text-center">
-                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-black bg-red-50 text-red-700 border border-red-200">
-                                            {{ $row->siswa->total_ais ?? 0 }}
-                                        </span>
                                     </td>
 
                                     {{-- Kolom Jadwal --}}
@@ -233,6 +226,13 @@
                                     <td class="py-5 px-4">
                                         <span class="text-xs text-gray-700 bg-gray-100 px-2.5 py-1 rounded-lg font-bold">
                                             {{ $row->device->ruangan->nama_ruangan ?? 'Manual/Sistem' }}
+                                        </span>
+                                    </td>
+
+                                    {{-- Kolom AIS --}}
+                                    <td class="py-5 text-center">
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-black bg-red-50 text-red-700 border border-red-200">
+                                            {{ $row->siswa->total_ais ?? 0 }}
                                         </span>
                                     </td>
                                     
