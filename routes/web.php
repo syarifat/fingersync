@@ -36,12 +36,6 @@ Route::get('/cron/hadir-pagi/{token}', function ($token) {
     return 'Rekap Pagi dieksekusi: ' . Artisan::output();
 });
 
-Route::get('/cron/pulang-sore/{token}', function ($token) {
-    if ($token !== 'FINGERSYNC-SECURE-123') return abort(403, 'Unauthorized');
-    set_time_limit(0);
-    Artisan::call('absensi:rekap-pulang');
-    return 'Rekap Pulang dieksekusi: ' . Artisan::output();
-});
 
 
 Route::get('/', function () {

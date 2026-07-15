@@ -14,7 +14,7 @@ class KirimRekapSore extends Command
 {
     // Nama perintah terminal
     protected $signature = 'absensi:rekap-sore';
-    protected $description = 'Kirim rekap absensi harian ke Grup WhatsApp Kelas atau Orang Tua pada sore hari jam 16:00';
+    protected $description = 'Kirim rekap absensi harian terpadu (KBM & Kepulangan) ke Grup WhatsApp Kelas pada sore hari jam 17:30';
 
     public function handle()
     {
@@ -24,7 +24,7 @@ class KirimRekapSore extends Command
         $isTestMode = false;
 
         if ($isTestMode) {
-            $now = Carbon::create(2026, 5, 4, 16, 0, 0); 
+            $now = Carbon::create(2026, 5, 4, 17, 30, 0); 
             $hariIni = 'Senin';
             $tanggalIni = '2026-05-04';
         } else {
@@ -41,7 +41,7 @@ class KirimRekapSore extends Command
         }
 
         $tanggalFormat = Carbon::parse($tanggalIni)->isoFormat('DD MMMM YYYY');
-        $this->info("Memulai pengisian Alpha otomatis dan pengiriman rekap sore untuk tanggal $tanggalFormat...");
+        $this->info("Memulai pengisian Alpha otomatis dan pengiriman rekap terpadu untuk tanggal $tanggalFormat...");
 
         // CARI DEVICE DEFAULT UNTUK ABSENSI OTOMATIS
         $device = \App\Models\Device::first();
@@ -52,6 +52,11 @@ class KirimRekapSore extends Command
             $this->error("Tidak ada tahun ajar aktif. Proses dibatalkan.");
             return 1;
         }
+
+        // Cek apakah ada kegiatan serentak hari ini
+        $kegiatanHariIni = \App\Models\KegiatanSekolah::whereDate('tanggal', $tanggalIni)
+            ->where('tipe', 'serentak')
+            ->first();
 
         // Ambil semua kelas
         $kelasList = Kelas::all();
@@ -88,11 +93,6 @@ class KirimRekapSore extends Command
                 continue;
             }
 
-            // Cek apakah ada kegiatan serentak hari ini
-            $kegiatanHariIni = \App\Models\KegiatanSekolah::whereDate('tanggal', $tanggalIni)
-                ->where('tipe', 'serentak')
-                ->first();
-
             // 3. Proses absensi Alpha otomatis terlebih dahulu untuk database (Hanya jika KBM Reguler / Bukan Kegiatan Serentak)
             if (!$kegiatanHariIni) {
                 foreach ($rombelSiswaList as $rs) {
@@ -120,7 +120,7 @@ class KirimRekapSore extends Command
                                 'id_siswa' => $siswa->id,
                                 'id_rombel_jadwal_pelajaran' => $jdwl->id,
                                 'tanggal' => $tanggalIni,
-                                'jam_scan' => '16:00:00', // Jam 4 sore
+                                'jam_scan' => '17:30:00', // Jam 17:30 sore
                                 'id_device' => $deviceId,
                                 'status' => 'Alpha',
                                 'id_tahun_ajar' => $activeYear,
@@ -140,14 +140,20 @@ class KirimRekapSore extends Command
                     continue;
                 }
 
-                $pesanGrup = "📝 *REKAP PRESENSI HARIAN KELAS {$kelas->nama}*\n";
+                $pesanGrup = "📝 *LAPORAN HARIAN & KEPULANGAN KELAS {$kelas->nama}*\n";
                 $pesanGrup .= "----------------------------------\n";
                 $pesanGrup .= "Kelas: *{$kelas->nama}*\n";
                 $pesanGrup .= "Tanggal: {$tanggalFormat}\n";
+                $pesanGrup .= "Waktu Laporan: 17:30 WIB\n";
                 $pesanGrup .= "----------------------------------\n\n";
 
+                $pesanGrup .= "👥 *RIWAYAT KEHADIRAN KBM:*\n";
+
+                $sudahPulang = [];
+                $belumPulang = [];
                 $hasContent = false;
                 $noUrut = 1;
+
                 foreach ($rombelSiswaList as $rsData) {
                     $siswa = $rsData->siswa;
                     if (!$siswa || $siswa->status !== 'Aktif') continue;
@@ -170,20 +176,26 @@ class KirimRekapSore extends Command
                             $statusDatangText = "tidak hadir";
                         }
                         
+                        $pesanGrup .= "   - Hadir Kegiatan ({$statusDatangText})\n";
+
+                        // Cek checkout kegiatan
                         $absenPulang = Presensi::where('id_siswa', $siswaId)
                             ->where('id_kegiatan_sekolah', $kegiatanHariIni->id)
                             ->where('tipe_scan_kegiatan', 'pulang')
                             ->where('tanggal', $tanggalIni)
                             ->first();
+
                         if ($absenPulang) {
                             $jamPulang = substr($absenPulang->jam_scan, 0, 5);
-                            $statusPulangText = "hadir pukul {$jamPulang} WIB";
+                            $sudahPulang[] = [
+                                'nama' => $siswaNama,
+                                'info' => "pulang pukul {$jamPulang} WIB"
+                            ];
                         } else {
-                            $statusPulangText = "tidak hadir/belum scan pulang";
+                            $belumPulang[] = [
+                                'nama' => $siswaNama
+                            ];
                         }
-
-                        $pesanGrup .= "   - Hadir Kegiatan ({$statusDatangText})\n";
-                        $pesanGrup .= "   - Pulang Kegiatan ({$statusPulangText})\n";
                     } else {
                         foreach ($jadwalHariIni as $jdwl) {
                             $mapel = $jdwl->rombelMataPelajaran->mataPelajaran->nama;
@@ -217,7 +229,7 @@ class KirimRekapSore extends Command
                             $pesanGrup .= "   - {$mapel} ({$statusText})\n";
                         }
 
-                        // Tampilkan status scan pulang
+                        // Cek checkout scan
                         $scanPulang = Presensi::where('id_siswa', $siswaId)
                             ->where('tanggal', $tanggalIni)
                             ->where('tipe_scan', 'pulang')
@@ -225,14 +237,45 @@ class KirimRekapSore extends Command
 
                         if ($scanPulang) {
                             $jamPulang = substr($scanPulang->jam_scan, 0, 5);
-                            $pesanGrup .= "   - Pulang Sekolah (hadir pukul {$jamPulang} WIB)\n";
+                            $sudahPulang[] = [
+                                'nama' => $siswaNama,
+                                'info' => "pulang pukul {$jamPulang} WIB"
+                            ];
                         } else {
-                            $pesanGrup .= "   - Pulang Sekolah (tidak hadir/belum scan pulang)\n";
+                            $belumPulang[] = [
+                                'nama' => $siswaNama
+                            ];
                         }
                     }
                     $pesanGrup .= "\n";
                     $hasContent = true;
                     $noUrut++;
+                }
+
+                // Append status kepulangan sekolah
+                $pesanGrup .= "----------------------------------\n";
+                $pesanGrup .= "🚪 *STATUS KEPULANGAN SEKOLAH:*\n\n";
+
+                $pesanGrup .= "✅ *SUDAH SCAN PULANG:*\n";
+                if (count($sudahPulang) > 0) {
+                    $noSP = 1;
+                    foreach ($sudahPulang as $sp) {
+                        $pesanGrup .= "{$noSP}. *{$sp['nama']}* ({$sp['info']})\n";
+                        $noSP++;
+                    }
+                } else {
+                    $pesanGrup .= "_Belum ada siswa yang scan pulang._\n";
+                }
+
+                $pesanGrup .= "\n❌ *BELUM SCAN PULANG:*\n";
+                if (count($belumPulang) > 0) {
+                    $noBP = 1;
+                    foreach ($belumPulang as $bp) {
+                        $pesanGrup .= "{$noBP}. *{$bp['nama']}*\n";
+                        $noBP++;
+                    }
+                } else {
+                    $pesanGrup .= "_Semua siswa sudah scan pulang._\n";
                 }
 
                 $pesanGrup .= "----------------------------------\n";
@@ -250,6 +293,7 @@ class KirimRekapSore extends Command
 
         $this->info("Selesai! $totalAlphaDitambahkan data Alpha otomatis ditambahkan ke database.");
         $this->info("Berhasil mengirim $totalTerkirim rekap sore via WhatsApp.");
+        return 0;
     }
 
     private function getHariIndo($day) {

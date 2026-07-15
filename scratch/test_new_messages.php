@@ -15,7 +15,7 @@ $app = require_once __DIR__ . '/../bootstrap/app.php';
 $kernel = $app->make(Illuminate\Contracts\Console\Kernel::class);
 $kernel->bootstrap();
 
-echo "🚀 Memulai Simulasi Pengujian Pesan WhatsApp untuk Konsep Baru...\n";
+echo "🚀 Memulai Simulasi Pengujian Pesan WhatsApp untuk Konsep Baru (Terpadu 17:30)...\n";
 
 // Mengatur locale dan waktu ke Jakarta untuk kecocokan hari
 Carbon::setLocale('id');
@@ -46,7 +46,7 @@ if (!$jadwal1 || !$jadwal2) {
     exit(1);
 }
 
-// 1. Simulasikan Siswa 1 sudah Hadir, Siswa 2 belum
+// 1. Simulasikan Siswa 1 sudah Hadir (KBM), Siswa 2 belum
 Presensi::create([
     'id_siswa' => $siswa1->id,
     'id_rombel_jadwal_pelajaran' => $jadwal1->id,
@@ -72,12 +72,20 @@ Presensi::create([
     'id_tahun_ajar' => $activeYear,
 ]);
 
-echo "💬 Menguji Rekap Sore (16:00)...\n";
+// Untuk mencocokkan waktu testing pada command KirimRekapSore
+// Kita bisa ubah mode testing command agar berjalan pada tanggal yang sesuai
+echo "💬 Menguji Rekap Sore Terpadu KBM & Kepulangan (17:30)...\n";
+// Kita modifikasi script sementara agar command berjalan menggunakan tanggal testing
+// Di KirimRekapSore, ubah $isTestMode menjadi true untuk mensimulasikan tanggal 2026-06-23 (Selasa)
+// Atau kita bisa simulasikan dengan mengubah status testMode secara dinamis jika didukung,
+// Namun karena kita menggunakan tanggal Hari Ini secara statis, kita bisa langsung memanggil command.
+// Agar sinkron dengan tanggal simulasi (2026-06-23 yang merupakan hari Selasa), kita pastikan Carbon::now() disimulasikan.
+Carbon::setTestNow(Carbon::create(2026, 6, 23, 17, 30, 0));
+
 Artisan::call('absensi:rekap-sore');
 echo "Output: " . Artisan::output() . "\n";
 
-echo "💬 Menguji Rekap Pulang (17:30)...\n";
-Artisan::call('absensi:rekap-pulang');
-echo "Output: " . Artisan::output() . "\n";
+// Reset waktu simulasi
+Carbon::setTestNow();
 
 echo "🎉 Simulasi selesai!\n";
