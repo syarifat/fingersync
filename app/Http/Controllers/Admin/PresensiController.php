@@ -251,7 +251,7 @@ class PresensiController extends Controller
                         } else {
                             // Aggregate daily status: Worst-case logic for this specific mapel
                             $statuses = $pList->pluck('status')->toArray();
-                            if (in_array('Alpa', $statuses)) $row[$d] = 'A';
+                            if (in_array('Alpa', $statuses) || in_array('Alpha', $statuses)) $row[$d] = 'A';
                             elseif (in_array('Sakit', $statuses)) $row[$d] = 'S';
                             elseif (in_array('Izin', $statuses)) $row[$d] = 'I';
                             elseif (in_array('Terlambat', $statuses)) $row[$d] = 'T';
