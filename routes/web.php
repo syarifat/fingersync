@@ -106,6 +106,7 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->as('admin.')->group(
 
     Route::get('/presensi', [PresensiController::class, 'index'])->name('presensi.index');
     Route::get('/presensi/export-pdf', [PresensiController::class, 'exportPdf'])->name('presensi.export_pdf');
+    Route::get('/presensi/export-semester-pdf', [PresensiController::class, 'exportSemesterPdf'])->name('presensi.export_semester_pdf');
     Route::post('/presensi', [PresensiController::class, 'store'])->name('presensi.store');
     Route::get('/presensi/{presensi}/edit', [PresensiController::class, 'edit'])->name('presensi.edit');
     Route::put('/presensi/{presensi}', [PresensiController::class, 'update'])->name('presensi.update');

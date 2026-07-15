@@ -26,6 +26,25 @@
                     {{-- FILTER SECTION --}}
                     <div class="mb-6 bg-gray-50 p-5 rounded-2xl border border-gray-100">
                         <form method="GET" action="{{ route('admin.presensi.index') }}" class="flex flex-col gap-3">
+                            
+                            {{-- Segmented Toggle Tipe Presensi --}}
+                            <div class="mb-2 flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-gray-200/50 pb-3">
+                                <div>
+                                    <span class="block text-xs font-bold text-gray-400 uppercase tracking-wider">Tipe Presensi</span>
+                                </div>
+                                <div class="inline-flex p-1 bg-gray-200/60 rounded-xl">
+                                    <input type="hidden" name="tipe_presensi" id="tipe_presensi" value="{{ request('tipe_presensi') }}">
+                                    <button type="button" onclick="setTipePresensi('')" class="px-4 py-1.5 rounded-lg text-xs font-black uppercase tracking-wider transition-all {{ request('tipe_presensi') == '' ? 'bg-orange-600 text-white shadow-sm' : 'text-gray-500 hover:text-gray-800' }}">
+                                        Semua Tipe
+                                    </button>
+                                    <button type="button" onclick="setTipePresensi('masuk')" class="px-4 py-1.5 rounded-lg text-xs font-black uppercase tracking-wider transition-all {{ request('tipe_presensi') == 'masuk' ? 'bg-orange-600 text-white shadow-sm' : 'text-gray-500 hover:text-gray-800' }}">
+                                        Masuk / KBM / Kegiatan
+                                    </button>
+                                    <button type="button" onclick="setTipePresensi('pulang')" class="px-4 py-1.5 rounded-lg text-xs font-black uppercase tracking-wider transition-all {{ request('tipe_presensi') == 'pulang' ? 'bg-orange-600 text-white shadow-sm' : 'text-gray-500 hover:text-gray-800' }}">
+                                        Pulang
+                                    </button>
+                                </div>
+                            </div>
 
                             {{-- BARIS 1: Kelas + Mapel + Status + Cari Siswa --}}
                             <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
@@ -74,7 +93,12 @@
                                 </div>
                                 <div class="flex-1">
                                     <label for="bulan" class="block text-xs font-bold text-gray-500 uppercase mb-1">Filter Bulanan</label>
-                                    <input type="month" name="bulan" id="bulan" value="{{ request('bulan') }}" class="block w-full rounded-xl border-gray-200 bg-white text-sm focus:border-orange-500 focus:ring-orange-500 shadow-sm">
+                                    <select name="bulan" id="bulan" class="block w-full rounded-xl border-gray-200 bg-white text-sm focus:border-orange-500 focus:ring-orange-500 shadow-sm">
+                                        <option value="">-- Semua Bulan --</option>
+                                        @foreach($monthsList as $val => $label)
+                                        <option value="{{ $val }}" {{ request('bulan') == $val ? 'selected' : '' }}>{{ $label }}</option>
+                                        @endforeach
+                                    </select>
                                 </div>
                                 <div class="flex items-center gap-2">
                                     <button type="submit" class="px-6 py-2.5 bg-gray-800 text-white text-sm font-bold rounded-xl hover:bg-gray-900 transition-colors shadow-sm">Filter</button>
@@ -82,7 +106,7 @@
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
                                         Export PDF
                                     </button>
-                                    @if(request()->hasAny(['mapel_id', 'status', 'tanggal', 'bulan', 'search']))
+                                    @if(request()->hasAny(['mapel_id', 'status', 'tipe_presensi', 'tanggal', 'bulan', 'search']))
                                     <a href="{{ route('admin.presensi.index') }}" class="px-4 py-2.5 bg-white border border-gray-300 text-gray-600 text-sm font-bold rounded-xl hover:bg-gray-50 transition-colors flex items-center" title="Reset">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
                                     </a>
@@ -269,6 +293,14 @@
             </div>
 
             <div class="mb-4">
+                <label for="modal_jenis_laporan" class="block text-xs font-bold text-gray-500 uppercase mb-1">Jenis Laporan</label>
+                <select name="jenis_laporan" id="modal_jenis_laporan" onchange="toggleModalFields()" class="block w-full rounded-xl border-gray-200 bg-white text-sm focus:border-orange-500 focus:ring-orange-500 shadow-sm">
+                    <option value="bulanan">Rekap Bulanan (Detail Harian)</option>
+                    <option value="semester">Rekap Semester (AIS Per Mapel)</option>
+                </select>
+            </div>
+
+            <div id="modal_mapel_container" class="mb-4">
                 <label for="modal_mapel_id" class="block text-xs font-bold text-gray-500 uppercase mb-1">Mata Pelajaran</label>
                 <select name="mapel_id" id="modal_mapel_id" class="block w-full rounded-xl border-gray-200 bg-white text-sm focus:border-orange-500 focus:ring-orange-500 shadow-sm">
                     <option value="">-- Semua Mata Pelajaran --</option>
@@ -278,11 +310,13 @@
                 </select>
             </div>
 
-            <div class="mb-6">
+            <div id="modal_bulan_container" class="mb-6">
                 <label for="modal_bulan" class="block text-xs font-bold text-gray-500 uppercase mb-1">Pilih Bulan <span class="text-rose-500">*</span></label>
-                <input type="month" name="bulan" id="modal_bulan" required
-                    class="block w-full rounded-xl border-gray-200 bg-white text-sm focus:border-orange-500 focus:ring-orange-500 shadow-sm"
-                    value="{{ now()->format('Y-m') }}">
+                <select name="bulan" id="modal_bulan" required class="block w-full rounded-xl border-gray-200 bg-white text-sm focus:border-orange-500 focus:ring-orange-500 shadow-sm">
+                    @foreach($monthsList as $val => $label)
+                    <option value="{{ $val }}" {{ now()->format('Y-m') == $val ? 'selected' : '' }}>{{ $label }}</option>
+                    @endforeach
+                </select>
             </div>
 
             <div class="flex gap-3">
@@ -301,16 +335,47 @@
 <script>
 const kelasList = @json($kelasList->map(fn($k) => ['id' => $k->id, 'nama' => $k->nama]));
 
+function setTipePresensi(val) {
+    document.getElementById('tipe_presensi').value = val;
+    document.getElementById('tipe_presensi').form.submit();
+}
+
+function toggleModalFields() {
+    const jenis = document.getElementById('modal_jenis_laporan').value;
+    const mapelCont = document.getElementById('modal_mapel_container');
+    const bulanCont = document.getElementById('modal_bulan_container');
+    const form = document.getElementById('formExportPdf');
+    
+    if (jenis === 'semester') {
+        mapelCont.classList.add('hidden');
+        bulanCont.classList.add('hidden');
+        document.getElementById('modal_bulan').removeAttribute('required');
+        form.action = "{{ route('admin.presensi.export_semester_pdf') }}";
+    } else {
+        mapelCont.classList.remove('hidden');
+        bulanCont.classList.remove('hidden');
+        document.getElementById('modal_bulan').setAttribute('required', 'required');
+        form.action = "{{ route('admin.presensi.export_pdf') }}";
+    }
+}
+
 function bukaModalPdf() {
     const kelasId = document.getElementById('kelas_id').value;
     const kelas = kelasList.find(k => k.id == kelasId);
     document.getElementById('modal_kelas_id').value = kelasId;
     document.getElementById('modal_kelas_label').textContent = kelas ? kelas.nama : 'Pilih kelas dulu di filter!';
+    
+    // Reset modal selection
+    document.getElementById('modal_jenis_laporan').value = 'bulanan';
+    toggleModalFields();
+    
     document.getElementById('modalPdf').classList.remove('hidden');
 }
+
 function tutupModalPdf() {
     document.getElementById('modalPdf').classList.add('hidden');
 }
+
 document.getElementById('modalPdf').addEventListener('click', function(e) {
     if (e.target === this) tutupModalPdf();
 });

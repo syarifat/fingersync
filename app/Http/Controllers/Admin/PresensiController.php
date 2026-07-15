@@ -23,6 +23,13 @@ class PresensiController extends Controller
         $activeYear = \App\Models\TahunAjar::where('status_aktif', true)->first();
         $activeYearId = $activeYear ? $activeYear->id : null;
 
+        // Generate daftar 12 bulan untuk dropdown filter (dari 6 bulan lalu s/d 5 bulan depan)
+        $monthsList = [];
+        for ($i = -6; $i <= 5; $i++) {
+            $m = \Carbon\Carbon::now()->addMonths($i);
+            $monthsList[$m->format('Y-m')] = $m->locale('id')->isoFormat('MMMM YYYY');
+        }
+
         // Ambil semua status unik dari database untuk filter
         $statusList = Presensi::whereNotNull('status')->distinct()->pluck('status');
 
@@ -69,6 +76,17 @@ class PresensiController extends Controller
             $query->where('status', $request->status);
         }
 
+        // 2.c. Filter Tipe Presensi (Masuk vs Pulang)
+        if ($request->has('tipe_presensi') && $request->tipe_presensi != '') {
+            if ($request->tipe_presensi === 'masuk') {
+                $query->where(function($q) {
+                    $q->whereNull('tipe_scan')->orWhere('tipe_scan', '!=', 'pulang');
+                });
+            } elseif ($request->tipe_presensi === 'pulang') {
+                $query->where('tipe_scan', 'pulang');
+            }
+        }
+
         // 3. Filter Waktu (Harian atau Bulanan)
         if ($request->has('tanggal') && $request->tanggal != '') {
             $query->where('tanggal', $request->tanggal);
@@ -88,7 +106,7 @@ class PresensiController extends Controller
 
         $dataPresensi = $query->latest()->paginate(10)->withQueryString();
 
-        return view('admin.presensi.index', compact('dataPresensi', 'kelasList', 'mapelList', 'statusList'));
+        return view('admin.presensi.index', compact('dataPresensi', 'kelasList', 'mapelList', 'statusList', 'monthsList'));
     }
 
     public function exportPdf(Request $request)
@@ -375,5 +393,76 @@ class PresensiController extends Controller
         ];
 
         return view('admin.presensi.detail_ais', compact('siswa', 'records', 'counts'));
+    }
+
+    public function exportSemesterPdf(Request $request)
+    {
+        $request->validate([
+            'kelas_id' => 'required|exists:kelas,id',
+        ]);
+
+        $kelas = \App\Models\Kelas::findOrFail($request->kelas_id);
+        
+        $tahunAjar = \App\Models\TahunAjar::where('status_aktif', 1)->first();
+        if (!$tahunAjar) {
+            return back()->with('error', 'Tidak ada tahun ajaran aktif.');
+        }
+
+        $semesterLabel = "Semester " . ($tahunAjar->semester ?? 'Ganjil');
+        $tahunAjarLabel = "Tahun Ajaran " . ($tahunAjar->tahun ?? '-');
+
+        // Ambil daftar siswa aktif di kelas
+        $siswaList = \App\Models\RombelKelas::with('siswa')
+            ->where('id_kelas', $request->kelas_id)
+            ->where('id_tahun_ajar', $tahunAjar->id)
+            ->get()->pluck('siswa')->filter()->sortBy('nama')->values();
+
+        // Ambil daftar mata pelajaran di kelas ini
+        $mapelList = \App\Models\MataPelajaran::whereHas('rombelMataPelajaran', function($q) use ($request, $tahunAjar) {
+            $q->where('id_kelas', $request->kelas_id)
+              ->where('id_tahun_ajar', $tahunAjar->id);
+        })->orderBy('nama', 'asc')->get();
+
+        // Ambil seluruh data presensi ketidakhadiran (AIS) untuk kelas dan tahun ajar ini
+        $presensiRecords = Presensi::whereIn('status', ['Alpa', 'Alpha', 'Izin', 'Sakit'])
+            ->where('id_tahun_ajar', $tahunAjar->id)
+            ->whereHas('siswa.rombelKelas', function($q) use ($request, $tahunAjar) {
+                $q->where('id_kelas', $request->kelas_id)
+                  ->where('id_tahun_ajar', $tahunAjar->id);
+            })
+            ->with(['rombelJadwalPelajaran.rombelMataPelajaran'])
+            ->get();
+
+        $matrix = [];
+        foreach ($siswaList as $siswa) {
+            $siswaMatrix = [
+                'nama' => $siswa->nama,
+                'mapel_ais' => [],
+                'total_ais' => 0
+            ];
+            
+            // Presensi siswa ini saja
+            $siswaPresensi = $presensiRecords->where('id_siswa', $siswa->id);
+            
+            foreach ($mapelList as $mapel) {
+                $aisCount = $siswaPresensi->filter(function($p) use ($mapel) {
+                    return $p->rombelJadwalPelajaran 
+                        && $p->rombelJadwalPelajaran->rombelMataPelajaran 
+                        && $p->rombelJadwalPelajaran->rombelMataPelajaran->id_mata_pelajaran == $mapel->id;
+                })->count();
+                
+                $siswaMatrix['mapel_ais'][$mapel->id] = $aisCount;
+                $siswaMatrix['total_ais'] += $aisCount;
+            }
+            $matrix[] = $siswaMatrix;
+        }
+
+        $fileName = "Rekap_AIS_Semester_{$kelas->nama}_{$tahunAjar->tahun}.pdf";
+        $fileName = str_replace(['/', '\\', ':', '*', '?', '"', '<', '>', '|'], '-', $fileName);
+
+        $pdf = Pdf::loadView('admin.presensi.pdf_semester', compact('kelas', 'tahunAjar', 'semesterLabel', 'tahunAjarLabel', 'mapelList', 'matrix'))
+                  ->setPaper('a4', 'landscape');
+
+        return $pdf->download($fileName);
     }
 }
