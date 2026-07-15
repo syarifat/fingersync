@@ -56,7 +56,7 @@
                                         @endforeach
                                     </select>
                                 </div>
-                                <div>
+                                <div id="mapel_filter_container" class="{{ request('tipe_presensi') === 'pulang' ? 'hidden' : '' }}">
                                     <label for="mapel_id" class="block text-xs font-bold text-gray-500 uppercase mb-1">Mata Pelajaran</label>
                                     <select name="mapel_id" id="mapel_id" class="block w-full rounded-xl border-gray-200 bg-white text-sm focus:border-orange-500 focus:ring-orange-500 shadow-sm">
                                         <option value="">-- Semua Mata Pelajaran --</option>
@@ -65,7 +65,7 @@
                                         @endforeach
                                     </select>
                                 </div>
-                                <div>
+                                <div id="status_filter_container" class="{{ request('tipe_presensi') === 'pulang' ? 'hidden' : '' }}">
                                     <label for="status" class="block text-xs font-bold text-gray-500 uppercase mb-1">Status</label>
                                     <select name="status" id="status" class="block w-full rounded-xl border-gray-200 bg-white text-sm focus:border-orange-500 focus:ring-orange-500 shadow-sm">
                                         <option value="">-- Semua Status --</option>
@@ -144,7 +144,9 @@
                                     <th class="pb-4 font-black px-4">Waktu</th>
                                     <th class="pb-4 font-black">Siswa</th>
                                     <th class="pb-4 font-black">Jadwal / Mapel</th>
+                                    @if(request('tipe_presensi') !== 'pulang')
                                     <th class="pb-4 font-black text-center">Status</th>
+                                    @endif
                                     <th class="pb-4 font-black px-4">Ruang</th>
                                     <th class="pb-4 font-black text-center w-20">AIS</th>
                                     <th class="pb-4 font-black text-right px-4 w-48">Aksi</th>
@@ -200,6 +202,7 @@
                                     </td>
 
                                     {{-- Kolom Status --}}
+                                    @if(request('tipe_presensi') !== 'pulang')
                                     <td class="py-5 text-center">
                                         @php
                                         if ($row->tipe_scan === 'pulang') {
@@ -221,6 +224,7 @@
                                             {{ $statusText }}
                                         </span>
                                     </td>
+                                    @endif
 
                                     {{-- Kolom Ruang --}}
                                     <td class="py-5 px-4">
@@ -337,6 +341,12 @@ const kelasList = @json($kelasList->map(fn($k) => ['id' => $k->id, 'nama' => $k-
 
 function setTipePresensi(val) {
     document.getElementById('tipe_presensi').value = val;
+    if (val === 'pulang') {
+        const mapelSelect = document.getElementById('mapel_id');
+        if (mapelSelect) mapelSelect.value = '';
+        const statusSelect = document.getElementById('status');
+        if (statusSelect) statusSelect.value = '';
+    }
     document.getElementById('tipe_presensi').form.submit();
 }
 
