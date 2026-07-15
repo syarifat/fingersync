@@ -214,22 +214,29 @@ class PresensiController extends Controller
             for ($d = 1; $d <= $daysInMonth; $d++) {
                 $dateObj = Carbon::createFromDate($tahun, $bulan, $d);
                 $dayNameEng = $dateObj->format('l');
+                $tglStr = $dateObj->format('Y-m-d');
                 if (in_array($dayNameEng, $scheduledEngDays)) {
                     $datesInfoForThisMapel[$d] = [
                         'day' => $d,
-                        'isWeekend' => $dateObj->isWeekend()
+                        'isWeekend' => $dateObj->isWeekend(),
+                        'isHoliday' => \App\Models\HariLibur::isHoliday($tglStr)
                     ];
                 }
             }
 
             if (empty($datesInfoForThisMapel)) {
                 for ($d = 1; $d <= $daysInMonth; $d++) {
+                    $dateObj = Carbon::createFromDate($tahun, $bulan, $d);
+                    $tglStr = $dateObj->format('Y-m-d');
                     $datesInfoForThisMapel[$d] = [
                         'day' => $d,
-                        'isWeekend' => Carbon::createFromDate($tahun, $bulan, $d)->isWeekend()
+                        'isWeekend' => $dateObj->isWeekend(),
+                        'isHoliday' => \App\Models\HariLibur::isHoliday($tglStr)
                     ];
                 }
             }
+
+            $engToIndoDays = array_flip($indoToEngDays);
 
             $matrix = [];
             foreach ($siswaList as $siswa) {
@@ -237,26 +244,52 @@ class PresensiController extends Controller
                 for ($d = 1; $d <= $daysInMonth; $d++) {
                     $tglStr = Carbon::createFromDate($tahun, $bulan, $d)->format('Y-m-d');
                     
-                    if (in_array($tglStr, $datesWithKegiatanSerentak)) {
+                    if (\App\Models\HariLibur::isHoliday($tglStr)) {
+                        $row[$d] = 'L';
+                    } elseif (in_array($tglStr, $datesWithKegiatanSerentak)) {
                         $hasPresensiKegiatan = $presensiKegiatanBulanIni
                             ->where('id_siswa', $siswa->id)
                             ->where('tanggal', $tglStr)
                             ->isNotEmpty();
                         $row[$d] = $hasPresensiKegiatan ? 'H' : '';
                     } else {
-                        $pList = $presensiList->where('id_siswa', $siswa->id)->where('tanggal', $tglStr);
+                        $dateObj = Carbon::createFromDate($tahun, $bulan, $d);
+                        $dayNameEng = $dateObj->format('l');
+                        $hariIndo = $engToIndoDays[$dayNameEng] ?? 'Senin';
                         
-                        if ($pList->isEmpty()) {
-                            $row[$d] = '';
+                        // Cari jadwal KBM kelas ini untuk mapel ini
+                        $jdwl = RombelJadwalPelajaran::where('hari', $hariIndo)
+                            ->whereHas('rombelMataPelajaran', function($q) use ($kelas, $mapel) {
+                                $q->where('id_kelas', $kelas->id)
+                                  ->where('id_mata_pelajaran', $mapel->id);
+                            })
+                            ->first();
+                            
+                        $isGuruLibur = false;
+                        if ($jdwl) {
+                            $isGuruLibur = \App\Models\GuruKbmKhusus::where('id_rombel_jadwal_pelajaran', $jdwl->id)
+                                ->whereDate('tanggal', $tglStr)
+                                ->where('status', 'izin_libur')
+                                ->exists();
+                        }
+                        
+                        if ($isGuruLibur) {
+                            $row[$d] = 'GL';
                         } else {
-                            // Aggregate daily status: Worst-case logic for this specific mapel
-                            $statuses = $pList->pluck('status')->toArray();
-                            if (in_array('Alpa', $statuses) || in_array('Alpha', $statuses)) $row[$d] = 'A';
-                            elseif (in_array('Sakit', $statuses)) $row[$d] = 'S';
-                            elseif (in_array('Izin', $statuses)) $row[$d] = 'I';
-                            elseif (in_array('Terlambat', $statuses)) $row[$d] = 'T';
-                            elseif (in_array('Hadir', $statuses)) $row[$d] = 'H';
-                            else $row[$d] = '';
+                            $pList = $presensiList->where('id_siswa', $siswa->id)->where('tanggal', $tglStr);
+                            
+                            if ($pList->isEmpty()) {
+                                $row[$d] = '';
+                            } else {
+                                // Aggregate daily status: Worst-case logic for this specific mapel
+                                $statuses = $pList->pluck('status')->toArray();
+                                if (in_array('Alpa', $statuses) || in_array('Alpha', $statuses)) $row[$d] = 'A';
+                                elseif (in_array('Sakit', $statuses)) $row[$d] = 'S';
+                                elseif (in_array('Izin', $statuses)) $row[$d] = 'I';
+                                elseif (in_array('Terlambat', $statuses)) $row[$d] = 'T';
+                                elseif (in_array('Hadir', $statuses)) $row[$d] = 'H';
+                                else $row[$d] = '';
+                            }
                         }
                     }
                 }

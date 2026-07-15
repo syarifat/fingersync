@@ -47,6 +47,8 @@
         .I { background: #dbeafe; color: #1d4ed8; }   /* Izin - biru */
         .S { background: #ffedd5; color: #c2410c; }   /* Sakit - oranye */
         .A { background: #fee2e2; color: #b91c1c; }   /* Alpa - merah */
+        .GL { background: #e2e8f0 !important; color: #475569 !important; } /* Guru Libur - abu-abu */
+        .L { background: #fee2e2 !important; color: #b91c1c !important; } /* Libur Sekolah - merah */
         .weekend { background: #fca5a5 !important; } /* Weekend - merah tebal */
         .dash { color: #d1d5db; }
 
@@ -88,7 +90,7 @@
                     </tr>
                     <tr>
                         @foreach($item['datesInfo'] as $info)
-                            <th class="th-tgl {{ $info['isWeekend'] ? 'weekend' : '' }}">{{ $info['day'] }}</th>
+                            <th class="th-tgl {{ ($info['isWeekend'] || ($info['isHoliday'] ?? false)) ? 'weekend' : '' }}">{{ $info['day'] }}</th>
                         @endforeach
                         <th class="th-total">H</th>
                         <th class="th-total">I</th>
@@ -115,8 +117,19 @@
                                 elseif ($status == 'I') $countI++;
                                 elseif ($status == 'S') $countS++;
                                 elseif ($status == 'A') $countA++;
+                                
+                                $cellClass = '';
+                                if ($status != '') {
+                                    $cellClass = $status;
+                                }
+                                if ($info['isWeekend'] || ($info['isHoliday'] ?? false)) {
+                                    $cellClass .= ' weekend';
+                                }
+                                if ($status == '') {
+                                    $cellClass .= ' dash';
+                                }
                             @endphp
-                            <td class="td-cell {{ $status != '' ? $status : '' }} {{ $info['isWeekend'] ? 'weekend' : '' }} {{ $status == '' ? 'dash' : '' }}">
+                            <td class="td-cell {{ $cellClass }}">
                                 {{ $status != '' ? $status : '-' }}
                             </td>
                         @endforeach
@@ -138,8 +151,10 @@
                 <span class="leg-item"><span class="leg-box I">I</span> Izin</span>
                 <span class="leg-item"><span class="leg-box S">S</span> Sakit</span>
                 <span class="leg-item"><span class="leg-box A">A</span> Alpa</span>
+                <span class="leg-item"><span class="leg-box GL">GL</span> Guru Libur (Izin)</span>
+                <span class="leg-item"><span class="leg-box L">L</span> Libur Sekolah</span>
                 <span class="leg-item"><span class="leg-box" style="background: #fee2e2; color: #b91c1c; font-weight: bold; padding: 0 4px;">AIS</span> Alpha + Izin + Sakit</span>
-                <span class="leg-item"><span class="leg-box weekend"></span> Hari Libur (Sabtu/Minggu)</span>
+                <span class="leg-item"><span class="leg-box weekend"></span> Hari Libur (Sabtu/Minggu / Libur Nasional)</span>
                 <span class="leg-item">- = Tidak ada kegiatan</span>
             </div>
         </div>
