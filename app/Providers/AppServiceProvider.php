@@ -41,8 +41,8 @@ class AppServiceProvider extends ServiceProvider
             View::share('globalTahunAjar', []);
         }
 
-        // if ($this->app->environment('production')) {
-        //     URL::forceScheme('https');
-        // }
+        if ($this->app->environment('production')) {
+            URL::forceScheme('https');
+        }
     }
 }
