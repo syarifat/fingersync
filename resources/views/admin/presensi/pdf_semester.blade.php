@@ -52,12 +52,20 @@
         <table>
             <thead>
                 <tr>
-                    <th style="width: 30px;">No</th>
-                    <th class="th-nama">Nama Siswa</th>
+                    <th rowspan="2" style="width: 30px; vertical-align: middle;">No</th>
+                    <th rowspan="2" class="th-nama" style="vertical-align: middle;">Nama Siswa</th>
                     @foreach($mapelList as $mapel)
-                        <th>{{ $mapel->nama }}</th>
+                        <th colspan="4" style="font-size: 8px; padding: 4px 2px;">{{ $mapel->nama }}</th>
                     @endforeach
-                    <th style="width: 60px;">Total AIS</th>
+                    <th rowspan="2" style="width: 50px; vertical-align: middle;">Total AIS</th>
+                </tr>
+                <tr>
+                    @foreach($mapelList as $mapel)
+                        <th style="width: 15px; font-size: 7px; background: #f8fafc; font-weight: normal; color: #b91c1c;">A</th>
+                        <th style="width: 15px; font-size: 7px; background: #f8fafc; font-weight: normal; color: #1d4ed8;">I</th>
+                        <th style="width: 15px; font-size: 7px; background: #f8fafc; font-weight: normal; color: #c2410c;">S</th>
+                        <th style="width: 20px; font-size: 7px; background: #e2e8f0; font-weight: bold; color: #1e293b;">Tot</th>
+                    @endforeach
                 </tr>
             </thead>
             <tbody>
@@ -67,10 +75,19 @@
                         <td class="td-nama">{{ $row['nama'] }}</td>
                         @foreach($mapelList as $mapel)
                             @php
-                                $aisVal = $row['mapel_ais'][$mapel->id] ?? 0;
+                                $details = $row['mapel_ais'][$mapel->id] ?? ['A' => 0, 'I' => 0, 'S' => 0, 'Total' => 0];
                             @endphp
-                            <td class="td-cell {{ $aisVal > 0 ? 'highlight-some' : 'highlight-zero' }}">
-                                {{ $aisVal ?: '-' }}
+                            <td class="{{ $details['A'] > 0 ? 'highlight-some' : 'highlight-zero' }}">
+                                {{ $details['A'] ?: '-' }}
+                            </td>
+                            <td class="{{ $details['I'] > 0 ? 'highlight-some' : 'highlight-zero' }}">
+                                {{ $details['I'] ?: '-' }}
+                            </td>
+                            <td class="{{ $details['S'] > 0 ? 'highlight-some' : 'highlight-zero' }}">
+                                {{ $details['S'] ?: '-' }}
+                            </td>
+                            <td class="td-cell {{ $details['Total'] > 0 ? 'highlight-some' : 'highlight-zero' }}" style="background: #f8fafc; font-weight: bold;">
+                                {{ $details['Total'] ?: '-' }}
                             </td>
                         @endforeach
                         <td class="total-col">{{ $row['total_ais'] ?: '-' }}</td>
@@ -81,9 +98,9 @@
 
         <div class="legend">
             <strong>Catatan:</strong><br>
-            - Angka pada setiap kolom mata pelajaran menunjukkan akumulasi total hari ketidakhadiran (Alpha + Izin + Sakit) pada mata pelajaran tersebut selama 1 semester.<br>
-            - Kolom <strong>Total AIS</strong> adalah jumlah total hari ketidakhadiran dari semua mata pelajaran.<br>
-            - Tanda (-) menunjukkan siswa tidak memiliki riwayat ketidakhadiran (AIS) pada mata pelajaran bersangkutan.
+            - Setiap mata pelajaran dibagi menjadi 4 sub-kolom: <strong>A</strong> (Alpha/Alpa), <strong>I</strong> (Izin), <strong>S</strong> (Sakit), dan <strong>Tot</strong> (Total AIS per mata pelajaran).<br>
+            - Kolom <strong>Total AIS</strong> di bagian akhir menunjukkan akumulasi total hari ketidakhadiran (A + I + S) dari seluruh mata pelajaran.<br>
+            - Tanda (-) menunjukkan tidak ada riwayat ketidakhadiran pada kolom tersebut.
         </div>
     @endif
 

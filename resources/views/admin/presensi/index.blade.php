@@ -74,6 +74,17 @@
                                         @endforeach
                                     </select>
                                 </div>
+                                @if(request('tipe_presensi') === 'pulang')
+                                <div id="status_pulang_filter_container">
+                                    <label for="status_pulang" class="block text-xs font-bold text-gray-500 uppercase mb-1">Status Pulang</label>
+                                    <select name="status_pulang" id="status_pulang" class="block w-full rounded-xl border-gray-200 bg-white text-sm focus:border-orange-500 focus:ring-orange-500 shadow-sm">
+                                        <option value="">-- Semua Status Pulang --</option>
+                                        <option value="Sudah Absen Pulang" {{ request('status_pulang') == 'Sudah Absen Pulang' ? 'selected' : '' }}>Sudah Absen Pulang</option>
+                                        <option value="Belum Absen Pulang" {{ request('status_pulang') == 'Belum Absen Pulang' ? 'selected' : '' }}>Belum Absen Pulang</option>
+                                        <option value="Tidak Masuk" {{ request('status_pulang') == 'Tidak Masuk' ? 'selected' : '' }}>Tidak Masuk</option>
+                                    </select>
+                                </div>
+                                @endif
                                 <div>
                                     <label for="search" class="block text-xs font-bold text-gray-500 uppercase mb-1">Cari Siswa</label>
                                     <div class="relative">
@@ -144,9 +155,7 @@
                                     <th class="pb-4 font-black px-4">Waktu</th>
                                     <th class="pb-4 font-black">Siswa</th>
                                     <th class="pb-4 font-black">Jadwal / Mapel</th>
-                                    @if(request('tipe_presensi') !== 'pulang')
                                     <th class="pb-4 font-black text-center">Status</th>
-                                    @endif
                                     <th class="pb-4 font-black px-4">Ruang</th>
                                     <th class="pb-4 font-black text-center w-20">AIS</th>
                                     <th class="pb-4 font-black text-right px-4 w-48">Aksi</th>
@@ -202,12 +211,19 @@
                                     </td>
 
                                     {{-- Kolom Status --}}
-                                    @if(request('tipe_presensi') !== 'pulang')
                                     <td class="py-5 text-center">
                                         @php
                                         if ($row->tipe_scan === 'pulang') {
-                                            $badgeClass = 'bg-teal-50 text-teal-600';
-                                            $statusText = 'PULANG';
+                                            if (($row->status_pulang ?? '') === 'Belum Absen Pulang') {
+                                                $badgeClass = 'bg-amber-50 text-amber-600 border border-amber-200';
+                                                $statusText = 'BELUM ABSEN PULANG';
+                                            } elseif (($row->status_pulang ?? '') === 'Tidak Masuk') {
+                                                $badgeClass = 'bg-rose-50 text-rose-600 border border-rose-200';
+                                                $statusText = 'TIDAK MASUK';
+                                            } else {
+                                                $badgeClass = 'bg-teal-50 text-teal-600';
+                                                $statusText = 'PULANG';
+                                            }
                                         } else {
                                             $badgeClass = match($row->status) {
                                                 'Hadir' => 'bg-emerald-50 text-emerald-600',
@@ -224,7 +240,6 @@
                                             {{ $statusText }}
                                         </span>
                                     </td>
-                                    @endif
 
                                     {{-- Kolom Ruang --}}
                                     <td class="py-5 px-4">
@@ -251,16 +266,22 @@
                                                 Detail AIS
                                             </a>
                                             @endif
+                                            @if($row->id)
                                             <a href="{{ route('admin.presensi.edit', $row->id) }}" class="inline-flex items-center px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-bold rounded-lg transition-colors">
                                                 <svg class="w-3.5 h-3.5 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
                                                 Edit
                                             </a>
+                                            @else
+                                            <span class="inline-flex items-center px-3 py-1.5 bg-gray-50 text-gray-300 text-xs font-bold rounded-lg cursor-not-allowed border border-gray-100" title="Tidak dapat mengedit data virtual">
+                                                Tidak Ada Data
+                                            </span>
+                                            @endif
                                         </div>
                                     </td>
                                 </tr>
                                 @empty
                                 <tr>
-                                    <td colspan="6" class="py-10 text-center text-gray-400 italic font-bold">
+                                    <td colspan="7" class="py-10 text-center text-gray-400 italic font-bold">
                                         Belum ada data presensi yang terekam.
                                     </td>
                                 </tr>
@@ -346,6 +367,9 @@ function setTipePresensi(val) {
         if (mapelSelect) mapelSelect.value = '';
         const statusSelect = document.getElementById('status');
         if (statusSelect) statusSelect.value = '';
+    } else {
+        const statusPulangSelect = document.getElementById('status_pulang');
+        if (statusPulangSelect) statusPulangSelect.value = '';
     }
     document.getElementById('tipe_presensi').form.submit();
 }

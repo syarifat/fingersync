@@ -30,8 +30,13 @@ class PresensiController extends Controller
             $monthsList[$m->format('Y-m')] = $m->locale('id')->isoFormat('MMMM YYYY');
         }
 
-        // Ambil semua status unik dari database untuk filter
-        $statusList = Presensi::whereNotNull('status')->distinct()->pluck('status');
+        // Ambil semua status KBM unik dari database untuk filter
+        $statusList = Presensi::whereNotNull('status')
+            ->where(function($q) {
+                $q->whereNull('tipe_scan')->orWhere('tipe_scan', '!=', 'pulang');
+            })
+            ->distinct()
+            ->pluck('status');
 
         // Kelas wajib dipilih, set default jika kosong
         $kelas_id = $request->kelas_id;
@@ -40,71 +45,165 @@ class PresensiController extends Controller
             $request->merge(['kelas_id' => $kelas_id]);
         }
 
-        $query = Presensi::with([
-            'siswa' => function ($q) use ($activeYearId) {
-                $q->withCount(['presensi as total_ais' => function ($pq) use ($activeYearId) {
-                    $pq->whereIn('status', ['Alpa', 'Alpha', 'Izin', 'Sakit']);
-                    if ($activeYearId) {
-                        $pq->where('id_tahun_ajar', $activeYearId);
-                    }
-                }]);
-            },
-            'siswa.rombelKelas.kelas', 
-            'rombelJadwalPelajaran.rombelMataPelajaran.kelas', 
-            'rombelJadwalPelajaran.rombelMataPelajaran.mataPelajaran', 
-            'device.ruangan', 
-            'tahunAjar',
-            'kegiatanSekolah'
-        ]);
-
-        // 1. Filter Kelas berdasarkan kelas terdaftar siswa (agar absensi kegiatan serentak tidak hilang)
-        if ($kelas_id) {
-            $query->whereHas('siswa.rombelKelas', function ($q) use ($kelas_id) {
-                $q->where('id_kelas', $kelas_id);
-            });
-        }
-
-        // 2. Filter Mapel (Opsional)
-        if ($request->has('mapel_id') && $request->mapel_id != '') {
-            $query->whereHas('rombelJadwalPelajaran.rombelMataPelajaran', function ($q) use ($request) {
-                $q->where('id_mata_pelajaran', $request->mapel_id);
-            });
-        }
-
-        // 2.b. Filter Status (Opsional)
-        if ($request->has('status') && $request->status != '') {
-            $query->where('status', $request->status);
-        }
-
-        // 2.c. Filter Tipe Presensi (Masuk vs Pulang)
-        if ($request->has('tipe_presensi') && $request->tipe_presensi != '') {
-            if ($request->tipe_presensi === 'masuk') {
-                $query->where(function($q) {
-                    $q->whereNull('tipe_scan')->orWhere('tipe_scan', '!=', 'pulang');
-                });
-            } elseif ($request->tipe_presensi === 'pulang') {
-                $query->where('tipe_scan', 'pulang');
+        // Pengecekan tipe_presensi === 'pulang'
+        if ($request->has('tipe_presensi') && $request->tipe_presensi === 'pulang') {
+            // Paksakan tanggal tunggal (default ke hari ini)
+            $tanggal = $request->input('tanggal', date('Y-m-d'));
+            if (!$request->has('tanggal')) {
+                $request->merge(['tanggal' => $tanggal]);
             }
-        }
 
-        // 3. Filter Waktu (Harian atau Bulanan)
-        if ($request->has('tanggal') && $request->tanggal != '') {
-            $query->where('tanggal', $request->tanggal);
-        } elseif ($request->has('bulan') && $request->bulan != '') {
-            $query->whereMonth('tanggal', date('m', strtotime($request->bulan)))
-                  ->whereYear('tanggal', date('Y', strtotime($request->bulan)));
-        }
+            // Ambil seluruh siswa aktif di kelas
+            $siswaList = Siswa::whereHas('rombelKelas', function ($q) use ($kelas_id, $activeYearId) {
+                $q->where('id_kelas', $kelas_id);
+                if ($activeYearId) {
+                    $q->where('id_tahun_ajar', $activeYearId);
+                }
+            })
+            ->where('status', 'Aktif')
+            ->withCount(['presensi as total_ais' => function ($pq) use ($activeYearId) {
+                $pq->whereIn('status', ['Alpa', 'Alpha', 'Izin', 'Sakit']);
+                if ($activeYearId) {
+                    $pq->where('id_tahun_ajar', $activeYearId);
+                }
+            }])
+            ->get();
 
-        // 4. Pencarian Siswa (Nama / NIS)
-        if ($request->has('search') && $request->search != '') {
-            $search = $request->search;
-            $query->whereHas('siswa', function ($q) use ($search) {
-                $q->where('nama', 'like', "%{$search}%")
-                  ->orWhere('nis', 'like', "%{$search}%");
+            $collection = collect();
+            foreach ($siswaList as $siswa) {
+                // Cek data checkout
+                $checkoutRecord = Presensi::where('id_siswa', $siswa->id)
+                    ->where('tanggal', $tanggal)
+                    ->where('tipe_scan', 'pulang')
+                    ->first();
+
+                if ($checkoutRecord) {
+                    // Masukkan record nyata dengan status virtual
+                    $checkoutRecord->status_pulang = 'Sudah Absen Pulang';
+                    $checkoutRecord->load(['device.ruangan']);
+                    $collection->push($checkoutRecord);
+                } else {
+                    // Cek apakah ada record datang/KBM hari ini
+                    $kbmRecordsExist = Presensi::where('id_siswa', $siswa->id)
+                        ->where('tanggal', $tanggal)
+                        ->where(function($q) {
+                            $q->whereNull('tipe_scan')->orWhere('tipe_scan', '!=', 'pulang');
+                        })
+                        ->exists();
+
+                    $virtual = new Presensi();
+                    $virtual->id = null; // Penanda baris virtual
+                    $virtual->id_siswa = $siswa->id;
+                    $virtual->tanggal = $tanggal;
+                    $virtual->jam_scan = '-';
+                    $virtual->tipe_scan = 'pulang';
+                    $virtual->siswa = $siswa;
+                    
+                    if ($kbmRecordsExist) {
+                        $virtual->status = 'Belum Absen Pulang';
+                        $virtual->status_pulang = 'Belum Absen Pulang';
+                    } else {
+                        $virtual->status = 'Tidak Masuk';
+                        $virtual->status_pulang = 'Tidak Masuk';
+                    }
+                    $collection->push($virtual);
+                }
+            }
+
+            // Saring berdasarkan Status Pulang
+            if ($request->has('status_pulang') && $request->status_pulang != '') {
+                $collection = $collection->where('status_pulang', $request->status_pulang);
+            }
+
+            // Saring berdasarkan Pencarian
+            if ($request->has('search') && $request->search != '') {
+                $search = strtolower($request->search);
+                $collection = $collection->filter(function($row) use ($search) {
+                    return str_contains(strtolower($row->siswa->nama ?? ''), $search) 
+                        || str_contains(strtolower($row->siswa->nis ?? ''), $search);
+                });
+            }
+
+            // Urutkan berdasarkan nama siswa ASC
+            $collection = $collection->sortBy(function($row) {
+                return strtolower($row->siswa->nama ?? '');
+            })->values();
+
+            // Paginasi manual untuk virtual collection
+            $currentPage = \Illuminate\Pagination\LengthAwarePaginator::resolveCurrentPage();
+            $perPage = 10;
+            $currentPageItems = $collection->slice(($currentPage - 1) * $perPage, $perPage)->values();
+            
+            $dataPresensi = new \Illuminate\Pagination\LengthAwarePaginator(
+                $currentPageItems,
+                $collection->count(),
+                $perPage,
+                $currentPage,
+                ['path' => \Illuminate\Pagination\LengthAwarePaginator::resolveCurrentPath(), 'query' => $request->query()]
+            );
+
+        } else {
+            // Logika default untuk Masuk/KBM (Query riil database)
+            $query = Presensi::with([
+                'siswa' => function ($q) use ($activeYearId) {
+                    $q->withCount(['presensi as total_ais' => function ($pq) use ($activeYearId) {
+                        $pq->whereIn('status', ['Alpa', 'Alpha', 'Izin', 'Sakit']);
+                        if ($activeYearId) {
+                            $pq->where('id_tahun_ajar', $activeYearId);
+                        }
+                    }]);
+                },
+                'siswa.rombelKelas.kelas', 
+                'rombelJadwalPelajaran.rombelMataPelajaran.kelas', 
+                'rombelJadwalPelajaran.rombelMataPelajaran.mataPelajaran', 
+                'device.ruangan', 
+                'tahunAjar',
+                'kegiatanSekolah'
+            ]);
+
+            // 1. Filter Kelas
+            if ($kelas_id) {
+                $query->whereHas('siswa.rombelKelas', function ($q) use ($kelas_id) {
+                    $q->where('id_kelas', $kelas_id);
+                });
+            }
+
+            // 2. Filter Mapel
+            if ($request->has('mapel_id') && $request->mapel_id != '') {
+                $query->whereHas('rombelJadwalPelajaran.rombelMataPelajaran', function ($q) use ($request) {
+                    $q->where('id_mata_pelajaran', $request->mapel_id);
+                });
+            }
+
+            // 2.b. Filter Status KBM
+            if ($request->has('status') && $request->status != '') {
+                $query->where('status', $request->status);
+            }
+
+            // 2.c. Filter Tipe Presensi (Masuk)
+            $query->where(function($q) {
+                $q->whereNull('tipe_scan')->orWhere('tipe_scan', '!=', 'pulang');
             });
-        }
 
-        $dataPresensi = $query->latest()->paginate(10)->withQueryString();
+            // 3. Filter Waktu (Harian atau Bulanan)
+            if ($request->has('tanggal') && $request->tanggal != '') {
+                $query->where('tanggal', $request->tanggal);
+            } elseif ($request->has('bulan') && $request->bulan != '') {
+                $query->whereMonth('tanggal', date('m', strtotime($request->bulan)))
+                      ->whereYear('tanggal', date('Y', strtotime($request->bulan)));
+            }
+
+            // 4. Pencarian Siswa (Nama / NIS)
+            if ($request->has('search') && $request->search != '') {
+                $search = $request->search;
+                $query->whereHas('siswa', function ($q) use ($search) {
+                    $q->where('nama', 'like', "%{$search}%")
+                      ->orWhere('nis', 'like', "%{$search}%");
+                });
+            }
+
+            $dataPresensi = $query->latest()->paginate(10)->withQueryString();
+        }
 
         return view('admin.presensi.index', compact('dataPresensi', 'kelasList', 'mapelList', 'statusList', 'monthsList'));
     }
@@ -478,14 +577,24 @@ class PresensiController extends Controller
             $siswaPresensi = $presensiRecords->where('id_siswa', $siswa->id);
             
             foreach ($mapelList as $mapel) {
-                $aisCount = $siswaPresensi->filter(function($p) use ($mapel) {
+                $mapelPresensi = $siswaPresensi->filter(function($p) use ($mapel) {
                     return $p->rombelJadwalPelajaran 
                         && $p->rombelJadwalPelajaran->rombelMataPelajaran 
                         && $p->rombelJadwalPelajaran->rombelMataPelajaran->id_mata_pelajaran == $mapel->id;
-                })->count();
-                
-                $siswaMatrix['mapel_ais'][$mapel->id] = $aisCount;
-                $siswaMatrix['total_ais'] += $aisCount;
+                });
+
+                $aCount = $mapelPresensi->filter(fn($p) => in_array($p->status, ['Alpa', 'Alpha']))->count();
+                $iCount = $mapelPresensi->where('status', 'Izin')->count();
+                $sCount = $mapelPresensi->where('status', 'Sakit')->count();
+                $totalAis = $aCount + $iCount + $sCount;
+
+                $siswaMatrix['mapel_ais'][$mapel->id] = [
+                    'A' => $aCount,
+                    'I' => $iCount,
+                    'S' => $sCount,
+                    'Total' => $totalAis
+                ];
+                $siswaMatrix['total_ais'] += $totalAis;
             }
             $matrix[] = $siswaMatrix;
         }

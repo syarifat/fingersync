@@ -118,3 +118,15 @@ REVISI 230626
 saat hadir itu dikirim jam 8 pagi menampilkan yang sudah hadr dan yang belum urut dari a-z
 untuk rekap tetap jam 4
 untuk pulang, saat ini kan mapel terakhir habis sampai jam 4. nah ini diubah dari mapel terakhir habis sampai jam 17.30 saja. jadi kalau mapel habis jam 1, maka dihitung sampai jam 17.30 untuk melakukan absen pulang. jadi pesan dikirim saatjam 17.30 urut a-z
+
+REVISI 160726
+1. Status pulang ditambahkan filter yang tidak absen pulang, jika dia hadir hari ini maka tulisannya belum absenpulang, tapi jika dia tidak hadir hari ini(tidak absen) maka keterangannya tidak masuk atau gimana terserah yang profesional
+2. Di rekap semester(ais) itukan per mapelnya yang ditampilkan total ais, nah itu diganti ke rincian ais dulu a berapa i berapa s berapa per apel lalu total ais per mapel dan akhirnya total ais semua mapel
+3. Untuk saat ini kan hanya bisa memilih 1 jadwal untuk izinnya.nah bagaimana jika mengatasi izin beberapa hari, jadi akan izin di beberapa jadwal kelas. Misal Selasa di tkj2 dan tkj1, rabu di tkj3 dan mungkin izin umroh kan bisa 40 hari begitu
+4. Ubah pesan di whatsapp bagian laporan harian dan kepulangan. Jadi jika siswa itu hadir di semua apel hari itu maka namanya tidak ditulis di riwayat kehadiran. Jika tidak absen di salah satu saja itu baru dikirimi pesan, contoh dibawah (Kapital di depan kata)
+Zizi Puspasari
+   - Bahasa Inggris (Tidak Hadir)
+   - Pendidikan Agama (Hadir)
+   - PJOK (Hadir)
+Lalu ubah semua kata riwayat kehadiran kbm jadi riwayat absensi kbm
+Lalu di bawah tulisan RIWAYAT ABSENSI KBM tambahkan tulisan oemberitahuan lah ke bahwa jika nama tidak muncul maka anaknya hadir apel semua hari itu lalu jika semua nama di riwayat absensi kbm sudah habis. Masuk ke status kepulangan sekolah, nah sebelum itu berikan info lagi seperti diatas yaitu kelas, tanggal, dan waktu laporan.

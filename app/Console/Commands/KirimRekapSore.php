@@ -147,7 +147,8 @@ class KirimRekapSore extends Command
                 $pesanGrup .= "Waktu Laporan: 17:30 WIB\n";
                 $pesanGrup .= "----------------------------------\n\n";
 
-                $pesanGrup .= "👥 *RIWAYAT KEHADIRAN KBM:*\n";
+                $pesanGrup .= "👥 *RIWAYAT ABSENSI KBM:*\n";
+                $pesanGrup .= "_(Jika nama anak tidak muncul di bawah ini, berarti anak hadir di semua mata pelajaran hari ini)_\n\n";
 
                 $sudahPulang = [];
                 $belumPulang = [];
@@ -161,7 +162,8 @@ class KirimRekapSore extends Command
                     $siswaId = $siswa->id;
                     $siswaNama = $siswa->nama;
 
-                    $pesanGrup .= "{$noUrut}. *{$siswaNama}*\n";
+                    $isFullyPresent = true;
+                    $studentKbmText = "";
                     
                     if ($kegiatanHariIni) {
                         $absenDatang = Presensi::where('id_siswa', $siswaId)
@@ -171,12 +173,13 @@ class KirimRekapSore extends Command
                             ->first();
                         if ($absenDatang) {
                             $jamDatang = substr($absenDatang->jam_scan, 0, 5);
-                            $statusDatangText = "hadir pukul {$jamDatang} WIB";
+                            $statusDatangText = "Hadir pukul {$jamDatang} WIB";
                         } else {
-                            $statusDatangText = "tidak hadir";
+                            $statusDatangText = "Tidak Hadir";
+                            $isFullyPresent = false;
                         }
                         
-                        $pesanGrup .= "   - Hadir Kegiatan ({$statusDatangText})\n";
+                        $studentKbmText .= "   - Hadir Kegiatan ({$statusDatangText})\n";
 
                         // Cek checkout kegiatan
                         $absenPulang = Presensi::where('id_siswa', $siswaId)
@@ -189,7 +192,7 @@ class KirimRekapSore extends Command
                             $jamPulang = substr($absenPulang->jam_scan, 0, 5);
                             $sudahPulang[] = [
                                 'nama' => $siswaNama,
-                                'info' => "pulang pukul {$jamPulang} WIB"
+                                'info' => "Pulang pukul {$jamPulang} WIB"
                             ];
                         } else {
                             $belumPulang[] = [
@@ -205,7 +208,7 @@ class KirimRekapSore extends Command
                                 ->first();
 
                             if ($kbmKhusus && $kbmKhusus->status === 'izin_libur') {
-                                $statusText = "libur (guru izin)";
+                                $statusText = "Libur (Guru Izin)";
                             } else {
                                 $absen = Presensi::where('id_siswa', $siswaId)
                                     ->where('id_rombel_jadwal_pelajaran', $jdwl->id)
@@ -216,17 +219,20 @@ class KirimRekapSore extends Command
                                 
                                 if ($status === 'Hadir' || $status === 'Terlambat') {
                                     $jamScan = substr($absen->jam_scan, 0, 5);
-                                    $statusText = strtolower($status) . " pukul {$jamScan} WIB";
+                                    $statusText = $status . " pukul {$jamScan} WIB";
                                 } elseif ($status === 'Sakit') {
-                                    $statusText = "sakit";
+                                    $statusText = "Sakit";
+                                    $isFullyPresent = false;
                                 } elseif ($status === 'Izin') {
-                                    $statusText = "izin";
+                                    $statusText = "Izin";
+                                    $isFullyPresent = false;
                                 } else {
-                                    $statusText = "tidak hadir";
+                                    $statusText = "Tidak Hadir";
+                                    $isFullyPresent = false;
                                 }
                             }
                             
-                            $pesanGrup .= "   - {$mapel} ({$statusText})\n";
+                            $studentKbmText .= "   - {$mapel} ({$statusText})\n";
                         }
 
                         // Cek checkout scan
@@ -239,7 +245,7 @@ class KirimRekapSore extends Command
                             $jamPulang = substr($scanPulang->jam_scan, 0, 5);
                             $sudahPulang[] = [
                                 'nama' => $siswaNama,
-                                'info' => "pulang pukul {$jamPulang} WIB"
+                                'info' => "Pulang pukul {$jamPulang} WIB"
                             ];
                         } else {
                             $belumPulang[] = [
@@ -247,14 +253,26 @@ class KirimRekapSore extends Command
                             ];
                         }
                     }
-                    $pesanGrup .= "\n";
-                    $hasContent = true;
-                    $noUrut++;
+
+                    if (!$isFullyPresent) {
+                        $pesanGrup .= "{$noUrut}. *{$siswaNama}*\n" . $studentKbmText . "\n";
+                        $noUrut++;
+                        $hasContent = true;
+                    }
                 }
 
-                // Append status kepulangan sekolah
+                if ($noUrut === 1) {
+                    $pesanGrup .= "_Semua siswa hadir penuh hari ini._\n\n";
+                    $hasContent = true;
+                }
+
+                // Append status kepulangan sekolah dengan info header tambahan
                 $pesanGrup .= "----------------------------------\n";
-                $pesanGrup .= "🚪 *STATUS KEPULANGAN SEKOLAH:*\n\n";
+                $pesanGrup .= "🚪 *STATUS KEPULANGAN SEKOLAH:*\n";
+                $pesanGrup .= "Kelas: *{$kelas->nama}*\n";
+                $pesanGrup .= "Tanggal: {$tanggalFormat}\n";
+                $pesanGrup .= "Waktu Laporan: 17:30 WIB\n";
+                $pesanGrup .= "----------------------------------\n\n";
 
                 $pesanGrup .= "✅ *SUDAH SCAN PULANG:*\n";
                 if (count($sudahPulang) > 0) {
