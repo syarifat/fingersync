@@ -17,15 +17,15 @@
             $part2Mapels = collect();
         }
 
-        // Ukuran font dan padding nyaman karena kolom per halaman lebih sedikit
+        // Optimasi lebar kolom: memperkecil sel AIS dan memperlebar kolom Nama Siswa
         $fontSizeBody = '8.5px';
         $fontSizeTh = '8px';
         $fontSizeMapel = '8px';
-        $cellPadding = '4px 3px';
-        $noWidth = '30px';
-        $namaWidth = '160px';
-        $cellWidth = '15px';
-        $totWidth = '20px';
+        $cellPadding = '4px 1px'; // Perkecil padding kiri-kanan agar teks angka muat di sel kecil
+        $noWidth = '25px';
+        $namaWidth = '220px'; // Diperlebar signifikan dari 160px agar nama tidak terpotong
+        $cellWidth = '11px';  // Diperkecil dari 15px
+        $totWidth = '15px';   // Diperkecil dari 20px
         $totalAisWidth = '45px';
     @endphp
     <style>
