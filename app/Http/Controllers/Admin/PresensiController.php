@@ -54,7 +54,7 @@ class PresensiController extends Controller
             }
 
             // Ambil seluruh siswa aktif di kelas
-            $siswaList = Siswa::whereHas('rombelKelas', function ($q) use ($kelas_id, $activeYearId) {
+            $siswaList = \App\Models\Siswa::whereHas('rombelKelas', function ($q) use ($kelas_id, $activeYearId) {
                 $q->where('id_kelas', $kelas_id);
                 if ($activeYearId) {
                     $q->where('id_tahun_ajar', $activeYearId);
