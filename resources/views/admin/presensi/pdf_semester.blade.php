@@ -17,15 +17,28 @@
             $part2Mapels = collect();
         }
 
-        // Optimasi lebar kolom lebih ketat untuk memberikan ruang maksimal pada Nama Siswa
-        $fontSizeBody = '8px';
+        // Tentukan persentase kolom agar Nama Siswa mendapat porsi terbesar (50%)
+        $noPct = '3%';
+        $namaPct = '50%'; // Kolom nama dijamin lebar setengah halaman landscape
+        
+        $part1Count = count($part1Mapels);
+        if ($isSplit) {
+            $part2Count = count($part2Mapels);
+            $totalAisPct = '5%';
+            // Halaman 1: No (3%) + Nama (50%) + Mapel Part 1 (47%) = 100%
+            $mapel1ColPct = (47 / ($part1Count * 3)) . '%';
+            // Halaman 2: No (3%) + Nama (50%) + Mapel Part 2 (42%) + Total AIS (5%) = 100%
+            $mapel2ColPct = (42 / ($part2Count * 3)) . '%';
+        } else {
+            $totalAisPct = '7%';
+            // Tanpa split: No (3%) + Nama (50%) + Mapel (40%) + Total AIS (7%) = 100%
+            $mapel1ColPct = (40 / ($part1Count * 3)) . '%';
+        }
+
+        $fontSizeBody = '8.5px';
         $fontSizeTh = '8px';
         $fontSizeMapel = '8px';
-        $cellPadding = '4px 0.5px'; // Minimalkan padding horizontal agar kolom kecil muat
-        $noWidth = '20px';
-        $namaWidth = '280px'; // Diperlebar menjadi 280px agar nama lengkap tidak terpotong
-        $cellWidth = '9px';   // Diperkecil dari 12px ke 9px
-        $totalAisWidth = '40px';
+        $cellPadding = '4px 2px';
     @endphp
     <style>
         @page {
@@ -89,20 +102,20 @@
         <table>
             <thead>
                 <tr>
-                    <th rowspan="2" style="width: {{ $noWidth }}; vertical-align: middle;">No</th>
-                    <th rowspan="2" class="th-nama" style="width: {{ $namaWidth }}; vertical-align: middle;">Nama Siswa</th>
+                    <th rowspan="2" style="width: {{ $noPct }}; vertical-align: middle;">No</th>
+                    <th rowspan="2" class="th-nama" style="width: {{ $namaPct }}; vertical-align: middle;">Nama Siswa</th>
                     @foreach($part1Mapels as $mapel)
                         <th colspan="3" style="font-size: {{ $fontSizeMapel }}; padding: 3px 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="{{ $mapel->nama }}">{{ $mapel->nama }}</th>
                     @endforeach
                     @if(!$isSplit)
-                        <th rowspan="2" style="width: {{ $totalAisWidth }}; vertical-align: middle;">Total AIS</th>
+                        <th rowspan="2" style="width: {{ $totalAisPct }}; vertical-align: middle;">Total AIS</th>
                     @endif
                 </tr>
                 <tr>
                     @foreach($part1Mapels as $mapel)
-                        <th style="width: {{ $cellWidth }}; font-size: {{ $fontSizeTh }}; background: #f8fafc; font-weight: normal; color: #b91c1c;">A</th>
-                        <th style="width: {{ $cellWidth }}; font-size: {{ $fontSizeTh }}; background: #f8fafc; font-weight: normal; color: #1d4ed8;">I</th>
-                        <th style="width: {{ $cellWidth }}; font-size: {{ $fontSizeTh }}; background: #f8fafc; font-weight: normal; color: #c2410c;">S</th>
+                        <th style="width: {{ $mapel1ColPct }}; font-size: {{ $fontSizeTh }}; background: #f8fafc; font-weight: normal; color: #b91c1c;">A</th>
+                        <th style="width: {{ $mapel1ColPct }}; font-size: {{ $fontSizeTh }}; background: #f8fafc; font-weight: normal; color: #1d4ed8;">I</th>
+                        <th style="width: {{ $mapel1ColPct }}; font-size: {{ $fontSizeTh }}; background: #f8fafc; font-weight: normal; color: #c2410c;">S</th>
                     @endforeach
                 </tr>
             </thead>
@@ -151,18 +164,18 @@
             <table>
                 <thead>
                     <tr>
-                        <th rowspan="2" style="width: {{ $noWidth }}; vertical-align: middle;">No</th>
-                        <th rowspan="2" class="th-nama" style="width: {{ $namaWidth }}; vertical-align: middle;">Nama Siswa</th>
+                        <th rowspan="2" style="width: {{ $noPct }}; vertical-align: middle;">No</th>
+                        <th rowspan="2" class="th-nama" style="width: {{ $namaPct }}; vertical-align: middle;">Nama Siswa</th>
                         @foreach($part2Mapels as $mapel)
                             <th colspan="3" style="font-size: {{ $fontSizeMapel }}; padding: 3px 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="{{ $mapel->nama }}">{{ $mapel->nama }}</th>
                         @endforeach
-                        <th rowspan="2" style="width: {{ $totalAisWidth }}; vertical-align: middle;">Total AIS</th>
+                        <th rowspan="2" style="width: {{ $totalAisPct }}; vertical-align: middle;">Total AIS</th>
                     </tr>
                     <tr>
                         @foreach($part2Mapels as $mapel)
-                            <th style="width: {{ $cellWidth }}; font-size: {{ $fontSizeTh }}; background: #f8fafc; font-weight: normal; color: #b91c1c;">A</th>
-                            <th style="width: {{ $cellWidth }}; font-size: {{ $fontSizeTh }}; background: #f8fafc; font-weight: normal; color: #1d4ed8;">I</th>
-                            <th style="width: {{ $cellWidth }}; font-size: {{ $fontSizeTh }}; background: #f8fafc; font-weight: normal; color: #c2410c;">S</th>
+                            <th style="width: {{ $mapel2ColPct }}; font-size: {{ $fontSizeTh }}; background: #f8fafc; font-weight: normal; color: #b91c1c;">A</th>
+                            <th style="width: {{ $mapel2ColPct }}; font-size: {{ $fontSizeTh }}; background: #f8fafc; font-weight: normal; color: #1d4ed8;">I</th>
+                            <th style="width: {{ $mapel2ColPct }}; font-size: {{ $fontSizeTh }}; background: #f8fafc; font-weight: normal; color: #c2410c;">S</th>
                         @endforeach
                     </tr>
                 </thead>
