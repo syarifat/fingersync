@@ -153,7 +153,7 @@ class PresensiController extends Controller
                 $collection->count(),
                 $perPage,
                 $currentPage,
-                ['path' => \Illuminate\Pagination\LengthAwarePaginator::resolveCurrentPath(), 'query' => $request->query()]
+                ['path' => \Illuminate\Pagination\LengthAwarePaginator::resolveCurrentPath(), 'query' => $request->all()]
             );
 
         } else {
