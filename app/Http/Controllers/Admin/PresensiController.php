@@ -39,19 +39,20 @@ class PresensiController extends Controller
             ->pluck('status');
 
         // Kelas wajib dipilih, set default jika kosong
-        $kelas_id = $request->kelas_id;
-        if (!$kelas_id && $kelasList->count() > 0) {
+        $kelas_id = $request->input('kelas_id');
+        if (empty($kelas_id) && $kelasList->count() > 0) {
             $kelas_id = $kelasList->first()->id;
-            $request->merge(['kelas_id' => $kelas_id]);
         }
+        $request->merge(['kelas_id' => $kelas_id]);
 
         // Pengecekan tipe_presensi === 'pulang'
         if ($request->has('tipe_presensi') && $request->tipe_presensi === 'pulang') {
-            // Paksakan tanggal tunggal (default ke hari ini)
-            $tanggal = $request->input('tanggal', date('Y-m-d'));
-            if (!$request->has('tanggal')) {
-                $request->merge(['tanggal' => $tanggal]);
+            // Paksakan tanggal tunggal (default ke hari ini jika kosong)
+            $tanggal = $request->input('tanggal');
+            if (empty($tanggal)) {
+                $tanggal = date('Y-m-d');
             }
+            $request->merge(['tanggal' => $tanggal]);
 
             // Ambil seluruh siswa aktif di kelas
             $siswaList = \App\Models\Siswa::whereHas('rombelKelas', function ($q) use ($kelas_id, $activeYearId) {
