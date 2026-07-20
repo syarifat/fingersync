@@ -503,6 +503,46 @@ class DatabaseSeeder extends Seeder
             // Ambil jadwal hari ini untuk semua kelas
             $jadwalHariIni = array_filter($jadwalData, fn($j) => $j['hari'] == $hariIndo);
 
+            // Tentukan status harian untuk setiap siswa terlebih dahulu
+            $siswaDailyStatus = [];
+            foreach ($kelasData as $k) {
+                $siswaIdsDiKelas = DB::table('rombel_kelas')
+                    ->where('id_kelas', $k['id'])
+                    ->where('id_tahun_ajar', $tahunAjarId)
+                    ->pluck('id_siswa');
+
+                foreach ($siswaIdsDiKelas as $sid) {
+                    $profileType = $siswaProfiles[$sid];
+                    $rand = rand(1, 100);
+                    $dailyStatus = 'Normal';
+
+                    if ($profileType == 'teladan') {
+                        $dailyStatus = 'Normal';
+                    } elseif ($profileType == 'bermasalah') {
+                        // Bermasalah: 15% Izin full day, 85% Normal (Bisa Alpha di mapel tertentu)
+                        if ($rand <= 15) {
+                            $dailyStatus = 'Izin';
+                        } else {
+                            $dailyStatus = 'Normal';
+                        }
+                    } else { // Biasa
+                        // 3% Sakit full day, 2% Izin full day, 95% Normal
+                        if ($rand <= 3) {
+                            $dailyStatus = 'Sakit';
+                        } elseif ($rand > 3 && $rand <= 5) {
+                            $dailyStatus = 'Izin';
+                        } else {
+                            $dailyStatus = 'Normal';
+                        }
+                    }
+
+                    $siswaDailyStatus[$sid] = $dailyStatus;
+                }
+            }
+
+            // Untuk melacak apakah siswa melakukan check-in setidaknya sekali pada hari ini
+            $hasCheckinToday = [];
+
             foreach ($jadwalHariIni as $jadwal) {
                 // Ambil semua murid di kelas ini
                 $siswaIdsDiKelas = DB::table('rombel_kelas')
@@ -512,43 +552,47 @@ class DatabaseSeeder extends Seeder
 
                 foreach ($siswaIdsDiKelas as $sid) {
                     $profileType = $siswaProfiles[$sid];
-                    $status = 'Hadir';
-                    $jamScan = $jadwal['jam_mulai'];
-
-                    $rand = rand(1, 100);
-
-                    // Logika profil presensi realistis
-                    if ($profileType == 'teladan') {
-                        // 100% Hadir Tepat waktu atau lebih awal
+                    $dailyStatus = $siswaDailyStatus[$sid] ?? 'Normal';
+                    
+                    if ($dailyStatus === 'Sakit' || $dailyStatus === 'Izin') {
+                        $status = $dailyStatus;
+                        $jamScan = '00:00:00';
+                    } else {
+                        // Siswa Normal: bisa Hadir, Terlambat, atau Alpha per mata pelajaran
                         $status = 'Hadir';
-                        $jamScan = Carbon::parse($jadwal['jam_mulai'])->addMinutes(rand(-30, -5))->format('H:i:s');
-                    } 
-                    else if ($profileType == 'bermasalah') {
-                        // 30% Terlambat Parah, 40% Alpha, 20% Izin, 10% Hadir telat dikit
-                        if ($rand <= 30) {
-                            $status = 'Terlambat';
-                            $jamScan = Carbon::parse($jadwal['jam_mulai'])->addMinutes(rand(46, 120))->format('H:i:s');
-                        } elseif ($rand > 30 && $rand <= 70) {
-                            $status = 'Alpha'; $jamScan = '00:00:00';
-                        } elseif ($rand > 70 && $rand <= 90) {
-                            $status = 'Izin'; $jamScan = '00:00:00';
-                        } else {
-                            $status = 'Terlambat';
-                            $jamScan = Carbon::parse($jadwal['jam_mulai'])->addMinutes(rand(16, 45))->format('H:i:s');
-                        }
-                    } 
-                    else { // Biasa saja
-                        // 85% Hadir tepat waktu, 10% Terlambat, 3% Sakit, 2% Izin
-                        if ($rand <= 85) {
-                            $status = 'Hadir';
-                            $jamScan = Carbon::parse($jadwal['jam_mulai'])->addMinutes(rand(-15, 10))->format('H:i:s');
-                        } elseif ($rand > 85 && $rand <= 95) {
-                            $status = 'Terlambat';
-                            $jamScan = Carbon::parse($jadwal['jam_mulai'])->addMinutes(rand(16, 30))->format('H:i:s');
-                        } elseif ($rand > 95 && $rand <= 98) {
-                            $status = 'Sakit'; $jamScan = '00:00:00';
-                        } else {
-                            $status = 'Izin'; $jamScan = '00:00:00';
+                        $jamScan = $jadwal['jam_mulai'];
+                        $rand = rand(1, 100);
+
+                        if ($profileType == 'teladan') {
+                            $jamScan = Carbon::parse($jadwal['jam_mulai'])->addMinutes(rand(-30, -5))->format('H:i:s');
+                            $hasCheckinToday[$sid] = true;
+                        } elseif ($profileType == 'bermasalah') {
+                            // 45% Alpha (bolos mata pelajaran ini), 40% Terlambat, 15% Hadir
+                            if ($rand <= 45) {
+                                $status = 'Alpha';
+                                $jamScan = '00:00:00';
+                            } elseif ($rand > 45 && $rand <= 85) {
+                                $status = 'Terlambat';
+                                $jamScan = Carbon::parse($jadwal['jam_mulai'])->addMinutes(rand(16, 90))->format('H:i:s');
+                                $hasCheckinToday[$sid] = true;
+                            } else {
+                                $jamScan = Carbon::parse($jadwal['jam_mulai'])->addMinutes(rand(-5, 10))->format('H:i:s');
+                                $hasCheckinToday[$sid] = true;
+                            }
+                        } else { // Biasa
+                            // 90% Hadir, 7% Terlambat, 3% Alpha (bolos mata pelajaran ini)
+                            if ($rand <= 90) {
+                                $status = 'Hadir';
+                                $jamScan = Carbon::parse($jadwal['jam_mulai'])->addMinutes(rand(-15, 10))->format('H:i:s');
+                                $hasCheckinToday[$sid] = true;
+                            } elseif ($rand > 90 && $rand <= 97) {
+                                $status = 'Terlambat';
+                                $jamScan = Carbon::parse($jadwal['jam_mulai'])->addMinutes(rand(16, 30))->format('H:i:s');
+                                $hasCheckinToday[$sid] = true;
+                            } else {
+                                $status = 'Alpha';
+                                $jamScan = '00:00:00';
+                            }
                         }
                     }
 
@@ -582,6 +626,12 @@ class DatabaseSeeder extends Seeder
                 $deviceId = $deviceIds[$k['ruangan_id']] ?? null;
 
                 foreach ($siswaIdsDiKelas as $sid) {
+                    // Jika status harian siswa Sakit/Izin, atau jika tidak melakukan check-in sama sekali hari ini, skip scan pulang
+                    $dailyStatus = $siswaDailyStatus[$sid] ?? 'Normal';
+                    if ($dailyStatus === 'Sakit' || $dailyStatus === 'Izin' || !isset($hasCheckinToday[$sid])) {
+                        continue;
+                    }
+
                     $profileType = $siswaProfiles[$sid] ?? 'biasa';
                     
                     // Probabilitas scan pulang realistis
@@ -604,7 +654,13 @@ class DatabaseSeeder extends Seeder
 
                     if ($shouldSeedPulang) {
                         // Jam selesai KBM hari itu adalah 12:00:00
-                        $jamScanPulang = Carbon::parse('12:00:00')->addMinutes(rand(5, 55))->format('H:i:s');
+                        if ($profileType == 'teladan') {
+                            $jamScanPulang = Carbon::parse('12:00:00')->addMinutes(rand(1, 15))->format('H:i:s');
+                        } elseif ($profileType == 'bermasalah') {
+                            $jamScanPulang = Carbon::parse('12:00:00')->addMinutes(rand(5, 120))->format('H:i:s');
+                        } else {
+                            $jamScanPulang = Carbon::parse('12:00:00')->addMinutes(rand(2, 45))->format('H:i:s');
+                        }
                         
                         $presensiBatch[] = array_merge($basePresensi, [
                             'id_siswa' => $sid,

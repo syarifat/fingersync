@@ -219,7 +219,7 @@ class KirimRekapSore extends Command
                                 
                                 if ($status === 'Hadir' || $status === 'Terlambat') {
                                     $jamScan = substr($absen->jam_scan, 0, 5);
-                                    $statusText = $status . " pukul {$jamScan} WIB";
+                                    $statusText = "Hadir pukul {$jamScan} WIB";
                                 } elseif ($status === 'Sakit') {
                                     $statusText = "Sakit";
                                     $isFullyPresent = false;
