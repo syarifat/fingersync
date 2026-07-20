@@ -83,13 +83,16 @@ class PresensiController extends Controller
                     $checkoutRecord->load(['device.ruangan']);
                     $collection->push($checkoutRecord);
                 } else {
-                    // Cek apakah ada record datang/KBM hari ini
-                    $kbmRecordsExist = Presensi::where('id_siswa', $siswa->id)
+                    // Cek check-in KBM hari ini
+                    $kbmRecords = Presensi::where('id_siswa', $siswa->id)
                         ->where('tanggal', $tanggal)
                         ->where(function($q) {
                             $q->whereNull('tipe_scan')->orWhere('tipe_scan', '!=', 'pulang');
                         })
-                        ->exists();
+                        ->get();
+
+                    // Periksa apakah ada status Hadir / Terlambat
+                    $hasAttended = $kbmRecords->contains(fn($r) => in_array($r->status, ['Hadir', 'Terlambat']));
 
                     $virtual = new Presensi();
                     $virtual->id = null; // Penanda baris virtual
@@ -99,11 +102,22 @@ class PresensiController extends Controller
                     $virtual->tipe_scan = 'pulang';
                     $virtual->siswa = $siswa;
                     
-                    if ($kbmRecordsExist) {
+                    if ($hasAttended) {
                         $virtual->status = 'Belum Absen Pulang';
                         $virtual->status_pulang = 'Belum Absen Pulang';
                     } else {
-                        $virtual->status = 'Tidak Masuk';
+                        // Tentukan status spesifik: Sakit, Izin, atau Tidak Masuk (Alpha)
+                        $kbmStatuses = $kbmRecords->pluck('status')->unique();
+                        if ($kbmStatuses->count() === 1) {
+                            $statusUtama = $kbmStatuses->first();
+                            if (in_array($statusUtama, ['Sakit', 'Izin'])) {
+                                $virtual->status = $statusUtama;
+                            } else {
+                                $virtual->status = 'Tidak Masuk';
+                            }
+                        } else {
+                            $virtual->status = 'Tidak Masuk';
+                        }
                         $virtual->status_pulang = 'Tidak Masuk';
                     }
                     $collection->push($virtual);

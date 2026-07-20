@@ -164,6 +164,7 @@ class KirimRekapSore extends Command
 
                     $isFullyPresent = true;
                     $studentKbmText = "";
+                    $statusesToday = [];
                     
                     if ($kegiatanHariIni) {
                         $absenDatang = Presensi::where('id_siswa', $siswaId)
@@ -174,9 +175,11 @@ class KirimRekapSore extends Command
                         if ($absenDatang) {
                             $jamDatang = substr($absenDatang->jam_scan, 0, 5);
                             $statusDatangText = "Hadir pukul {$jamDatang} WIB";
+                            $statusesToday[] = $absenDatang->status;
                         } else {
                             $statusDatangText = "Tidak Hadir";
                             $isFullyPresent = false;
+                            $statusesToday[] = 'Alpha';
                         }
                         
                         $studentKbmText .= "   - Hadir Kegiatan ({$statusDatangText})\n";
@@ -188,6 +191,19 @@ class KirimRekapSore extends Command
                             ->where('tanggal', $tanggalIni)
                             ->first();
 
+                        $uniqueStatuses = array_unique($statusesToday);
+                        $infoPulangSuffix = "";
+                        if (count($uniqueStatuses) === 1) {
+                            $singleStatus = reset($uniqueStatuses);
+                            if ($singleStatus === 'Sakit') {
+                                $infoPulangSuffix = "Sakit";
+                            } elseif ($singleStatus === 'Izin') {
+                                $infoPulangSuffix = "Izin";
+                            } elseif (in_array($singleStatus, ['Alpha', 'Alpa'])) {
+                                $infoPulangSuffix = "Tidak Hadir";
+                            }
+                        }
+
                         if ($absenPulang) {
                             $jamPulang = substr($absenPulang->jam_scan, 0, 5);
                             $sudahPulang[] = [
@@ -196,7 +212,8 @@ class KirimRekapSore extends Command
                             ];
                         } else {
                             $belumPulang[] = [
-                                'nama' => $siswaNama
+                                'nama' => $siswaNama,
+                                'suffix' => $infoPulangSuffix
                             ];
                         }
                     } else {
@@ -216,6 +233,7 @@ class KirimRekapSore extends Command
                                     ->first();
 
                                 $status = $absen ? $absen->status : 'Alpha';
+                                $statusesToday[] = $status;
                                 
                                 if ($status === 'Hadir' || $status === 'Terlambat') {
                                     $jamScan = substr($absen->jam_scan, 0, 5);
@@ -241,6 +259,19 @@ class KirimRekapSore extends Command
                             ->where('tipe_scan', 'pulang')
                             ->first();
 
+                        $uniqueStatuses = array_unique($statusesToday);
+                        $infoPulangSuffix = "";
+                        if (count($uniqueStatuses) === 1) {
+                            $singleStatus = reset($uniqueStatuses);
+                            if ($singleStatus === 'Sakit') {
+                                $infoPulangSuffix = "Sakit";
+                            } elseif ($singleStatus === 'Izin') {
+                                $infoPulangSuffix = "Izin";
+                            } elseif (in_array($singleStatus, ['Alpha', 'Alpa'])) {
+                                $infoPulangSuffix = "Tidak Hadir";
+                            }
+                        }
+
                         if ($scanPulang) {
                             $jamPulang = substr($scanPulang->jam_scan, 0, 5);
                             $sudahPulang[] = [
@@ -249,7 +280,8 @@ class KirimRekapSore extends Command
                             ];
                         } else {
                             $belumPulang[] = [
-                                'nama' => $siswaNama
+                                'nama' => $siswaNama,
+                                'suffix' => $infoPulangSuffix
                             ];
                         }
                     }
@@ -289,7 +321,11 @@ class KirimRekapSore extends Command
                 if (count($belumPulang) > 0) {
                     $noBP = 1;
                     foreach ($belumPulang as $bp) {
-                        $pesanGrup .= "{$noBP}. *{$bp['nama']}*\n";
+                        if (!empty($bp['suffix'])) {
+                            $pesanGrup .= "{$noBP}. *{$bp['nama']}* ({$bp['suffix']})\n";
+                        } else {
+                            $pesanGrup .= "{$noBP}. *{$bp['nama']}*\n";
+                        }
                         $noBP++;
                     }
                 } else {

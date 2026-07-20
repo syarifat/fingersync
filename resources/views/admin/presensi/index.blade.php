@@ -218,8 +218,16 @@
                                                 $badgeClass = 'bg-amber-50 text-amber-600 border border-amber-200';
                                                 $statusText = 'BELUM ABSEN PULANG';
                                             } elseif (($row->status_pulang ?? '') === 'Tidak Masuk') {
-                                                $badgeClass = 'bg-rose-50 text-rose-600 border border-rose-200';
-                                                $statusText = 'TIDAK MASUK';
+                                                if ($row->status === 'Sakit') {
+                                                    $badgeClass = 'bg-purple-50 text-purple-600 border border-purple-200';
+                                                    $statusText = 'SAKIT';
+                                                } elseif ($row->status === 'Izin') {
+                                                    $badgeClass = 'bg-indigo-50 text-indigo-600 border border-indigo-200';
+                                                    $statusText = 'IZIN';
+                                                } else {
+                                                    $badgeClass = 'bg-rose-50 text-rose-600 border border-rose-200';
+                                                    $statusText = 'TIDAK MASUK';
+                                                }
                                             } else {
                                                 $badgeClass = 'bg-teal-50 text-teal-600';
                                                 $statusText = 'PULANG';
