@@ -3,33 +3,67 @@
 <head>
     <meta charset="UTF-8">
     <title>Rekapitulasi AIS Semester</title>
+    @php
+        $numMapel = count($mapelList);
+        if ($numMapel > 12) {
+            $fontSizeBody = '6px';
+            $fontSizeTh = '6px';
+            $fontSizeMapel = '6px';
+            $cellPadding = '2px 1px';
+            $noWidth = '20px';
+            $namaWidth = '110px';
+            $cellWidth = '10px';
+            $totWidth = '14px';
+            $totalAisWidth = '30px';
+        } elseif ($numMapel > 8) {
+            $fontSizeBody = '7px';
+            $fontSizeTh = '7px';
+            $fontSizeMapel = '7px';
+            $cellPadding = '3px 1.5px';
+            $noWidth = '25px';
+            $namaWidth = '130px';
+            $cellWidth = '12px';
+            $totWidth = '16px';
+            $totalAisWidth = '35px';
+        } else {
+            $fontSizeBody = '8.5px';
+            $fontSizeTh = '8px';
+            $fontSizeMapel = '8px';
+            $cellPadding = '4px 3px';
+            $noWidth = '30px';
+            $namaWidth = '160px';
+            $cellWidth = '15px';
+            $totWidth = '20px';
+            $totalAisWidth = '45px';
+        }
+    @endphp
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: Arial, sans-serif; font-size: 10px; color: #1a1a1a; padding: 20px; }
+        body { font-family: Arial, sans-serif; font-size: {{ $fontSizeBody }}; color: #1a1a1a; padding: 15px; }
 
-        .header { text-align: center; margin-bottom: 20px; border-bottom: 2px solid #1a1a1a; padding-bottom: 8px; }
-        .header h1 { font-size: 16px; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; }
-        .header p { font-size: 11px; color: #555; margin-top: 3px; }
+        .header { text-align: center; margin-bottom: 12px; border-bottom: 2px solid #1a1a1a; padding-bottom: 6px; }
+        .header h1 { font-size: 13px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px; }
+        .header p { font-size: 9px; color: #555; margin-top: 2px; }
 
-        .info-section { margin-bottom: 15px; font-size: 11px; color: #333; }
+        .info-section { margin-bottom: 10px; font-size: 9px; color: #333; line-height: 1.3; }
         .info-section span { font-weight: bold; }
 
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        th, td { border: 1px solid #cbd5e1; text-align: center; padding: 6px 4px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 8px; table-layout: fixed; }
+        th, td { border: 1px solid #cbd5e1; text-align: center; padding: {{ $cellPadding }}; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
         
-        th { background: #f1f5f9; font-weight: bold; font-size: 9px; }
-        .th-nama { text-align: left; padding-left: 8px; }
+        th { background: #f1f5f9; font-weight: bold; font-size: {{ $fontSizeTh }}; }
+        .th-nama { text-align: left; padding-left: 5px; }
         
-        td { font-size: 8.5px; }
-        .td-nama { text-align: left; padding-left: 8px; font-weight: 500; }
+        td { font-size: {{ $fontSizeBody }}; }
+        .td-nama { text-align: left; padding-left: 5px; font-weight: 500; }
         .td-cell { font-weight: bold; }
         
         /* Highlight styles */
         .highlight-zero { color: #94a3b8; font-weight: normal; }
         .highlight-some { background: #fee2e2; color: #b91c1c; }
-        .total-col { background: #fff1f2; color: #be123c; font-weight: bold; font-size: 9px; }
+        .total-col { background: #fff1f2; color: #be123c; font-weight: bold; font-size: {{ $fontSizeTh }}; }
 
-        .legend { margin-top: 20px; font-size: 8.5px; color: #475569; border-top: 1px solid #e2e8f0; padding-top: 10px; }
+        .legend { margin-top: 15px; font-size: 7.5px; color: #475569; border-top: 1px solid #e2e8f0; padding-top: 8px; line-height: 1.3; }
         .empty-msg { padding: 30px; text-align: center; color: #94a3b8; font-style: italic; font-size: 11px; }
     </style>
 </head>
@@ -41,8 +75,8 @@
     </div>
 
     <div class="info-section">
-        <span>Kelas:</span> {{ $kelas->nama }} <br>
-        <span>Semester:</span> {{ $tahunAjar->semester ?? 'Ganjil' }} <br>
+        <span>Kelas:</span> {{ $kelas->nama }} &nbsp;&nbsp;|&nbsp;&nbsp; 
+        <span>Semester:</span> {{ $tahunAjar->semester ?? 'Ganjil' }} &nbsp;&nbsp;|&nbsp;&nbsp; 
         <span>Tahun Ajaran:</span> {{ $tahunAjar->tahun ?? '-' }}
     </div>
 
@@ -52,19 +86,19 @@
         <table>
             <thead>
                 <tr>
-                    <th rowspan="2" style="width: 30px; vertical-align: middle;">No</th>
-                    <th rowspan="2" class="th-nama" style="vertical-align: middle;">Nama Siswa</th>
+                    <th rowspan="2" style="width: {{ $noWidth }}; vertical-align: middle;">No</th>
+                    <th rowspan="2" class="th-nama" style="width: {{ $namaWidth }}; vertical-align: middle;">Nama Siswa</th>
                     @foreach($mapelList as $mapel)
-                        <th colspan="4" style="font-size: 8px; padding: 4px 2px;">{{ $mapel->nama }}</th>
+                        <th colspan="4" style="font-size: {{ $fontSizeMapel }}; padding: 3px 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="{{ $mapel->nama }}">{{ $mapel->nama }}</th>
                     @endforeach
-                    <th rowspan="2" style="width: 50px; vertical-align: middle;">Total AIS</th>
+                    <th rowspan="2" style="width: {{ $totalAisWidth }}; vertical-align: middle;">Total AIS</th>
                 </tr>
                 <tr>
                     @foreach($mapelList as $mapel)
-                        <th style="width: 15px; font-size: 7px; background: #f8fafc; font-weight: normal; color: #b91c1c;">A</th>
-                        <th style="width: 15px; font-size: 7px; background: #f8fafc; font-weight: normal; color: #1d4ed8;">I</th>
-                        <th style="width: 15px; font-size: 7px; background: #f8fafc; font-weight: normal; color: #c2410c;">S</th>
-                        <th style="width: 20px; font-size: 7px; background: #e2e8f0; font-weight: bold; color: #1e293b;">Tot</th>
+                        <th style="width: {{ $cellWidth }}; font-size: {{ $fontSizeTh }}; background: #f8fafc; font-weight: normal; color: #b91c1c;">A</th>
+                        <th style="width: {{ $cellWidth }}; font-size: {{ $fontSizeTh }}; background: #f8fafc; font-weight: normal; color: #1d4ed8;">I</th>
+                        <th style="width: {{ $cellWidth }}; font-size: {{ $fontSizeTh }}; background: #f8fafc; font-weight: normal; color: #c2410c;">S</th>
+                        <th style="width: {{ $totWidth }}; font-size: {{ $fontSizeTh }}; background: #e2e8f0; font-weight: bold; color: #1e293b;">Tot</th>
                     @endforeach
                 </tr>
             </thead>
@@ -72,7 +106,7 @@
                 @foreach($matrix as $index => $row)
                     <tr>
                         <td>{{ $index + 1 }}</td>
-                        <td class="td-nama">{{ $row['nama'] }}</td>
+                        <td class="td-nama" style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ $row['nama'] }}</td>
                         @foreach($mapelList as $mapel)
                             @php
                                 $details = $row['mapel_ais'][$mapel->id] ?? ['A' => 0, 'I' => 0, 'S' => 0, 'Total' => 0];
