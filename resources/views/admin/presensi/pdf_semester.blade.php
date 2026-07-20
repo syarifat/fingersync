@@ -17,28 +17,18 @@
             $part2Mapels = collect();
         }
 
-        // Tentukan persentase kolom agar Nama Siswa mendapat porsi terbesar (50%)
-        $noPct = '3%';
-        $namaPct = '50%'; // Kolom nama dijamin lebar setengah halaman landscape
-        
-        $part1Count = count($part1Mapels);
-        if ($isSplit) {
-            $part2Count = count($part2Mapels);
-            $totalAisPct = '5%';
-            // Halaman 1: No (3%) + Nama (50%) + Mapel Part 1 (47%) = 100%
-            $mapel1ColPct = (47 / ($part1Count * 3)) . '%';
-            // Halaman 2: No (3%) + Nama (50%) + Mapel Part 2 (42%) + Total AIS (5%) = 100%
-            $mapel2ColPct = (42 / ($part2Count * 3)) . '%';
-        } else {
-            $totalAisPct = '7%';
-            // Tanpa split: No (3%) + Nama (50%) + Mapel (40%) + Total AIS (7%) = 100%
-            $mapel1ColPct = (40 / ($part1Count * 3)) . '%';
-        }
+        // Lebar kolom: nama 25%, AIS sel kecil 7px
+        $noWidth = '20px';
+        $namaWidth = '25%';
+        $cellWidth = '7px';
+        $totalAisWidth = '35px';
+        $mapel1ColPct = $cellWidth;
+        $mapel2ColPct = $cellWidth;
 
-        $fontSizeBody = '8.5px';
-        $fontSizeTh = '8px';
-        $fontSizeMapel = '8px';
-        $cellPadding = '4px 2px';
+        $fontSizeBody = '8px';
+        $fontSizeTh = '7.5px';
+        $fontSizeMapel = '7.5px';
+        $cellPadding = '4px 1px';
     @endphp
     <style>
         @page {
@@ -102,13 +92,13 @@
         <table>
             <thead>
                 <tr>
-                    <th rowspan="2" style="width: {{ $noPct }}; vertical-align: middle;">No</th>
-                    <th rowspan="2" class="th-nama" style="width: {{ $namaPct }}; vertical-align: middle;">Nama Siswa</th>
+                    <th rowspan="2" style="width: {{ $noWidth }}; vertical-align: middle;">No</th>
+                    <th rowspan="2" class="th-nama" style="width: {{ $namaWidth }}; vertical-align: middle;">Nama Siswa</th>
                     @foreach($part1Mapels as $mapel)
                         <th colspan="3" style="font-size: {{ $fontSizeMapel }}; padding: 3px 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="{{ $mapel->nama }}">{{ $mapel->nama }}</th>
                     @endforeach
                     @if(!$isSplit)
-                        <th rowspan="2" style="width: {{ $totalAisPct }}; vertical-align: middle;">Total AIS</th>
+                        <th rowspan="2" style="width: {{ $totalAisWidth }}; vertical-align: middle;">Total AIS</th>
                     @endif
                 </tr>
                 <tr>
@@ -139,7 +129,7 @@
                             </td>
                         @endforeach
                         @if(!$isSplit)
-                            <td class="total-col">{{ $row['total_ais'] ?: '-' }}</td>
+                            <td class="total-col" style="width: {{ $totalAisWidth }};">{{ $row['total_ais'] ?: '-' }}</td>
                         @endif
                     </tr>
                 @endforeach
@@ -164,12 +154,12 @@
             <table>
                 <thead>
                     <tr>
-                        <th rowspan="2" style="width: {{ $noPct }}; vertical-align: middle;">No</th>
-                        <th rowspan="2" class="th-nama" style="width: {{ $namaPct }}; vertical-align: middle;">Nama Siswa</th>
+                        <th rowspan="2" style="width: {{ $noWidth }}; vertical-align: middle;">No</th>
+                        <th rowspan="2" class="th-nama" style="width: {{ $namaWidth }}; vertical-align: middle;">Nama Siswa</th>
                         @foreach($part2Mapels as $mapel)
                             <th colspan="3" style="font-size: {{ $fontSizeMapel }}; padding: 3px 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="{{ $mapel->nama }}">{{ $mapel->nama }}</th>
                         @endforeach
-                        <th rowspan="2" style="width: {{ $totalAisPct }}; vertical-align: middle;">Total AIS</th>
+                        <th rowspan="2" style="width: {{ $totalAisWidth }}; vertical-align: middle;">Total AIS</th>
                     </tr>
                     <tr>
                         @foreach($part2Mapels as $mapel)
