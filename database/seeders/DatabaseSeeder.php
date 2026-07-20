@@ -17,7 +17,7 @@ class DatabaseSeeder extends Seeder
         // Ubah tanggal di bawah ini sesuai keinginan Anda!
         // ==========================================
         $tglAwalPresensi = '2026-06-01'; // Format: YYYY-MM-DD
-        $tglAkhirPresensi = '2026-07-15'; // Format: YYYY-MM-DD
+        $tglAkhirPresensi = '2026-07-20'; // Format: YYYY-MM-DD
         $faker = Faker::create('id_ID');
 
         // ==========================================
