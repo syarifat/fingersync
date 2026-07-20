@@ -126,16 +126,21 @@
     </div>
 
     <script>
-        const allSchedules = @json($jadwals->map(fn($j) => [
-            'id' => $j->id,
-            'hari' => $j->hari,
-            'id_guru' => $j->rombelMapel->guru->id ?? null,
-            'nama_guru' => $j->rombelMapel->guru->nama ?? '',
-            'nama_kelas' => $j->rombelMapel->kelas->nama ?? '',
-            'nama_mapel' => $j->rombelMapel->mataPelajaran->nama ?? '',
-            'jam_mulai' => substr($j->jam_mulai, 0, 5),
-            'jam_selesai' => substr($j->jam_selesai, 0, 5)
-        ]));
+        @php
+        $allSchedulesData = $jadwals->map(function($j) {
+            return [
+                'id'         => $j->id,
+                'hari'       => $j->hari,
+                'id_guru'    => $j->rombelMapel->guru->id ?? null,
+                'nama_guru'  => $j->rombelMapel->guru->nama ?? '',
+                'nama_kelas' => $j->rombelMapel->kelas->nama ?? '',
+                'nama_mapel' => $j->rombelMapel->mataPelajaran->nama ?? '',
+                'jam_mulai'  => substr($j->jam_mulai, 0, 5),
+                'jam_selesai'=> substr($j->jam_selesai, 0, 5),
+            ];
+        })->values()->toArray();
+        @endphp
+        const allSchedules = @json($allSchedulesData);
 
         function toggleInputType() {
             const type = document.getElementById('input_type').value;
