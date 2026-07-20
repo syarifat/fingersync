@@ -24,8 +24,7 @@
         $cellPadding = '4px 1px'; // Perkecil padding kiri-kanan agar teks angka muat di sel kecil
         $noWidth = '25px';
         $namaWidth = '220px'; // Diperlebar signifikan dari 160px agar nama tidak terpotong
-        $cellWidth = '11px';  // Diperkecil dari 15px
-        $totWidth = '15px';   // Diperkecil dari 20px
+        $cellWidth = '12px';  // Ukuran sel A, I, S
         $totalAisWidth = '45px';
     @endphp
     <style>
@@ -93,7 +92,7 @@
                     <th rowspan="2" style="width: {{ $noWidth }}; vertical-align: middle;">No</th>
                     <th rowspan="2" class="th-nama" style="width: {{ $namaWidth }}; vertical-align: middle;">Nama Siswa</th>
                     @foreach($part1Mapels as $mapel)
-                        <th colspan="4" style="font-size: {{ $fontSizeMapel }}; padding: 3px 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="{{ $mapel->nama }}">{{ $mapel->nama }}</th>
+                        <th colspan="3" style="font-size: {{ $fontSizeMapel }}; padding: 3px 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="{{ $mapel->nama }}">{{ $mapel->nama }}</th>
                     @endforeach
                     @if(!$isSplit)
                         <th rowspan="2" style="width: {{ $totalAisWidth }}; vertical-align: middle;">Total AIS</th>
@@ -104,7 +103,6 @@
                         <th style="width: {{ $cellWidth }}; font-size: {{ $fontSizeTh }}; background: #f8fafc; font-weight: normal; color: #b91c1c;">A</th>
                         <th style="width: {{ $cellWidth }}; font-size: {{ $fontSizeTh }}; background: #f8fafc; font-weight: normal; color: #1d4ed8;">I</th>
                         <th style="width: {{ $cellWidth }}; font-size: {{ $fontSizeTh }}; background: #f8fafc; font-weight: normal; color: #c2410c;">S</th>
-                        <th style="width: {{ $totWidth }}; font-size: {{ $fontSizeTh }}; background: #e2e8f0; font-weight: bold; color: #1e293b;">Tot</th>
                     @endforeach
                 </tr>
             </thead>
@@ -125,9 +123,6 @@
                             </td>
                             <td class="{{ $details['S'] > 0 ? 'highlight-some' : 'highlight-zero' }}">
                                 {{ $details['S'] ?: '-' }}
-                            </td>
-                            <td class="td-cell {{ $details['Total'] > 0 ? 'highlight-some' : 'highlight-zero' }}" style="background: #f8fafc; font-weight: bold;">
-                                {{ $details['Total'] ?: '-' }}
                             </td>
                         @endforeach
                         @if(!$isSplit)
@@ -159,7 +154,7 @@
                         <th rowspan="2" style="width: {{ $noWidth }}; vertical-align: middle;">No</th>
                         <th rowspan="2" class="th-nama" style="width: {{ $namaWidth }}; vertical-align: middle;">Nama Siswa</th>
                         @foreach($part2Mapels as $mapel)
-                            <th colspan="4" style="font-size: {{ $fontSizeMapel }}; padding: 3px 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="{{ $mapel->nama }}">{{ $mapel->nama }}</th>
+                            <th colspan="3" style="font-size: {{ $fontSizeMapel }}; padding: 3px 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="{{ $mapel->nama }}">{{ $mapel->nama }}</th>
                         @endforeach
                         <th rowspan="2" style="width: {{ $totalAisWidth }}; vertical-align: middle;">Total AIS</th>
                     </tr>
@@ -168,7 +163,6 @@
                             <th style="width: {{ $cellWidth }}; font-size: {{ $fontSizeTh }}; background: #f8fafc; font-weight: normal; color: #b91c1c;">A</th>
                             <th style="width: {{ $cellWidth }}; font-size: {{ $fontSizeTh }}; background: #f8fafc; font-weight: normal; color: #1d4ed8;">I</th>
                             <th style="width: {{ $cellWidth }}; font-size: {{ $fontSizeTh }}; background: #f8fafc; font-weight: normal; color: #c2410c;">S</th>
-                            <th style="width: {{ $totWidth }}; font-size: {{ $fontSizeTh }}; background: #e2e8f0; font-weight: bold; color: #1e293b;">Tot</th>
                         @endforeach
                     </tr>
                 </thead>
@@ -190,9 +184,6 @@
                                 <td class="{{ $details['S'] > 0 ? 'highlight-some' : 'highlight-zero' }}">
                                     {{ $details['S'] ?: '-' }}
                                 </td>
-                                <td class="td-cell {{ $details['Total'] > 0 ? 'highlight-some' : 'highlight-zero' }}" style="background: #f8fafc; font-weight: bold;">
-                                    {{ $details['Total'] ?: '-' }}
-                                </td>
                             @endforeach
                             <td class="total-col">{{ $row['total_ais'] ?: '-' }}</td>
                         </tr>
@@ -203,7 +194,7 @@
 
         <div class="legend">
             <strong>Catatan:</strong><br>
-            - Setiap mata pelajaran dibagi menjadi 4 sub-kolom: <strong>A</strong> (Alpha/Alpa), <strong>I</strong> (Izin), <strong>S</strong> (Sakit), dan <strong>Tot</strong> (Total AIS per mata pelajaran).<br>
+            - Setiap mata pelajaran dibagi menjadi 3 sub-kolom: <strong>A</strong> (Alpha/Alpa), <strong>I</strong> (Izin), dan <strong>S</strong> (Sakit).<br>
             - Kolom <strong>Total AIS</strong> di bagian akhir menunjukkan akumulasi total hari ketidakhadiran (A + I + S) dari seluruh mata pelajaran.<br>
             - Tanda (-) menunjukkan tidak ada riwayat ketidakhadiran pada kolom tersebut.
         </div>
