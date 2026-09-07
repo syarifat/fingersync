@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+<html class="h-full overflow-hidden" lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 
 <head>
     <meta charset="utf-8">
@@ -177,8 +177,8 @@
                 return;
             }
 
-            // Abaikan form switch tahun, logout, dan clear cache
-            if (action.includes('/tahun-ajar/switch') || action.includes('/logout') || action.includes('/clear-cache')) {
+            // Abaikan form switch tahun, logout, clear cache, dan aksi panel expo
+            if (action.includes('/tahun-ajar/switch') || action.includes('/logout') || action.includes('/clear-cache') || action.includes('/expo/')) {
                 return;
             }
 
@@ -188,12 +188,12 @@
     </script>
 </head>
 
-<body class="font-sans antialiased bg-gray-50" x-data="{ sidebarOpen: true }">
+<body class="font-sans antialiased bg-gray-50 h-full overflow-hidden overscroll-none" x-data="{ sidebarOpen: true }">
     <div class="flex h-screen overflow-hidden">
 
         @include('layouts.navigation')
 
-        <div class="flex-1 flex flex-col overflow-y-auto overflow-x-hidden transition-all duration-300">
+        <div class="flex-1 flex flex-col h-screen overflow-y-auto overflow-x-hidden overscroll-contain transition-all duration-300">
 
             <header class="bg-white border-b border-gray-100 sticky top-0 z-30">
                 <div class="flex items-center justify-between h-16 px-4 sm:px-6 lg:px-8">

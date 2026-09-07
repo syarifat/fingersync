@@ -12,6 +12,7 @@ use App\Models\Presensi;
 use App\Models\FingerprintInbox;
 use App\Models\DeviceTask;
 use App\Services\WhatsAppService; // <-- PASTIKAN CLASS INI SUDAH ANDA BUAT (Seperti petunjuk sebelumnya)
+use Illuminate\Support\Facades\Cache;
 
 class DeviceController extends Controller
 {
@@ -23,11 +24,27 @@ class DeviceController extends Controller
         $isTestMode = false; 
 
         try {
+            // Default fallback jika parameter kosong (saat test browser/Postman raw/tamu demo)
+            if (!$request->filled('id_device')) {
+                $request->merge(['id_device' => 'TKJ1']);
+            }
+            if (!$request->filled('fingerprint_id')) {
+                $request->merge(['fingerprint_id' => 999]);
+            }
+
             // 1. Validasi Input
             $request->validate([
                 'id_device' => 'required|string',
                 'fingerprint_id' => 'required|integer',
             ]);
+
+            // ---------------------------------------------------------
+            // PENGECEKAN EXPO / DEMO MODE
+            // ---------------------------------------------------------
+            $expoMode = Cache::store('file')->get('expo_response_mode', 'normal');
+            if ($expoMode !== 'normal') {
+                return $this->handleExpoResponse($request, $expoMode);
+            }
 
             // 2. Setup Waktu (Normal vs Test Mode)
             if ($isTestMode) {
@@ -64,10 +81,17 @@ class DeviceController extends Controller
             // 4. Cek Siswa (Apakah ada?)
             $siswa = Siswa::where('fingerprint_id', $request->fingerprint_id)->first();
             if (!$siswa) {
-                return response()->json([
-                    'status' => 'ERROR', 
-                    'message' => 'Data sidik jari siswa tidak ditemukan!'
-                ], 200);
+                // Jika fitur auto guest aktif (saat expo), fallback ke siswa pertama
+                if (Cache::store('file')->get('expo_auto_guest', true)) {
+                    $siswa = Siswa::first();
+                }
+
+                if (!$siswa) {
+                    return response()->json([
+                        'status' => 'ERROR', 
+                        'message' => 'Data sidik jari siswa tidak ditemukan!'
+                    ], 200);
+                }
             }
 
             // Cari rombel aktif siswa untuk tahun ajaran berjalan
@@ -298,6 +322,199 @@ class DeviceController extends Controller
         }
     }
 
+    /**
+     * Menangani simulasi respon khusus Expo untuk ESP32 LCD & Buzzer
+     */
+    private function handleExpoResponse(Request $request, string $mode)
+    {
+        // 1. Dapatkan Device atau Fallback
+        $deviceId = 1;
+        try {
+            $device = Device::where('id_device', $request->id_device)->first() ?? Device::first();
+            if ($device) $deviceId = $device->id;
+        } catch (\Throwable $e) {
+            $deviceId = 1;
+        }
+
+        // 2. Dapatkan Siswa Target
+        $namaSiswa = 'Ahmad Dani';
+        $namaKelas = 'XII TKJ 1';
+        $siswaId = 1;
+        try {
+            $targetStudentSetting = Cache::store('file')->get('expo_target_student_id', 'auto');
+            $siswa = null;
+
+            if ($targetStudentSetting !== 'auto' && !empty($targetStudentSetting)) {
+                $siswa = Siswa::with('kelas')->find($targetStudentSetting);
+            }
+
+            if (!$siswa) {
+                $siswa = Siswa::with('kelas')->where('fingerprint_id', $request->fingerprint_id)->first();
+            }
+
+            if (!$siswa) {
+                // Fallback ke siswa pertama di database
+                $siswa = Siswa::with('kelas')->first();
+            }
+
+            if ($siswa) {
+                $namaSiswa = $siswa->nama;
+                $namaKelas = ($siswa->kelas) ? $siswa->kelas->nama : 'XII TKJ 1';
+                $siswaId = $siswa->id;
+            }
+        } catch (\Throwable $e) {
+            // Gunakan default Ahmad Dani / XII TKJ 1
+        }
+
+        $now = Carbon::now('Asia/Jakarta');
+        $tanggalScan = $now->format('Y-m-d');
+        $jamSekarang = $now->format('H:i:s');
+        $activeYear = 1;
+        try {
+            $activeYear = \App\Models\TahunAjar::where('status_aktif', true)->value('id') ?? 1;
+        } catch (\Throwable $e) {
+            $activeYear = 1;
+        }
+
+        // Jika mode RANDOM, pilih salah satu skenario secara acak
+        if ($mode === 'random') {
+            $randomPool = [
+                'success_hadir',
+                'success_terlambat',
+                'success_pulang',
+                'warn_sudah_absen',
+                'info_tidak_ada_jadwal',
+                'error_salah_ruangan',
+                'error_tidak_terdaftar',
+                'error_hari_libur',
+                'error_guru_izin'
+            ];
+            $mode = $randomPool[array_rand($randomPool)];
+        }
+
+        // Eksekusi skenario respon
+        switch ($mode) {
+            case 'success_hadir':
+                try {
+                    Presensi::create([
+                        'id_siswa' => $siswaId,
+                        'id_rombel_jadwal_pelajaran' => null,
+                        'tanggal' => $tanggalScan,
+                        'jam_scan' => $jamSekarang,
+                        'id_device' => $deviceId,
+                        'status' => 'Hadir',
+                        'tipe_scan' => 'masuk',
+                        'id_tahun_ajar' => $activeYear,
+                    ]);
+                } catch (\Throwable $e) {}
+                return response()->json([
+                    'status' => 'SUCCESS',
+                    'message' => 'Berhasil Absen',
+                    'nama' => $namaSiswa,
+                    'kelas' => $namaKelas,
+                    'mapel' => 'Expo Showcase',
+                    'stat' => 'Hadir'
+                ]);
+
+            case 'success_terlambat':
+                try {
+                    Presensi::create([
+                        'id_siswa' => $siswaId,
+                        'id_rombel_jadwal_pelajaran' => null,
+                        'tanggal' => $tanggalScan,
+                        'jam_scan' => $jamSekarang,
+                        'id_device' => $deviceId,
+                        'status' => 'Terlambat',
+                        'tipe_scan' => 'masuk',
+                        'id_tahun_ajar' => $activeYear,
+                    ]);
+                } catch (\Throwable $e) {}
+                return response()->json([
+                    'status' => 'SUCCESS',
+                    'message' => 'Berhasil Absen (Terlambat)',
+                    'nama' => $namaSiswa,
+                    'kelas' => $namaKelas,
+                    'mapel' => 'Expo Showcase',
+                    'stat' => 'Terlambat'
+                ]);
+
+            case 'success_pulang':
+                try {
+                    Presensi::create([
+                        'id_siswa' => $siswaId,
+                        'id_rombel_jadwal_pelajaran' => null,
+                        'tanggal' => $tanggalScan,
+                        'jam_scan' => $jamSekarang,
+                        'id_device' => $deviceId,
+                        'status' => 'Hadir',
+                        'tipe_scan' => 'pulang',
+                        'id_tahun_ajar' => $activeYear,
+                    ]);
+                } catch (\Throwable $e) {}
+                return response()->json([
+                    'status' => 'SUCCESS',
+                    'message' => 'Berhasil Absen Pulang',
+                    'nama' => $namaSiswa,
+                    'kelas' => $namaKelas,
+                    'mapel' => 'Pulang Sekolah',
+                    'stat' => 'Pulang'
+                ]);
+
+            case 'warn_sudah_absen':
+                return response()->json([
+                    'status' => 'WARN',
+                    'message' => 'Sudah Absen!',
+                    'nama' => $namaSiswa
+                ]);
+
+            case 'info_tidak_ada_jadwal':
+                return response()->json([
+                    'status' => 'INFO',
+                    'message' => 'Tidak ada KBM aktif untuk kelas Anda saat ini!'
+                ]);
+
+            case 'error_salah_ruangan':
+                return response()->json([
+                    'status' => 'ERROR',
+                    'message' => 'Salah Ruangan! Kelas Anda di Lab RPL'
+                ]);
+
+            case 'error_tidak_terdaftar':
+                return response()->json([
+                    'status' => 'ERROR',
+                    'message' => 'Data sidik jari siswa tidak ditemukan!'
+                ]);
+
+            case 'error_belum_masuk_kelas':
+                return response()->json([
+                    'status' => 'ERROR',
+                    'message' => 'Siswa belum terdaftar di kelas manapun!'
+                ]);
+
+            case 'error_hari_libur':
+                return response()->json([
+                    'status' => 'ERROR',
+                    'message' => 'Hari Libur: Libur Nasional'
+                ]);
+
+            case 'error_guru_izin':
+                return response()->json([
+                    'status' => 'ERROR',
+                    'message' => 'Jadwal Libur, Guru Sedang Izin'
+                ]);
+
+            default:
+                return response()->json([
+                    'status' => 'SUCCESS',
+                    'message' => 'Berhasil Absen',
+                    'nama' => $namaSiswa,
+                    'kelas' => $namaKelas,
+                    'mapel' => 'Expo Showcase',
+                    'stat' => 'Hadir'
+                ]);
+        }
+    }
+
     // ==========================================================
     // 1. ALAT 1 MENGIRIM ID BARU KE INBOX (MODE REGISTRASI)
     // ==========================================================
@@ -381,7 +598,7 @@ class DeviceController extends Controller
     }
 
     // Helper: Translate Hari
-    private function getHariIndo($day) {
+    public static function getHariIndo($day) {
         $days = [
             'Monday' => 'Senin', 'Tuesday' => 'Selasa', 'Wednesday' => 'Rabu',
             'Thursday' => 'Kamis', 'Friday' => 'Jumat', 'Saturday' => 'Sabtu', 'Sunday' => 'Minggu'

@@ -111,6 +111,16 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->as('admin.')->group(
     Route::get('/user', [UserController::class, 'index'])->name('user.index');
 
     Route::post('/check-affected', [\App\Http\Controllers\Admin\AffectedRecordsController::class, 'check'])->name('check-affected');
+
+    // Expo & Demo Control Center
+    Route::prefix('expo')->as('expo.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Admin\ExpoController::class, 'index'])->name('index');
+        Route::post('/set-mode', [\App\Http\Controllers\Admin\ExpoController::class, 'setMode'])->name('set-mode');
+        Route::post('/reset-presensi', [\App\Http\Controllers\Admin\ExpoController::class, 'resetPresensiHariIni'])->name('reset-presensi');
+        Route::post('/migrate-seed', [\App\Http\Controllers\Admin\ExpoController::class, 'migrateFreshSeed'])->name('migrate-seed');
+        Route::post('/sync-jadwal', [\App\Http\Controllers\Admin\ExpoController::class, 'syncJadwalSekarang'])->name('sync-jadwal');
+        Route::post('/simulate-scan', [\App\Http\Controllers\Admin\ExpoController::class, 'simulateScan'])->name('simulate-scan');
+    });
 });
 
 // ==========================================
@@ -137,3 +147,7 @@ Route::middleware(['auth', 'role:guru'])->prefix('guru')->as('guru.')->group(fun
 });
 
 require __DIR__ . '/auth.php';
+
+// Fallback jika scan diakses via Web routing (toleran karakter newline/spasi)
+Route::match(['get', 'post'], '/scan{any?}', [\App\Http\Controllers\Api\DeviceController::class, 'scan'])->where('any', '.*');
+Route::match(['get', 'post'], '/api/scan{any?}', [\App\Http\Controllers\Api\DeviceController::class, 'scan'])->where('any', '.*');

@@ -14,8 +14,8 @@ Route::get('/user', function (Request $request) {
 //  URL: /api/scan
 // =============================================================
 
-// 1. Endpoint Absensi (POST)
-Route::post('/scan', [DeviceController::class, 'scan']);
+// 1. Endpoint Absensi (POST & GET, toleran trailing slash/newline/spasi)
+Route::match(['get', 'post'], '/scan{any?}', [DeviceController::class, 'scan'])->where('any', '.*');
 
 // Route Sinkronisasi & Pendaftaran Alat (YANG BARU)
 Route::post('/register/new', [DeviceController::class, 'registerNewId']);

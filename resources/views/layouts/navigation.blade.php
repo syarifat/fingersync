@@ -35,6 +35,17 @@
         </a>
 
         @if(Auth::user()->role === 'admin')
+        {{-- MENU KHUSUS EXPO (PINNED DI ATAS AGAR MUDAH DIAKSES) --}}
+        <a href="{{ route('admin.expo.index') }}" 
+            class="flex items-center p-3 rounded-xl transition-all duration-200 group {{ request()->routeIs('admin.expo.*') ? 'bg-amber-500 text-white font-bold shadow-lg ring-2 ring-amber-300' : 'bg-orange-700/80 hover:bg-orange-500 text-amber-200 hover:text-white' }}">
+            <svg class="w-6 h-6 shrink-0 text-amber-300 group-hover:text-yellow-200 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+            </svg>
+            <span :class="sidebarOpen ? 'opacity-100 ml-4' : 'opacity-0 w-0'" class="font-bold text-sm transition-all duration-300 overflow-hidden whitespace-nowrap flex items-center justify-between w-full">
+                <span>Panel Expo Demo</span>
+                <span class="px-2 py-0.5 text-[9px] bg-yellow-400 text-gray-900 rounded font-black tracking-wider uppercase shadow-sm">LIVE</span>
+            </span>
+        </a>
         
         <div class="pt-6 pb-2">
             <div :class="sidebarOpen ? 'px-4' : 'px-0 text-center'" class="transition-all duration-300">
@@ -185,7 +196,6 @@
                 </svg>
                 <span :class="sidebarOpen ? 'opacity-100 ml-4' : 'opacity-0 w-0'" class="font-medium transition-all duration-300 overflow-hidden whitespace-nowrap">Log WhatsApp</span>
             </a>
-
         </div>
 
         {{-- MENU KHUSUS GURU --}}
