@@ -6,9 +6,9 @@
 #include <WiFiClientSecure.h> // <-- TAMBAHAN WAJIB UNTUK HTTPS/NGROK
 #include <ArduinoJson.h>
 
-const char* ssid = "Matahary 2.4G";
-const char* password = "kebunanggur";
-const char* hostURL = "https://fingersync.satcloud.tech"; // Bisa diganti URL ngrok kapanpun
+const char* ssid = "esp";
+const char* password = "12345678";
+const char* hostURL = "https://thinkmac.satcloud.tech"; // Bisa diganti URL ngrok kapanpun
 
 String idDevice = "TKJ1"; 
 

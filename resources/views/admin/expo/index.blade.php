@@ -1,8 +1,20 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-bold text-xl text-gray-800 leading-tight">
-            {{ __('Panel Kontrol Expo & Live Demo') }}
-        </h2>
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+            <h2 class="font-bold text-xl text-gray-800 leading-tight">
+                {{ __('Panel Kontrol Expo & Live Demo') }}
+            </h2>
+            <div class="flex items-center gap-2">
+                <a href="{{ route('showcase') }}" target="_blank" class="inline-flex items-center gap-1.5 px-3 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-black text-xs rounded-xl shadow transition transform hover:-translate-y-0.5">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    <span>Web Animasi (15s)</span>
+                </a>
+                <a href="{{ route('admin.expo.buttons') }}" target="_blank" class="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-black text-xs rounded-xl shadow-md transition transform hover:-translate-y-0.5">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+                    <span>Buka Panel Tombol Respon</span>
+                </a>
+            </div>
+        </div>
     </x-slot>
 
     <div class="space-y-6 pb-8">
@@ -18,6 +30,19 @@
                     <p class="text-xs text-orange-100 mt-1 max-w-xl">
                         Atur respon LCD & buzzer ESP32 secara instan, lakukan simulasi tap jari, reset database 1-klik, dan sinkronkan jam KBM agar selalu aktif saat pameran.
                     </p>
+                    <div class="mt-4 flex flex-wrap items-center gap-2.5">
+                        <a href="{{ route('admin.expo.buttons') }}" target="_blank" class="inline-flex items-center gap-2 px-4 py-2.5 bg-yellow-400 hover:bg-yellow-300 text-slate-950 font-black text-xs rounded-xl shadow-lg transition transform hover:scale-105 active:scale-95">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122"/></svg>
+                            <span>Buka Panel Tombol Respon</span>
+                            <span class="px-1.5 py-0.5 rounded bg-slate-950 text-yellow-300 text-[10px] font-mono uppercase">Tanpa Scroll</span>
+                        </a>
+
+                        <a href="{{ route('showcase') }}" target="_blank" class="inline-flex items-center gap-2 px-4 py-2.5 bg-slate-950/80 hover:bg-slate-950 text-white font-black text-xs rounded-xl border border-white/20 shadow-lg transition transform hover:scale-105 active:scale-95">
+                            <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            <span>Buka Web Animasi Pameran</span>
+                            <span class="px-1.5 py-0.5 rounded bg-emerald-500/30 text-emerald-300 text-[10px] font-mono uppercase">15s Looping &rarr;</span>
+                        </a>
+                    </div>
                 </div>
                 <div class="bg-black/20 backdrop-blur-md border border-white/20 rounded-2xl p-4 shrink-0">
                     <span class="text-[10px] text-orange-200 uppercase font-bold tracking-widest block">Mode LCD Saat Ini:</span>
@@ -142,7 +167,7 @@
 
             {{-- ROW 2: PEMILIH SKENARIO RESPON LCD ESP32 --}}
             <div class="bg-white rounded-3xl p-6 shadow-sm border border-gray-100">
-                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-6 border-b border-gray-100 pb-4">
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6 border-b border-gray-100 pb-4">
                     <div>
                         <h3 class="text-base font-bold text-gray-800 flex items-center gap-2">
                             <span class="p-1.5 bg-indigo-100 text-indigo-600 rounded-lg">
@@ -154,6 +179,10 @@
                         </h3>
                         <p class="text-xs text-gray-500">Pilih salah satu skenario di bawah ini. Begitu jari siapapun menempel di sensor, ESP32 akan langsung merespon sesuai pilihan ini!</p>
                     </div>
+                    <a href="{{ route('admin.expo.buttons') }}" target="_blank" class="inline-flex items-center gap-2 px-3.5 py-2 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 text-indigo-700 font-extrabold text-xs rounded-xl shadow-sm transition shrink-0">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+                        <span>Buka Panel Tombol Respon (No Scroll)</span>
+                    </a>
                 </div>
 
                 <form action="{{ route('admin.expo.set-mode') }}" method="POST" id="modeForm">

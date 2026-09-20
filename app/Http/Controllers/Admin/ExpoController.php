@@ -228,6 +228,18 @@ class ExpoController extends Controller
     }
 
     /**
+     * Halaman khusus Remote Kontrol Tombol Respon (Fit 1 Layar Penuh, Tanpa Scroll)
+     */
+    public function buttons()
+    {
+        $currentMode = Cache::store('file')->get('expo_response_mode', 'normal');
+        $modes = self::getModes();
+        $selectedModeDetails = $modes[$currentMode] ?? $modes['normal'];
+
+        return view('admin.expo.buttons', compact('currentMode', 'modes', 'selectedModeDetails'));
+    }
+
+    /**
      * Set mode respon ESP32
      */
     public function setMode(Request $request)
@@ -240,12 +252,27 @@ class ExpoController extends Controller
         ]);
 
         Cache::store('file')->forever('expo_response_mode', $request->mode);
-        Cache::store('file')->forever('expo_target_student_id', $request->target_student_id ?? 'auto');
-        Cache::store('file')->forever('expo_auto_guest', $request->boolean('auto_guest'));
+        if ($request->has('target_student_id')) {
+            Cache::store('file')->forever('expo_target_student_id', $request->target_student_id ?? 'auto');
+        }
+        if ($request->has('auto_guest')) {
+            Cache::store('file')->forever('expo_auto_guest', $request->boolean('auto_guest'));
+        }
 
-        $modeTitle = self::getModes()[$request->mode]['title'] ?? $request->mode;
+        $modeDetails = self::getModes()[$request->mode] ?? [];
+        $modeTitle = $modeDetails['title'] ?? $request->mode;
 
-        return redirect()->route('admin.expo.index')->with('success', "Mode respon ESP32 berhasil diubah menjadi: {$modeTitle}");
+        // Jika request via AJAX / Fetch
+        if ($request->expectsJson() || $request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'mode' => $request->mode,
+                'modeDetails' => $modeDetails,
+                'message' => "Mode respon ESP32 berhasil diubah menjadi: {$modeTitle}"
+            ]);
+        }
+
+        return redirect()->back()->with('success', "Mode respon ESP32 berhasil diubah menjadi: {$modeTitle}");
     }
 
     /**

@@ -42,6 +42,11 @@ Route::get('/', function () {
     return view('welcome');
 });
 
+// Web Animasi Showcase Pameran (Looping 15 Detik, Standby Booth Display)
+Route::get('/showcase', function () {
+    return view('showcase');
+})->name('showcase');
+
 Route::get('/dashboard', function () {
     return view('dashboard');
 })->middleware(['auth', 'verified'])->name('dashboard');
@@ -115,6 +120,8 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->as('admin.')->group(
     // Expo & Demo Control Center
     Route::prefix('expo')->as('expo.')->group(function () {
         Route::get('/', [\App\Http\Controllers\Admin\ExpoController::class, 'index'])->name('index');
+        Route::get('/buttons', [\App\Http\Controllers\Admin\ExpoController::class, 'buttons'])->name('buttons');
+        Route::get('/showcase', function () { return view('showcase'); })->name('showcase');
         Route::post('/set-mode', [\App\Http\Controllers\Admin\ExpoController::class, 'setMode'])->name('set-mode');
         Route::post('/reset-presensi', [\App\Http\Controllers\Admin\ExpoController::class, 'resetPresensiHariIni'])->name('reset-presensi');
         Route::post('/migrate-seed', [\App\Http\Controllers\Admin\ExpoController::class, 'migrateFreshSeed'])->name('migrate-seed');
