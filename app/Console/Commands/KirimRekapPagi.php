@@ -152,6 +152,13 @@ class KirimRekapPagi extends Command
 
             // Kirim ke grup WA kelas jika ada target
             if (!empty($kelas->id_grup_wa)) {
+                // Cek limit pengiriman jika dikonfigurasi di .env
+                $limit = env('WA_LIMIT_PER_RUN', 0);
+                if ($limit > 0 && $totalTerkirim >= $limit) {
+                    $this->info("Batas pengiriman WA per run tercapai ({$limit}). Sisa pesan dibatalkan.");
+                    continue;
+                }
+
                 $pesanGrup = "⏰ *LAPORAN KEHADIRAN PAGI KELAS {$kelas->nama}*\n";
                 $pesanGrup .= "----------------------------------\n";
                 $pesanGrup .= "Kelas: *{$kelas->nama}*\n";

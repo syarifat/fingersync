@@ -4,39 +4,22 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Http;
 use App\Models\LogWhatsapp;
 use App\Models\Kelas;
+use App\Services\WhatsAppService;
 
 class WhatsappController extends Controller
 {
     public function index(Request $request)
     {
-        // 1. Ambil Status Koneksi dari Fonnte
-        $token = env('FONNTE_TOKEN');
-        $fonnteStatus = 'disconnected';
-        $fonnteName = '-';
-        $fonnteDevice = '-';
-        $fonnteQr = null;
+        // 1. Ambil Status Koneksi dari Baileys Service
+        $deviceInfo = WhatsAppService::getStatus();
 
-        try {
-            $response = Http::withHeaders([
-                'Authorization' => $token,
-            ])->post('https://api.fonnte.com/device');
-
-            if ($response->successful()) {
-                $data = $response->json();
-                $fonnteStatus = $data['device_status'] ?? 'disconnected';
-                $fonnteName = $data['name'] ?? '-';
-                $fonnteDevice = $data['device'] ?? '-';
-                if ($fonnteStatus == 'disconnect') { // Fonnte returns 'disconnect' not 'disconnected'
-                    $fonnteStatus = 'disconnected';
-                    $fonnteQr = $data['qr'] ?? null;
-                }
-            }
-        } catch (\Throwable $th) {
-            $fonnteStatus = 'error';
-        }
+        $waStatus = $deviceInfo['status'] ?? 'disconnected';
+        $waName = $deviceInfo['name'] ?? '-';
+        $waPhone = $deviceInfo['phone'] ?? '-';
+        $waQr = $deviceInfo['qr'] ?? null;
+        $pairingCode = $deviceInfo['pairingCode'] ?? null;
 
         // 2. Query Log WhatsApp
         $query = LogWhatsapp::with(['siswa.rombelKelas.kelas']);
@@ -90,7 +73,71 @@ class WhatsappController extends Controller
         $kelasList = Kelas::orderBy('nama', 'asc')->get();
 
         return view('admin.whatsapp.index', compact(
-            'fonnteStatus', 'fonnteName', 'fonnteDevice', 'fonnteQr', 'logs', 'kelasList'
+            'waStatus', 'waName', 'waPhone', 'waQr', 'pairingCode',
+            'logs', 'kelasList'
         ));
+    }
+
+    /**
+     * Endpoint API status koneksi realtime (AJAX polling)
+     */
+    public function statusAjax()
+    {
+        $status = WhatsAppService::getStatus();
+        return response()->json($status);
+    }
+
+    /**
+     * Request Pairing Code via nomor telepon
+     */
+    public function pairCode(Request $request)
+    {
+        $request->validate([
+            'phone' => 'required|string|min:8|max:20',
+        ]);
+
+        $res = WhatsAppService::requestPairCode($request->phone);
+
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json($res);
+        }
+
+        if (isset($res['success']) && $res['success'] === true) {
+            return redirect()->route('admin.whatsapp.index')
+                ->with('success', 'Kode Pairing berhasil digenerate: ' . ($res['code'] ?? ''));
+        }
+
+        return redirect()->route('admin.whatsapp.index')
+            ->with('error', $res['message'] ?? 'Gagal membuat kode pairing.');
+    }
+
+    /**
+     * Logout / Reset sesi WhatsApp Baileys
+     */
+    public function logout(Request $request)
+    {
+        $res = WhatsAppService::logout();
+
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json($res);
+        }
+
+        return redirect()->route('admin.whatsapp.index')
+            ->with('success', 'Sesi WhatsApp berhasil diputus. Silakan scan QR baru atau gunakan Pairing Code.');
+    }
+
+    /**
+     * Restart koneksi Baileys
+     */
+    public function restart(Request $request)
+    {
+        $res = WhatsAppService::restart();
+
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json($res);
+        }
+
+        return redirect()->route('admin.whatsapp.index')
+            ->with('success', 'Koneksi Baileys sedang direstart.');
     }
 }

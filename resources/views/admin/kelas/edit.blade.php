@@ -57,7 +57,7 @@
                                             {{ $group['name'] }} ({{ $group['id'] }})
                                         </option>
                                     @empty
-                                        <option value="" disabled>-- Tidak ada grup WA aktif di Fonnte / Cek Koneksi --</option>
+                                        <option value="" disabled>-- Tidak ada grup WA aktif / Cek Koneksi Baileys --</option>
                                     @endforelse
                                 </select>
                                 <x-input-error :messages="$errors->get('id_grup_wa')" class="mt-1" />

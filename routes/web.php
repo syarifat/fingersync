@@ -107,6 +107,10 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->as('admin.')->group(
     Route::get('/presensi/siswa/{id}/detail-ais', [PresensiController::class, 'detailAis'])->name('presensi.detail_ais');
 
     Route::get('/whatsapp', [\App\Http\Controllers\Admin\WhatsappController::class, 'index'])->name('whatsapp.index');
+    Route::get('/whatsapp/status', [\App\Http\Controllers\Admin\WhatsappController::class, 'statusAjax'])->name('whatsapp.status');
+    Route::post('/whatsapp/pair-code', [\App\Http\Controllers\Admin\WhatsappController::class, 'pairCode'])->name('whatsapp.pair_code');
+    Route::post('/whatsapp/logout', [\App\Http\Controllers\Admin\WhatsappController::class, 'logout'])->name('whatsapp.logout');
+    Route::post('/whatsapp/restart', [\App\Http\Controllers\Admin\WhatsappController::class, 'restart'])->name('whatsapp.restart');
 
     Route::get('/user', [UserController::class, 'index'])->name('user.index');
 
