@@ -16,8 +16,8 @@ class DatabaseSeeder extends Seeder
         // KONFIGURASI SEEDER TANGGAL PRESENSI
         // Ubah tanggal di bawah ini sesuai keinginan Anda!
         // ==========================================
-        $tglAwalPresensi = '2026-06-01'; // Format: YYYY-MM-DD
-        $tglAkhirPresensi = '2026-07-20'; // Format: YYYY-MM-DD
+        $tglAwalPresensi = '2026-09-01'; // Format: YYYY-MM-DD
+        $tglAkhirPresensi = '2026-09-20'; // Format: YYYY-MM-DD
         $faker = Faker::create('id_ID');
 
         // ==========================================
@@ -53,9 +53,9 @@ class DatabaseSeeder extends Seeder
             'created_at' => now(), 'updated_at' => now()
         ]);
 
-        // 3. RUANGAN & DEVICE (3 Ruangan Lab TKJ)
+        // 3. RUANGAN & DEVICE (4 Ruangan Lab TKJ)
         // ==========================================
-        $ruangans = ['Lab TKJ 1', 'Lab TKJ 2', 'Lab TKJ 3'];
+        $ruangans = ['Lab TKJ 1', 'Lab TKJ 2', 'Lab TKJ 3', 'Lab TKJ 4'];
         $ruanganIds = []; 
         $deviceIds = []; 
 
@@ -103,58 +103,87 @@ class DatabaseSeeder extends Seeder
             'user_id' => $uAdmin, 'nama' => 'Super Admin', 'username' => 'admin', 'created_at' => now(), 'updated_at' => now()
         ]);
 
-        // Guru BK (2 Orang. Maksimal mengampu 2 kelas)
-        // Guru BK (3 Orang. 1 Guru BK per kelas agar tidak bentrok)
+        // Guru BK (2 Orang. Sesuai use case nyata 1 Guru BK membina banyak kelas, Gelar S.Psi)
+        $guruBkNames = [
+            0 => ['Dian Safitri, S.Psi', 'Perempuan'],   // Membina X TKJ 1 & X TKJ 2
+            1 => ['Rahmat Hidayat, S.Psi', 'Laki-laki'], // Membina X TKJ 3 & X TKJ 4
+        ];
         $guruBkIds = [];
-        for ($i=1; $i<=3; $i++) {
-            $gName = $faker->firstName;
-            $username = 'gurubk' . $i;
+        for ($i=0; $i<2; $i++) {
+            $username = 'gurubk' . ($i + 1);
+            $nama = $guruBkNames[$i][0];
+            $gender = $guruBkNames[$i][1];
             $uid = DB::table('users')->insertGetId([
-                'nama' => $gName . ' ' . $faker->lastName . ', S.Psi', 
-                'username' => $username, 'password' => Hash::make('password'), 'role' => 'guru', 'created_at' => now(), 'updated_at' => now()
+                'nama' => $nama, 'username' => $username, 'password' => Hash::make('password'), 'role' => 'guru', 'created_at' => now(), 'updated_at' => now()
             ]);
-            $guruBkIds[] = DB::table('guru')->insertGetId([
+            $guruBkIds[$i] = DB::table('guru')->insertGetId([
                 'user_id' => $uid, 'nidn' => $faker->unique()->numerify('99########'),
-                'nama' => DB::table('users')->where('id', $uid)->value('nama'),
-                'gender' => $faker->randomElement(['Laki-laki', 'Perempuan']), 'alamat' => $faker->address,
+                'nama' => $nama,
+                'gender' => $gender, 'alamat' => $faker->address,
                 'username' => $username, 'password' => Hash::make('password'), 'nohp' => $faker->phoneNumber,
                 'is_bk' => 1, 'image' => 'default.png', 'status' => 'Aktif', 'created_at' => now(), 'updated_at' => now()
             ]);
         }
 
-        // Guru Mapel & Wali Kelas (10 Orang)
+        // Guru Mapel & Kejuruan (13 Orang dengan Spesialisasi Jelas)
+        // Spesialisasi:
+        // G1: Kejuruan TKJ & Informatika (S.Kom) -> Wali Kelas X TKJ 1, nohp 087859017087
+        // G2: Kejuruan TKJ & Informatika (S.T)   -> Wali Kelas X TKJ 2, nohp 0895414397561
+        // G3: Matematika (S.Pd)                  -> Wali Kelas X TKJ 3
+        // G4: Bahasa Indonesia (S.Pd)            -> Wali Kelas X TKJ 4
+        // G5: Bahasa Inggris (S.Pd)
+        // G6: Pendidikan Agama (S.Pd.I)
+        // G7: PPKn (S.Pd)
+        // G8: PJOK (S.Pd)
+        // G9: Sejarah (S.Pd)
+        // G10: Seni Budaya (S.Pd)
+        // G11: Matematika (S.Pd)
+        // G12: Bahasa Indonesia (S.Pd)
+        // G13: Bahasa Inggris (S.Pd)
+        $guruSpec = [
+            1  => ['nama' => 'Fajar Ramadhan, S.Kom', 'gender' => 'Laki-laki', 'nohp' => '087859017087'],
+            2  => ['nama' => 'Dedi Kurniawan, S.T',   'gender' => 'Laki-laki', 'nohp' => '0895414397561'],
+            3  => ['nama' => 'Hendra Wijaya, S.Pd',   'gender' => 'Laki-laki', 'nohp' => null],
+            4  => ['nama' => 'Budi Santoso, S.Pd',    'gender' => 'Laki-laki', 'nohp' => null],
+            5  => ['nama' => 'Eko Prasetyo, S.Pd',    'gender' => 'Laki-laki', 'nohp' => null],
+            6  => ['nama' => 'Ahmad Fauzi, S.Pd.I',   'gender' => 'Laki-laki', 'nohp' => null],
+            7  => ['nama' => 'Siti Rahmawati, S.Pd',  'gender' => 'Perempuan', 'nohp' => null],
+            8  => ['nama' => 'Bambang Pamungkas, S.Pd','gender' => 'Laki-laki','nohp' => null],
+            9  => ['nama' => 'Agus Setiawan, S.Pd',   'gender' => 'Laki-laki', 'nohp' => null],
+            10 => ['nama' => 'Maya Indah, S.Pd',      'gender' => 'Perempuan', 'nohp' => null],
+            11 => ['nama' => 'Rina Marlina, S.Pd',    'gender' => 'Perempuan', 'nohp' => null],
+            12 => ['nama' => 'Sri Wahyuni, S.Pd',     'gender' => 'Perempuan', 'nohp' => null],
+            13 => ['nama' => 'Dewi Lestari, S.Pd',    'gender' => 'Perempuan', 'nohp' => null],
+        ];
+
         $guruMapelIds = [];
-        for ($i=1; $i<=10; $i++) {
-            $gName = $faker->firstName;
-            $username = 'guru' . $i;
+        foreach ($guruSpec as $num => $gInfo) {
+            $username = 'guru' . $num;
             $uid = DB::table('users')->insertGetId([
-                'nama' => $gName . ' ' . $faker->lastName . ', S.Pd', 
-                'username' => $username, 'password' => Hash::make('password'), 'role' => 'guru', 'created_at' => now(), 'updated_at' => now()
+                'nama' => $gInfo['nama'], 'username' => $username, 'password' => Hash::make('password'), 'role' => 'guru', 'created_at' => now(), 'updated_at' => now()
             ]);
-
-            $nohpGuru = $faker->phoneNumber;
-            if ($i == 1) {
-                $nohpGuru = '087859017087';
-            } elseif ($i == 2) {
-                $nohpGuru = '0895414397561';
-            }
-
-            $guruMapelIds[] = DB::table('guru')->insertGetId([
+            $guruMapelIds[$num] = DB::table('guru')->insertGetId([
                 'user_id' => $uid, 'nidn' => $faker->unique()->numerify('20########'),
-                'nama' => DB::table('users')->where('id', $uid)->value('nama'),
-                'gender' => $faker->randomElement(['Laki-laki', 'Perempuan']), 'alamat' => $faker->address,
-                'username' => $username, 'password' => Hash::make('password'), 'nohp' => $nohpGuru,
+                'nama' => $gInfo['nama'],
+                'gender' => $gInfo['gender'], 'alamat' => $faker->address,
+                'username' => $username, 'password' => Hash::make('password'),
+                'nohp' => $gInfo['nohp'] ?: $faker->phoneNumber,
                 'is_bk' => 0, 'image' => 'default.png', 'status' => 'Aktif', 'created_at' => now(), 'updated_at' => now()
             ]);
         }
-        // 3 Guru pertama kita jadikan Wali Kelas
-        $waliKelasIds = array_slice($guruMapelIds, 0, 3);
+        // 4 Guru pertama kita jadikan Wali Kelas
+        $waliKelasIds = [
+            0 => $guruMapelIds[1],
+            1 => $guruMapelIds[2],
+            2 => $guruMapelIds[3],
+            3 => $guruMapelIds[4],
+        ];
 
         // ==========================================
         // 6. KELAS, SISWA & ROMBEL KELAS
         // ==========================================
-        echo "🏢 Membuat 3 Kelas (X TKJ 1, X TKJ 2, X TKJ 3) & 30 Siswa per Kelas...\n";
-        $kelasNames = ['X TKJ 1', 'X TKJ 2', 'X TKJ 3'];
+        echo "🏢 Membuat 4 Kelas (X TKJ 1, X TKJ 2, X TKJ 3, X TKJ 4) & 30 Siswa per Kelas...\n";
+        $kelasNames = ['X TKJ 1', 'X TKJ 2', 'X TKJ 3', 'X TKJ 4'];
         $kelasData = [];
         $siswaProfiles = []; 
         $fingerprintCounter = 1;
@@ -163,9 +192,9 @@ class DatabaseSeeder extends Seeder
         foreach ($kelasNames as $index => $namaKelas) {
             $grupWa = null;
             if ($index === 0) {
-                $grupWa = '087859017087';
+                $grupWa = '120363428223127027@g.us';
             } elseif ($index === 1) {
-                $grupWa = '0895414397561';
+                $grupWa = '120363410062664882@g.us';
             }
 
             $kelasId = DB::table('kelas')->insertGetId([
@@ -175,13 +204,14 @@ class DatabaseSeeder extends Seeder
                 'created_at' => now(), 'updated_at' => now()
             ]);
 
-            // Guru BK: Masing-masing kelas memiliki Guru BK yang berbeda agar tidak bentrok jadwal
-            $guruBkAssigned = $guruBkIds[$index];
+            // Guru BK: 1 Guru BK membina 2 kelas (TKJ 1-2 oleh gurubk1, TKJ 3-4 oleh gurubk2)
+            $guruBkAssigned = ($index < 2) ? $guruBkIds[0] : $guruBkIds[1];
             // Setiap kelas punya wali kelas beda
             $waliKelasAssigned = $waliKelasIds[$index];
 
             $kelasData[] = [
                 'id' => $kelasId,
+                'class_num' => $index + 1,
                 'nama' => $namaKelas,
                 'guru_bk' => $guruBkAssigned,
                 'wali_kelas' => $waliKelasAssigned,
@@ -191,7 +221,7 @@ class DatabaseSeeder extends Seeder
 
         // Setup Profile Siswa di masing-masing kelas secara terpisah: 5 Teladan, 5 Bermasalah, 20 Biasa
         $classProfiles = [];
-        for ($i = 0; $i < 3; $i++) {
+        for ($i = 0; $i < 4; $i++) {
             $types = array_merge(
                 array_fill(0, 5, 'teladan'),
                 array_fill(0, 5, 'bermasalah'),
@@ -253,90 +283,109 @@ class DatabaseSeeder extends Seeder
 
         $jadwalData = []; 
 
-        // 7.a. Rombel Mapel (Buat plotting mapel terlebih dahulu secara berkelompok)
+        // 7.a. Rombel Mapel (Memetakan Guru Spesialis ke Rombel Mapel Setiap Kelas)
         $rombelMapelIds = []; // Key: kelas_id => [mapel_nama => id]
-        $classMapels = [];
 
-        foreach ($kelasData as $cIndex => $k) {
-            $rombelMapelIds[$k['id']]['Bimbingan Konseling'] = DB::table('rombel_mata_pelajaran')->insertGetId([
-                'id_kelas' => $k['id'],
-                'id_mata_pelajaran' => $mapelDbIds['Bimbingan Konseling'],
-                'id_guru' => $k['guru_bk'],
-                'id_tahun_ajar' => $tahunAjarId,
-                'created_at' => now(), 'updated_at' => now()
-            ]);
-
-            $shuffledMapels = array_diff($mapels, ['Bimbingan Konseling']);
-            shuffle($shuffledMapels);
-            $classMapels[$k['id']] = [
-                'list' => $shuffledMapels,
-                'index' => 0
-            ];
-
-            // Bagi guru pengampu mapel agar terpisah antar kelas demi menghindari bentrok jadwal di seeder
-            if ($cIndex === 0) {
-                $guruKelas = array_slice($guruMapelIds, 0, 3);
-            } elseif ($cIndex === 1) {
-                $guruKelas = array_slice($guruMapelIds, 3, 3);
-            } else {
-                $guruKelas = array_slice($guruMapelIds, 6);
+        // Helper fungsi pemetaan guru spesialis berdasarkan kelas dan mapel
+        $getTeacherForMapel = function($classNum, $mapelNama) use ($guruMapelIds, $guruBkIds) {
+            if ($mapelNama === 'Bimbingan Konseling') {
+                return ($classNum <= 2) ? $guruBkIds[0] : $guruBkIds[1];
             }
+            // Guru Kejuruan (Produktif TKJ & Informatika mengajar 2 mapel kejuruan)
+            if ($mapelNama === 'Dasar Kejuruan TKJ' || $mapelNama === 'Informatika') {
+                return ($classNum <= 2) ? $guruMapelIds[1] : $guruMapelIds[2];
+            }
+            // Guru Mapel Umum Spesialis Murni (Hanya mengajar 1 bidang studi):
+            return match($mapelNama) {
+                'Matematika'       => ($classNum <= 2) ? $guruMapelIds[3] : $guruMapelIds[11],
+                'Bahasa Indonesia' => ($classNum <= 2) ? $guruMapelIds[4] : $guruMapelIds[12],
+                'Bahasa Inggris'   => ($classNum <= 2) ? $guruMapelIds[5] : $guruMapelIds[13],
+                'Pendidikan Agama' => $guruMapelIds[6],
+                'PPKn'             => $guruMapelIds[7],
+                'PJOK'             => $guruMapelIds[8],
+                'Sejarah'          => $guruMapelIds[9],
+                'Seni Budaya'      => $guruMapelIds[10],
+                default            => $guruMapelIds[1]
+            };
+        };
 
-            foreach ($shuffledMapels as $mapelNama) {
+        foreach ($kelasData as $k) {
+            $classNum = $k['class_num'];
+            foreach ($mapels as $mapelNama) {
+                $teacherId = $getTeacherForMapel($classNum, $mapelNama);
                 $rombelMapelIds[$k['id']][$mapelNama] = DB::table('rombel_mata_pelajaran')->insertGetId([
                     'id_kelas' => $k['id'],
                     'id_mata_pelajaran' => $mapelDbIds[$mapelNama],
-                    'id_guru' => $faker->randomElement($guruKelas),
+                    'id_guru' => $teacherId,
                     'id_tahun_ajar' => $tahunAjarId,
                     'created_at' => now(), 'updated_at' => now()
                 ]);
             }
         }
 
-        // 7.b. Penjadwalan Pelajaran secara Konflik-Free & Dinamis
-        foreach ($hariSekolah as $hari) {
-            for ($j = 0; $j < count($jamPelajaran); $j++) {
-                
-                // Shuffle ruangan untuk sesi ini agar dinamis & bebas tabrakan (conflict-free)
-                $sessionRuangans = $ruanganIds;
-                shuffle($sessionRuangans);
+        // 7.b. Penjadwalan Pelajaran secara Konflik-Free & Realistis (15 Slot: Senin s/d Jumat, 3 Sesi/hari)
+        $classTimetable = [
+            1 => [
+                "Bimbingan Konseling", "Bahasa Inggris", "Sejarah",
+                "Bahasa Indonesia", "Bahasa Inggris", "Matematika",
+                "Pendidikan Agama", "Dasar Kejuruan TKJ", "PJOK",
+                "Dasar Kejuruan TKJ", "Bahasa Indonesia", "Matematika",
+                "Seni Budaya", "PPKn", "Informatika"
+            ],
+            2 => [
+                "PPKn", "Informatika", "Pendidikan Agama",
+                "Sejarah", "Seni Budaya", "Bahasa Indonesia",
+                "Bahasa Indonesia", "Matematika", "Dasar Kejuruan TKJ",
+                "Bahasa Inggris", "Matematika", "Dasar Kejuruan TKJ",
+                "Bahasa Inggris", "PJOK", "Bimbingan Konseling"
+            ],
+            3 => [
+                "Bahasa Indonesia", "Pendidikan Agama", "Dasar Kejuruan TKJ",
+                "Bahasa Indonesia", "Bimbingan Konseling", "Matematika",
+                "Informatika", "PPKn", "Bahasa Inggris",
+                "Bahasa Inggris", "Dasar Kejuruan TKJ", "Sejarah",
+                "PJOK", "Seni Budaya", "Matematika"
+            ],
+            4 => [
+                "Bimbingan Konseling", "Matematika", "Seni Budaya",
+                "Dasar Kejuruan TKJ", "Bahasa Inggris", "Bahasa Indonesia",
+                "Bahasa Indonesia", "Sejarah", "Pendidikan Agama",
+                "PJOK", "Matematika", "Dasar Kejuruan TKJ",
+                "PPKn", "Bahasa Inggris", "Informatika"
+            ]
+        ];
 
-                foreach ($kelasData as $cIndex => $k) {
-                    $ruanganId = $sessionRuangans[$cIndex];
-                    $deviceId = $deviceIds[$ruanganId] ?? null;
+        for ($slot = 0; $slot < 15; $slot++) {
+            $hariIndex = intdiv($slot, 3);
+            $sesiIndex = $slot % 3;
+            $hari = $hariSekolah[$hariIndex];
+            $jamMulai = $jamPelajaran[$sesiIndex][0];
+            $jamSelesai = $jamPelajaran[$sesiIndex][1];
 
-                    if ($hari === 'Jumat' && $j === 2) {
-                        // Sesi ke-3 hari Jumat khusus untuk BK
-                        $rombelMapelId = $rombelMapelIds[$k['id']]['Bimbingan Konseling'];
-                    } else {
-                        // Ambil mapel berikutnya secara bergiliran
-                        $mapelInfo = &$classMapels[$k['id']];
-                        if ($mapelInfo['index'] >= count($mapelInfo['list'])) {
-                            $mapelInfo['index'] = 0;
-                        }
-                        $mapelNama = $mapelInfo['list'][$mapelInfo['index']];
-                        $mapelInfo['index']++;
+            foreach ($kelasData as $k) {
+                $classNum = $k['class_num'];
+                $ruanganId = $k['ruangan_id'];
+                $deviceId = $deviceIds[$ruanganId] ?? null;
 
-                        $rombelMapelId = $rombelMapelIds[$k['id']][$mapelNama];
-                    }
+                $mapelNama = $classTimetable[$classNum][$slot];
+                $rombelMapelId = $rombelMapelIds[$k['id']][$mapelNama];
 
-                    $jadwalId = DB::table('rombel_jadwal_pelajaran')->insertGetId([
-                        'id_rombel_mata_pelajaran' => $rombelMapelId,
-                        'hari' => $hari,
-                        'jam_mulai' => $jamPelajaran[$j][0],
-                        'jam_selesai' => $jamPelajaran[$j][1],
-                        'id_ruangan' => $ruanganId,
-                        'created_at' => now(), 'updated_at' => now()
-                    ]);
+                $jadwalId = DB::table('rombel_jadwal_pelajaran')->insertGetId([
+                    'id_rombel_mata_pelajaran' => $rombelMapelId,
+                    'hari' => $hari,
+                    'jam_mulai' => $jamMulai,
+                    'jam_selesai' => $jamSelesai,
+                    'id_ruangan' => $ruanganId,
+                    'created_at' => now(), 'updated_at' => now()
+                ]);
 
-                    $jadwalData[] = [
-                        'id' => $jadwalId, 
-                        'hari' => $hari, 
-                        'jam_mulai' => $jamPelajaran[$j][0],
-                        'id_device' => $deviceId, 
-                        'id_kelas' => $k['id']
-                    ];
-                }
+                $jadwalData[] = [
+                    'id' => $jadwalId, 
+                    'hari' => $hari, 
+                    'jam_mulai' => $jamMulai, 
+                    'id_device' => $deviceId, 
+                    'id_kelas' => $k['id']
+                ];
             }
         }
           // ==========================================
@@ -690,7 +739,9 @@ class DatabaseSeeder extends Seeder
         echo "✅ SEEDING SELESAI!\n";
         echo "=======================================\n";
         echo "Admin     : admin / password \n";
-        echo "Guru BK   : gurubk1 / password (mengampu X TKJ 1 & X TKJ 2)\n";
+        echo "Guru BK 1 : gurubk1 / password (Binaan: X TKJ 1 & X TKJ 2)\n";
+        echo "Guru BK 2 : gurubk2 / password (Binaan: X TKJ 3 & X TKJ 4)\n";
+        echo "Total     : 4 Kelas (X TKJ 1 - 4), 120 Siswa\n";
         echo "=======================================\n";
     }
 }

@@ -210,6 +210,13 @@ app.post('/api/send-message', async (req, res) => {
         });
     }
 
+    // Tunggu sebentar jika socket sedang dalam proses connecting/handshake
+    let waitAttempts = 0;
+    while (connectionState === 'connecting' && waitAttempts < 12) {
+        await new Promise((r) => setTimeout(r, 500));
+        waitAttempts++;
+    }
+
     if (connectionState !== 'connected' || !sock) {
         return res.status(503).json({
             success: false,

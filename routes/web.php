@@ -137,6 +137,14 @@ Route::middleware(['auth', 'role:guru'])->prefix('guru')->as('guru.')->group(fun
     Route::get('/riwayat-absensi/{id_jadwal}', [\App\Http\Controllers\Guru\RiwayatAbsensiController::class, 'show'])->name('riwayat-absensi.show');
     Route::post('/riwayat-absensi/{id_jadwal}', [\App\Http\Controllers\Guru\RiwayatAbsensiController::class, 'update'])->name('riwayat-absensi.update');
 
+    // Menu Khusus Guru BK (is_bk = 1) - Rekap Presensi & Edit Multi-Kelas
+    Route::prefix('bk')->as('bk.')->group(function () {
+        Route::get('/presensi', [\App\Http\Controllers\Guru\BkPresensiController::class, 'index'])->name('presensi.index');
+        Route::post('/presensi/store', [\App\Http\Controllers\Guru\BkPresensiController::class, 'storeOrUpdate'])->name('presensi.store');
+        Route::post('/presensi/{id}', [\App\Http\Controllers\Guru\BkPresensiController::class, 'update'])->name('presensi.update');
+        Route::post('/presensi-batch', [\App\Http\Controllers\Guru\BkPresensiController::class, 'batchUpdate'])->name('presensi.batch');
+        Route::get('/presensi/detail-ais/{siswa}', [\App\Http\Controllers\Guru\BkPresensiController::class, 'detailAis'])->name('presensi.detail_ais');
+    });
 
 });
 
