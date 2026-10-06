@@ -57,6 +57,15 @@
                 <span :class="sidebarOpen ? 'opacity-100 ml-4' : 'opacity-0 w-0'" class="font-medium transition-all duration-300 overflow-hidden whitespace-nowrap">Data Guru</span>
             </a>
 
+            {{-- MENU BARU: DATA USER --}}
+            <a href="{{ route('admin.user.index') }}" 
+                class="flex items-center p-3 rounded-xl transition-all duration-200 group {{ request()->routeIs('admin.user.*') ? 'bg-orange-700 shadow-inner' : 'hover:bg-orange-500' }}">
+                <svg class="w-6 h-6 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.121 17.804A13.937 13.937 0 0112 16c2.5 0 4.847.655 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0zm6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                <span :class="sidebarOpen ? 'opacity-100 ml-4' : 'opacity-0 w-0'" class="font-medium transition-all duration-300 overflow-hidden whitespace-nowrap">Data User</span>
+            </a>
+
             <a href="{{ route('admin.kelas.index') }}"
                 class="flex items-center p-3 rounded-xl transition-all duration-200 group {{ request()->routeIs('admin.kelas.*') ? 'bg-orange-700 shadow-inner' : 'hover:bg-orange-500' }}">
                 <svg class="w-6 h-6 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -104,6 +113,30 @@
                 </svg>
                 <span :class="sidebarOpen ? 'opacity-100 ml-4' : 'opacity-0 w-0'" class="font-medium transition-all duration-300 overflow-hidden whitespace-nowrap">Data Device</span>
             </a>
+
+            <a href="{{ route('admin.hari-libur.index') }}" 
+                class="flex items-center p-3 rounded-xl transition-all duration-200 group {{ request()->routeIs('admin.hari-libur.*') ? 'bg-orange-700 shadow-inner' : 'hover:bg-orange-500' }}">
+                <svg class="w-6 h-6 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+                <span :class="sidebarOpen ? 'opacity-100 ml-4' : 'opacity-0 w-0'" class="font-medium transition-all duration-300 overflow-hidden whitespace-nowrap">Hari Libur</span>
+            </a>
+
+            <a href="{{ route('admin.kegiatan-sekolah.index') }}" 
+                class="flex items-center p-3 rounded-xl transition-all duration-200 group {{ request()->routeIs('admin.kegiatan-sekolah.*') ? 'bg-orange-700 shadow-inner' : 'hover:bg-orange-500' }}">
+                <svg class="w-6 h-6 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+                <span :class="sidebarOpen ? 'opacity-100 ml-4' : 'opacity-0 w-0'" class="font-medium transition-all duration-300 overflow-hidden whitespace-nowrap">Kegiatan Sekolah</span>
+            </a>
+
+            <a href="{{ route('admin.kbm-khusus.index') }}" 
+                class="flex items-center p-3 rounded-xl transition-all duration-200 group {{ request()->routeIs('admin.kbm-khusus.*') ? 'bg-orange-700 shadow-inner' : 'hover:bg-orange-500' }}">
+                <svg class="w-6 h-6 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                </svg>
+                <span :class="sidebarOpen ? 'opacity-100 ml-4' : 'opacity-0 w-0'" class="font-medium transition-all duration-300 overflow-hidden whitespace-nowrap">KBM Khusus Guru</span>
+            </a>
         </div>
 
         <div class="pt-2 pb-2">
@@ -136,16 +169,78 @@
             </a>
 
             <a href="{{ route('admin.presensi.index') }}" 
-                class="flex items-center p-3 rounded-xl transition-all duration-200 group {{ request()->routeIs('admin.presensi.*') ? 'bg-orange-700 shadow-inner' : 'hover:bg-orange-500' }}">
+                class="flex items-center p-3 rounded-xl transition-all duration-200 group {{ request()->routeIs('*presensi*') ? 'bg-orange-700 shadow-inner' : 'hover:bg-orange-500' }}">
                 <svg class="w-6 h-6 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
                 </svg>
                 <span :class="sidebarOpen ? 'opacity-100 ml-4' : 'opacity-0 w-0'" class="font-medium transition-all duration-300 overflow-hidden whitespace-nowrap">
-                    Data Absensi
+                    Data Presensi
                 </span>
             </a>
 
+            <a href="{{ route('admin.whatsapp.index') }}" 
+                class="flex items-center p-3 rounded-xl transition-all duration-200 group {{ request()->routeIs('*whatsapp*') ? 'bg-orange-700 shadow-inner' : 'hover:bg-orange-500' }}">
+                <svg class="w-6 h-6 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+                </svg>
+                <span :class="sidebarOpen ? 'opacity-100 ml-4' : 'opacity-0 w-0'" class="font-medium transition-all duration-300 overflow-hidden whitespace-nowrap">Log WhatsApp</span>
+            </a>
+
         </div>
+
+        {{-- MENU KHUSUS GURU --}}
+        @elseif(Auth::user()->role === 'guru')
+        <div class="pt-6 pb-2">
+            <div :class="sidebarOpen ? 'px-4' : 'px-0 text-center'" class="transition-all duration-300">
+                <p :class="sidebarOpen ? 'text-left' : 'text-center text-[8px]'" class="text-[10px] uppercase font-bold text-orange-200 tracking-widest border-b border-orange-500 pb-1 mb-2">Menu Utama</p>
+            </div>
+
+            <a href="{{ route('guru.jadwal.index') }}" 
+               class="flex items-center p-3 rounded-xl transition-all duration-200 group {{ request()->routeIs('guru.jadwal.*') ? 'bg-orange-700 shadow-inner' : 'hover:bg-orange-500' }}">
+                <svg class="w-6 h-6 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                <span :class="sidebarOpen ? 'opacity-100 ml-4' : 'opacity-0 w-0'" class="font-medium transition-all duration-300 overflow-hidden whitespace-nowrap">Jadwal Mengajar</span>
+            </a>
+            {{-- TAMBAHKAN MENU RIWAYAT ABSENSI INI --}}
+            <a href="{{ route('guru.riwayat-absensi.index') }}" 
+               class="flex items-center p-3 rounded-xl transition-all duration-200 group {{ request()->routeIs('guru.riwayat-absensi.*') ? 'bg-orange-700 shadow-inner' : 'hover:bg-orange-500' }}">
+                <svg class="w-6 h-6 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path></svg>
+                <span :class="sidebarOpen ? 'opacity-100 ml-4' : 'opacity-0 w-0'" class="font-medium transition-all duration-300 overflow-hidden whitespace-nowrap">Riwayat Presensi</span>
+            </a>
+        </div>
+
+        {{-- MENU KHUSUS WALI KELAS (HANYA MUNCUL JIKA JADI WALI KELAS) --}}
+            @php
+                $cekGuru = \App\Models\Guru::where('user_id', Auth::id())->first();
+                $isWaliKelas = $cekGuru ? \App\Models\RombelKelas::where('id_guru_wali_kelas', $cekGuru->id)->exists() : false;
+                $isGuruBk = $cekGuru ? (bool)$cekGuru->is_bk : false;
+            @endphp
+
+            @if($isWaliKelas)
+            <div class="mt-4 mb-2">
+                <div :class="sidebarOpen ? 'px-4' : 'px-0 text-center'" class="transition-all duration-300">
+                    <p :class="sidebarOpen ? 'text-left' : 'text-center text-[8px]'" class="text-[10px] uppercase font-bold text-orange-200 tracking-widest border-b border-orange-500 pb-1 mb-2">Wali Kelas</p>
+                </div>
+                <a href="{{ route('guru.walikelas.index') }}" 
+                   class="flex items-center p-3 rounded-xl transition-all duration-200 group {{ request()->routeIs('guru.walikelas.*') ? 'bg-orange-700 shadow-inner' : 'hover:bg-orange-500' }}">
+                    <svg class="w-6 h-6 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                    <span :class="sidebarOpen ? 'opacity-100 ml-4' : 'opacity-0 w-0'" class="font-medium transition-all duration-300 overflow-hidden whitespace-nowrap">Rekap Presensi</span>
+                </a>
+            </div>
+            @endif
+
+            {{-- MENU KHUSUS GURU BK (is_bk = 1) --}}
+            @if($isGuruBk)
+            <div class="mt-4 mb-2">
+                <div :class="sidebarOpen ? 'px-4' : 'px-0 text-center'" class="transition-all duration-300">
+                    <p :class="sidebarOpen ? 'text-left' : 'text-center text-[8px]'" class="text-[10px] uppercase font-bold text-orange-200 tracking-widest border-b border-orange-500 pb-1 mb-2">Bimbingan Konseling</p>
+                </div>
+                <a href="{{ route('guru.bk.presensi.index') }}" 
+                   class="flex items-center p-3 rounded-xl transition-all duration-200 group {{ request()->routeIs('guru.bk.*') ? 'bg-orange-700 shadow-inner' : 'hover:bg-orange-500' }}">
+                    <svg class="w-6 h-6 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                    <span :class="sidebarOpen ? 'opacity-100 ml-4' : 'opacity-0 w-0'" class="font-medium transition-all duration-300 overflow-hidden whitespace-nowrap">Rekap Presensi</span>
+                </a>
+            </div>
+            @endif
         @endif
 
     </nav>

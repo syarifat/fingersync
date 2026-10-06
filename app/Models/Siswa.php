@@ -26,4 +26,9 @@ class Siswa extends Model
     {
         return $this->hasOne(RombelKelas::class, 'id_siswa');
     }
+
+    public function presensi()
+    {
+        return $this->hasMany(Presensi::class, 'id_siswa');
+    }
 }

@@ -27,7 +27,10 @@ class DeviceController extends Controller
     {
         $request->validate([
             'id_device' => 'required|string|unique:device,id_device', // ID Hardware harus unik
-            'id_ruangan' => 'required|exists:ruangan,id',
+            'id_ruangan' => 'required|exists:ruangan,id|unique:device,id_ruangan',
+        ], [
+            'id_ruangan.unique' => 'Ruangan ini sudah memiliki perangkat IoT! Satu ruangan maksimal 1 perangkat.',
+            'id_device.unique' => 'ID Device ini sudah terdaftar!'
         ]);
 
         Device::create([
@@ -50,8 +53,11 @@ class DeviceController extends Controller
     {
         $request->validate([
             'id_device' => ['required', Rule::unique('device')->ignore($device->id)],
-            'id_ruangan' => 'required|exists:ruangan,id',
+            'id_ruangan' => ['required', 'exists:ruangan,id', Rule::unique('device', 'id_ruangan')->ignore($device->id)],
             'status' => 'required|in:Online,Offline,Maintenance'
+        ], [
+            'id_ruangan.unique' => 'Ruangan ini sudah memiliki perangkat IoT! Satu ruangan maksimal 1 perangkat.',
+            'id_device.unique' => 'ID Device ini sudah terdaftar!'
         ]);
 
         $device->update($request->all());

@@ -60,7 +60,7 @@
                              <h4 class="font-black text-gray-400 uppercase tracking-widest text-xs mb-4 border-b pb-2">Biodata Pribadi</h4>
                             
                             <div>
-                                <x-input-label value="NIDN / NIP" class="font-bold text-gray-700" />
+                                <x-input-label value="NIY" class="font-bold text-gray-700" />
                                 <x-text-input name="nidn" class="w-full mt-2" :value="old('nidn', $guru->nidn)" required />
                             </div>
                             <div>

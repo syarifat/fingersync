@@ -19,6 +19,23 @@ use App\Http\Controllers\Admin\RombelKelasController;
 use App\Http\Controllers\Admin\RombelMataPelajaranController;
 use App\Http\Controllers\Admin\RombelJadwalPelajaranController;
 use App\Http\Controllers\Admin\PresensiController;
+use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\Admin\HariLiburController;
+// Route khusus untuk eksekusi Cron Job Rekap Sore via Web (cron-job.org)
+Route::get('/cron/rekap-sore/{token}', function ($token) {
+    if ($token !== 'FINGERSYNC-SECURE-123') return abort(403, 'Unauthorized');
+    set_time_limit(0); // Mencegah timeout jika proses pengiriman WA lambat
+    Artisan::call('absensi:rekap-sore');
+    return 'Rekap Sore dieksekusi: ' . Artisan::output();
+});
+
+Route::get('/cron/hadir-pagi/{token}', function ($token) {
+    if ($token !== 'FINGERSYNC-SECURE-123') return abort(403, 'Unauthorized');
+    set_time_limit(0);
+    Artisan::call('absensi:rekap-pagi');
+    return 'Rekap Pagi dieksekusi: ' . Artisan::output();
+});
+
 
 
 Route::get('/', function () {
@@ -43,28 +60,92 @@ Route::middleware('auth')->group(function () {
 // Role Admin
 Route::middleware(['auth', 'role:admin'])->prefix('admin')->as('admin.')->group(function () {
     Route::get('/dashboard', [AdminController::class, 'index'])->name('dashboard');
+    Route::get('/siswa/inbox', [SiswaController::class, 'inbox'])->name('siswa.inbox');
+    // Fitur Import Excel Siswa
+    Route::get('/siswa/template', [SiswaController::class, 'downloadTemplate'])->name('siswa.template');
+    Route::post('/siswa/import', [SiswaController::class, 'importExcel'])->name('siswa.import');
     Route::resource('siswa', SiswaController::class);
     Route::resource('kelas', KelasController::class);
     Route::resource('ruangan', RuanganController::class);
+    Route::get('/guru/template', [AdminGuruController::class, 'downloadTemplate'])->name('guru.template');
+    Route::post('/guru/import', [AdminGuruController::class, 'importExcel'])->name('guru.import');
     Route::resource('guru', AdminGuruController::class);
+    Route::get('/jurusan/pdf', [JurusanController::class, 'downloadPdf'])->name('jurusan.pdf');
     Route::resource('jurusan', JurusanController::class);
     Route::resource('mata-pelajaran', MataPelajaranController::class);
     Route::resource('tahun-ajar', TahunAjarController::class);
     Route::resource('device', DeviceController::class);
     Route::post('tahun-ajar/switch', [TahunAjarController::class, 'switch'])->name('tahun-ajar.switch');
+    Route::post('hari-libur/sync', [HariLiburController::class, 'sync'])->name('hari-libur.sync');
+    Route::resource('hari-libur', HariLiburController::class);
+    Route::resource('kegiatan-sekolah', \App\Http\Controllers\Admin\KegiatanSekolahController::class);
+    Route::resource('kbm-khusus', \App\Http\Controllers\Admin\GuruKbmKhususController::class);
 
     // Rombel
-    Route::resource('rombel-kelas', RombelKelasController::class);
-    Route::resource('rombel-mata-pelajaran', RombelMataPelajaranController::class);
-    Route::resource('rombel-jadwal', RombelJadwalPelajaranController::class);
+    // ROMBEL KELAS (Konsep Baru)
+    Route::get('/rombel-kelas', [RombelKelasController::class, 'index'])->name('rombel-kelas.index');
+    Route::get('/rombel-kelas/{id_kelas}/manage', [RombelKelasController::class, 'manage'])->name('rombel-kelas.manage');
+    Route::post('/rombel-kelas/{id_kelas}/manage', [RombelKelasController::class, 'storeManage'])->name('rombel-kelas.storeManage');
+    
+    // PLOTTING GURU MATA PELAJARAN (Konsep Baru)
+    Route::get('/rombel-mata-pelajaran', [RombelMataPelajaranController::class, 'index'])->name('rombel-mata-pelajaran.index');
+    Route::get('/rombel-mata-pelajaran/{id_kelas}/manage', [RombelMataPelajaranController::class, 'manage'])->name('rombel-mata-pelajaran.manage');
+    Route::post('/rombel-mata-pelajaran/{id_kelas}/manage', [RombelMataPelajaranController::class, 'storeManage'])->name('rombel-mata-pelajaran.storeManage');
+    
+    // JADWAL PELAJARAN (Konsep Baru)
+    Route::get('/rombel-jadwal', [RombelJadwalPelajaranController::class, 'index'])->name('rombel-jadwal.index');
+    Route::get('/rombel-jadwal/{id_kelas}/manage', [RombelJadwalPelajaranController::class, 'manage'])->name('rombel-jadwal.manage');
+    Route::post('/rombel-jadwal/{id_kelas}/manage', [RombelJadwalPelajaranController::class, 'storeManage'])->name('rombel-jadwal.storeManage');
+    Route::post('/rombel-jadwal/{id_kelas}/check-clash', [RombelJadwalPelajaranController::class, 'checkClash'])->name('rombel-jadwal.check-clash');
 
     Route::get('/presensi', [PresensiController::class, 'index'])->name('presensi.index');
+    Route::get('/presensi/export-pdf', [PresensiController::class, 'exportPdf'])->name('presensi.export_pdf');
+    Route::get('/presensi/export-semester-pdf', [PresensiController::class, 'exportSemesterPdf'])->name('presensi.export_semester_pdf');
     Route::post('/presensi', [PresensiController::class, 'store'])->name('presensi.store');
+    Route::get('/presensi/{presensi}/edit', [PresensiController::class, 'edit'])->name('presensi.edit');
+    Route::put('/presensi/{presensi}', [PresensiController::class, 'update'])->name('presensi.update');
+    Route::get('/presensi/siswa/{id}/detail-ais', [PresensiController::class, 'detailAis'])->name('presensi.detail_ais');
+
+    Route::get('/whatsapp', [\App\Http\Controllers\Admin\WhatsappController::class, 'index'])->name('whatsapp.index');
+    Route::get('/whatsapp/status', [\App\Http\Controllers\Admin\WhatsappController::class, 'statusAjax'])->name('whatsapp.status');
+    Route::post('/whatsapp/pair-code', [\App\Http\Controllers\Admin\WhatsappController::class, 'pairCode'])->name('whatsapp.pair_code');
+    Route::post('/whatsapp/logout', [\App\Http\Controllers\Admin\WhatsappController::class, 'logout'])->name('whatsapp.logout');
+    Route::post('/whatsapp/restart', [\App\Http\Controllers\Admin\WhatsappController::class, 'restart'])->name('whatsapp.restart');
+
+    Route::get('/user', [UserController::class, 'index'])->name('user.index');
+
+    Route::post('/check-affected', [\App\Http\Controllers\Admin\AffectedRecordsController::class, 'check'])->name('check-affected');
 });
 
-// Role Guru
+// ==========================================
+// ROLE GURU
+// ==========================================
 Route::middleware(['auth', 'role:guru'])->prefix('guru')->as('guru.')->group(function () {
-    Route::get('/dashboard', [GuruGuruController::class, 'index'])->name('dashboard');
+    
+    // Dashboard Guru
+    Route::get('/dashboard', [\App\Http\Controllers\Guru\DashboardController::class, 'index'])->name('dashboard');
+    // Pantau Absensi Kelas
+    Route::get('/presensi/{id}', [\App\Http\Controllers\Guru\PresensiController::class, 'show'])->name('presensi.show');
+    Route::post('/presensi/{id}', [\App\Http\Controllers\Guru\PresensiController::class, 'update'])->name('presensi.update');
+    // Jadwal Mengajar Full
+    Route::get('/jadwal', [\App\Http\Controllers\Guru\JadwalController::class, 'index'])->name('jadwal.index');
+    // Menu Wali Kelas
+    Route::get('/wali-kelas', [\App\Http\Controllers\Guru\WaliKelasController::class, 'index'])->name('walikelas.index');
+    Route::get('/wali-kelas/export-pdf', [\App\Http\Controllers\Guru\WaliKelasController::class, 'exportPdf'])->name('walikelas.export_pdf');
+    // Riwayat Presensi (Berdasarkan Tanggal & Jadwal)
+    Route::get('/riwayat-absensi', [\App\Http\Controllers\Guru\RiwayatAbsensiController::class, 'index'])->name('riwayat-absensi.index');
+    Route::get('/riwayat-absensi/{id_jadwal}', [\App\Http\Controllers\Guru\RiwayatAbsensiController::class, 'show'])->name('riwayat-absensi.show');
+    Route::post('/riwayat-absensi/{id_jadwal}', [\App\Http\Controllers\Guru\RiwayatAbsensiController::class, 'update'])->name('riwayat-absensi.update');
+
+    // Menu Khusus Guru BK (is_bk = 1) - Rekap Presensi & Edit Multi-Kelas
+    Route::prefix('bk')->as('bk.')->group(function () {
+        Route::get('/presensi', [\App\Http\Controllers\Guru\BkPresensiController::class, 'index'])->name('presensi.index');
+        Route::post('/presensi/store', [\App\Http\Controllers\Guru\BkPresensiController::class, 'storeOrUpdate'])->name('presensi.store');
+        Route::post('/presensi/{id}', [\App\Http\Controllers\Guru\BkPresensiController::class, 'update'])->name('presensi.update');
+        Route::post('/presensi-batch', [\App\Http\Controllers\Guru\BkPresensiController::class, 'batchUpdate'])->name('presensi.batch');
+        Route::get('/presensi/detail-ais/{siswa}', [\App\Http\Controllers\Guru\BkPresensiController::class, 'detailAis'])->name('presensi.detail_ais');
+    });
+
 });
 
 require __DIR__ . '/auth.php';

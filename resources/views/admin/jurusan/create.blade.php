@@ -12,7 +12,11 @@
                     <div class="mb-8 border-b border-gray-100 pb-4">
                         <h3 class="text-lg font-black text-orange-600 uppercase tracking-wide">Informasi Jurusan</h3>
                     </div>
-
+                    <div
+                        <x-input-label for="kode" value="Kode Singkatan (Contoh: TKJ, RPL)" />
+                        <x-text-input id="kode" name="kode" type="text" class="mt-1 block w-full uppercase" value="{{ old('kode', $jurusan->kode ?? '') }}" required />
+                        <x-input-error :messages="$errors->get('kode')" class="mt-2" />
+                    </div>
                     <div>
                         <x-input-label for="nama" value="Nama Jurusan" class="font-bold text-gray-700" />
                         <x-text-input id="nama" name="nama" type="text" class="mt-2 block w-full focus:ring-orange-500 border-gray-200 rounded-xl" placeholder="Contoh: Rekayasa Perangkat Lunak" required autofocus />

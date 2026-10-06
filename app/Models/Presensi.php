@@ -24,7 +24,7 @@ class Presensi extends Model
     }
 
     // Relasi ke Rombel Jadwal
-    public function jadwal()
+    public function rombelJadwalPelajaran()
     {
         return $this->belongsTo(RombelJadwalPelajaran::class, 'id_rombel_jadwal_pelajaran');
     }
@@ -39,5 +39,11 @@ class Presensi extends Model
     public function tahunAjar()
     {
         return $this->belongsTo(TahunAjar::class, 'id_tahun_ajar');
+    }
+
+    // Relasi ke Kegiatan Sekolah
+    public function kegiatanSekolah()
+    {
+        return $this->belongsTo(KegiatanSekolah::class, 'id_kegiatan_sekolah');
     }
 }

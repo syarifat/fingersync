@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\RombelKelas; // Model Baru
+use App\Models\RombelKelas;
 use App\Models\Kelas;
 use App\Models\Siswa;
 use App\Models\Guru;
@@ -11,113 +11,98 @@ use Illuminate\Http\Request;
 
 class RombelKelasController extends Controller
 {
+    // 1. HALAMAN INDEX (Menampilkan Daftar Kelas, bukan Siswa)
     public function index(Request $request)
     {
         $activeYear = session('tahun_ajar_id');
-        $kelas = Kelas::all(); // Untuk dropdown filter
+        $kelas = Kelas::orderBy('nama', 'asc')->get();
 
-        $query = RombelKelas::with(['kelas', 'siswa', 'waliKelas', 'guruBk'])
-            ->where('id_tahun_ajar', $activeYear);
+        // Cari tahu info rombel untuk tiap kelas di tahun ajar ini
+        foreach ($kelas as $k) {
+            $perwakilan = RombelKelas::with(['waliKelas', 'guruBk'])
+                ->where('id_kelas', $k->id)
+                ->where('id_tahun_ajar', $activeYear)
+                ->first();
 
-        // Filter berdasarkan Kelas
-        if ($request->has('kelas_id') && $request->kelas_id != '') {
-            $query->where('id_kelas', $request->kelas_id);
+            $k->wali_kelas_nama = $perwakilan ? $perwakilan->waliKelas->nama : 'Belum Diatur';
+            $k->guru_bk_nama = $perwakilan ? $perwakilan->guruBk->nama : 'Belum Diatur';
+            
+            $k->jumlah_siswa = RombelKelas::where('id_kelas', $k->id)
+                ->where('id_tahun_ajar', $activeYear)
+                ->count();
         }
 
-        // Filter pencarian (Nama Siswa atau NIS)
-        if ($request->has('search') && $request->search != '') {
-            $query->whereHas('siswa', function ($q) use ($request) {
-                $q->where('nama', 'like', '%' . $request->search . '%')
-                    ->orWhere('nis', 'like', '%' . $request->search . '%');
-            });
-        }
-
-        $rombel = $query->latest()->paginate(10);
-
-        return view('admin.rombel-kelas.index', compact('rombel', 'kelas'));
+        return view('admin.rombel-kelas.index', compact('kelas'));
     }
 
-    public function create()
+    // 2. HALAMAN KELOLA (Tampilan 2 Div Kanan-Kiri)
+    public function manage($id_kelas)
     {
         $activeYear = session('tahun_ajar_id');
+        if (!$activeYear) return back()->with('error', 'Pilih Tahun Ajar terlebih dahulu di menu atas!');
 
-        $kelas = Kelas::all();
-        $guru = Guru::where('status', 'Aktif')->get();
+        $kelas = Kelas::findOrFail($id_kelas);
 
-        // Cari siswa yang BELUM punya kelas di tahun ini
-        // Kita gunakan nama model RombelKelas di sini
-        $siswa = Siswa::whereDoesntHave('rombelKelas', function ($q) use ($activeYear) {
+        // 1. Daftar untuk Guru BK (Bisa tampil semua guru aktif)
+        $guruBkList = Guru::where('status', 'Aktif')->orderBy('nama', 'asc')->get();
+
+        // 2. Daftar untuk Wali Kelas (Sembunyikan yang sudah jadi wali di kelas LAIN)
+        $guruWaliList = Guru::where('status', 'Aktif')
+            ->whereNotIn('id', function($query) use ($activeYear, $id_kelas) {
+                $query->select('id_guru_wali_kelas')
+                    ->from('rombel_kelas')
+                    ->where('id_tahun_ajar', $activeYear)
+                    ->where('id_kelas', '!=', $id_kelas) // Kecualikan kelas ini sendiri agar wali saat ini tetap muncul
+                    ->distinct();
+            })
+            ->orderBy('nama', 'asc')
+            ->get();
+
+        $rombelSaatIni = RombelKelas::where('id_kelas', $id_kelas)->where('id_tahun_ajar', $activeYear)->first();
+
+        $siswaInClass = Siswa::whereHas('rombelKelas', function($q) use ($id_kelas, $activeYear) {
+            $q->where('id_kelas', $id_kelas)->where('id_tahun_ajar', $activeYear);
+        })->orderBy('nama')->get();
+
+        $siswaNoClass = Siswa::whereDoesntHave('rombelKelas', function($q) use ($activeYear) {
             $q->where('id_tahun_ajar', $activeYear);
-        })->orderBy('nama', 'asc')->get();
+        })->orderBy('nama')->get();
 
-        return view('admin.rombel-kelas.create', compact('kelas', 'guru', 'siswa'));
+        // Pastikan variabel guruWaliList dan guruBkList dikirim ke view
+        return view('admin.rombel-kelas.manage', compact('kelas', 'guruWaliList', 'guruBkList', 'rombelSaatIni', 'siswaInClass', 'siswaNoClass'));
     }
 
-    public function store(Request $request)
+    // 3. PROSES SIMPAN KELOLA
+    public function storeManage(Request $request, $id_kelas)
     {
         $request->validate([
-            'id_kelas' => 'required|exists:kelas,id',
-            'id_siswa' => 'required|exists:siswa,id',
-            'id_guru_wali_kelas' => 'required|exists:guru,id',
-            'id_guru_bk' => 'required|exists:guru,id',
-        ]);
-
-        if (!session('tahun_ajar_id')) {
-            return back()->with('error', 'Tahun Ajar belum dipilih!');
-        }
-
-        // Cek duplikasi
-        $exists = RombelKelas::where('id_siswa', $request->id_siswa)
-            ->where('id_tahun_ajar', session('tahun_ajar_id'))
-            ->exists();
-
-        if ($exists) {
-            return back()->with('error', 'Siswa ini sudah memiliki kelas di tahun ajaran aktif!');
-        }
-
-        RombelKelas::create([
-            'id_tahun_ajar' => session('tahun_ajar_id'),
-            'id_kelas' => $request->id_kelas,
-            'id_siswa' => $request->id_siswa,
-            'id_guru_wali_kelas' => $request->id_guru_wali_kelas,
-            'id_guru_bk' => $request->id_guru_bk,
-        ]);
-
-        return redirect()->route('admin.rombel-kelas.index')->with('success', 'Siswa berhasil ditempatkan dalam kelas.');
-    }
-
-    public function edit($id)
-    {
-        $rombel = RombelKelas::findOrFail($id);
-        $kelas = Kelas::all();
-        $guru = Guru::where('status', 'Aktif')->get();
-
-        return view('admin.rombel-kelas.edit', compact('rombel', 'kelas', 'guru'));
-    }
-
-    public function update(Request $request, $id)
-    {
-        $request->validate([
-            'id_kelas' => 'required',
             'id_guru_wali_kelas' => 'required',
             'id_guru_bk' => 'required',
+            'id_siswa' => 'nullable|array', // Boleh kosong jika sengaja mengeluarkan semua siswa
         ]);
 
-        $rombel = RombelKelas::findOrFail($id);
+        $activeYear = session('tahun_ajar_id');
 
-        $rombel->update([
-            'id_kelas' => $request->id_kelas,
-            'id_guru_wali_kelas' => $request->id_guru_wali_kelas,
-            'id_guru_bk' => $request->id_guru_bk,
-        ]);
+        // Strategi Ampuh: Hapus semua data rombel lama untuk kelas ini
+        RombelKelas::where('id_kelas', $id_kelas)->where('id_tahun_ajar', $activeYear)->delete();
 
-        return redirect()->route('admin.rombel-kelas.index')->with('success', 'Data penempatan kelas berhasil diperbarui.');
-    }
+        // Jika ada siswa di kotak kanan, masukkan semuanya dengan Wali & BK yang baru
+        if ($request->has('id_siswa')) {
+            $dataInsert = [];
+            foreach ($request->id_siswa as $siswaId) {
+                $dataInsert[] = [
+                    'id_tahun_ajar' => $activeYear,
+                    'id_kelas' => $id_kelas,
+                    'id_siswa' => $siswaId,
+                    'id_guru_wali_kelas' => $request->id_guru_wali_kelas,
+                    'id_guru_bk' => $request->id_guru_bk,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ];
+            }
+            RombelKelas::insert($dataInsert); // Insert massal biar database tidak capek
+        }
 
-    public function destroy($id)
-    {
-        $rombel = RombelKelas::findOrFail($id);
-        $rombel->delete();
-        return redirect()->route('admin.rombel-kelas.index')->with('success', 'Siswa dikeluarkan dari kelas.');
+        return redirect()->route('admin.rombel-kelas.index')->with('success', 'Konfigurasi Rombel Kelas berhasil diperbarui!');
     }
 }

@@ -11,7 +11,7 @@ class Kelas extends Model
 
     protected $table = 'kelas'; // Nama tabel tunggal
 
-    protected $fillable = ['nama', 'id_jurusan'];
+    protected $fillable = ['nama', 'id_jurusan', 'id_grup_wa'];
 
     public function jurusan()
     {

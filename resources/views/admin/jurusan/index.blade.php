@@ -15,12 +15,23 @@
                             <h3 class="text-lg font-bold text-orange-600 uppercase tracking-tighter">Program Keahlian</h3>
                             <p class="text-sm text-gray-500">Daftar jurusan yang tersedia di sekolah.</p>
                         </div>
-                        <a href="{{ route('admin.jurusan.create') }}" class="px-6 py-3 bg-orange-600 text-white rounded-2xl font-bold text-xs uppercase tracking-widest hover:bg-orange-700 transition-all shadow-lg shadow-orange-100 flex items-center gap-2 hover:-translate-y-0.5">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-60H6"></path>
-                            </svg>
-                            Tambah Jurusan
-                        </a>
+                        <div class="flex flex-wrap items-center gap-3">
+                            {{-- Tombol Download Kamus ID (PDF) --}}
+                            <a href="{{ route('admin.jurusan.pdf') }}" class="px-6 py-3 bg-emerald-600 text-white rounded-2xl font-bold text-xs uppercase tracking-widest hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-100 flex items-center gap-2 hover:-translate-y-0.5" title="Download Referensi ID">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                                </svg>
+                                Kamus ID (PDF)
+                            </a>
+
+                            {{-- Tombol Tambah Jurusan --}}
+                            <a href="{{ route('admin.jurusan.create') }}" class="px-6 py-3 bg-orange-600 text-white rounded-2xl font-bold text-xs uppercase tracking-widest hover:bg-orange-700 transition-all shadow-lg shadow-orange-100 flex items-center gap-2 hover:-translate-y-0.5">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-60H6"></path>
+                                </svg>
+                                Tambah Jurusan
+                            </a>
+                        </div>
                     </div>
 
                     {{-- FILTER SECTION --}}
@@ -74,6 +85,7 @@
                             <thead>
                                 <tr class="text-gray-400 text-xs uppercase tracking-widest border-b border-gray-100">
                                     <th class="pb-4 pl-4 font-black w-20">No</th>
+                                    <th class="pb-4 font-black">Kode</th>
                                     <th class="pb-4 font-black">Nama Jurusan</th>
                                     <th class="pb-4 pr-4 font-black text-right">Aksi</th>
                                 </tr>
@@ -84,6 +96,7 @@
                                     <td class="py-5 pl-4 font-medium text-gray-500">
                                         {{ $jurusan->firstItem() + $index }}
                                     </td>
+                                    <td class="py-5 font-bold text-orange-600">{{ $j->kode }}</td>
                                     <td class="py-5">
                                         <div class="font-bold text-gray-900 text-lg">{{ $j->nama }}</div>
                                     </td>

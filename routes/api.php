@@ -17,6 +17,11 @@ Route::get('/user', function (Request $request) {
 // 1. Endpoint Absensi (POST)
 Route::post('/scan', [DeviceController::class, 'scan']);
 
+// Route Sinkronisasi & Pendaftaran Alat (YANG BARU)
+Route::post('/register/new', [DeviceController::class, 'registerNewId']);
+Route::get('/register/task', [DeviceController::class, 'checkTask']);
+Route::post('/register/complete', [DeviceController::class, 'completeTask']);
+
 // 2. Cek Koneksi (GET)
 Route::get('/ping', function () {
     return response()->json([

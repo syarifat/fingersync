@@ -12,7 +12,7 @@
         @csrf
 
         <div>
-            <x-input-label for="username" :value="__('Username (NIP / NIDN)')" />
+            <x-input-label for="username" :value="__('Username (NIY)')" />
             <x-text-input id="username" class="block mt-1 w-full focus:ring-orange-500 border-gray-300" 
                           type="text" name="username" :value="old('username')" required autofocus 
                           placeholder="Masukkan username dari Admin" />

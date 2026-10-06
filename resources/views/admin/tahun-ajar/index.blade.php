@@ -81,7 +81,7 @@
                                             </a>
 
                                             @if(!$ta->status_aktif)
-                                            <form action="{{ route('admin.tahun-ajar.destroy', $ta->id) }}" method="POST" onsubmit="return confirm('Hapus tahun ajar {{ $ta->tahun }} {{ $ta->semester }}?')">
+                                            <form action="{{ route('admin.tahun-ajar.destroy', $ta->id) }}" method="POST" onsubmit="confirmDelete(event, 'PERINGATAN KERAS: Menghapus tahun ajar ini akan ikut menghapus SELURUH data rombel kelas, plotting guru, jadwal, dan presensi yang berada di bawah naungan tahun ajar ini. Lanjutkan?')">
                                                 @csrf @method('DELETE')
                                                 <button type="submit" class="p-2 bg-red-100 text-red-600 rounded-lg hover:bg-red-500 hover:text-white transition-all shadow-sm" title="Hapus">
                                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

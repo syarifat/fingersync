@@ -8,6 +8,9 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\File;
 use Illuminate\Validation\Rule;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Exports\GuruTemplateExport;
+use App\Imports\GuruImport;
 
 class GuruController extends Controller
 {
@@ -175,5 +178,41 @@ class GuruController extends Controller
         }
 
         return redirect()->route('admin.guru.index')->with('success', 'Data Guru dan Akun Login telah dihapus permanen.');
+    }
+
+    // ==========================================
+    // FITUR EXCEL: DOWNLOAD TEMPLATE GURU
+    // ==========================================
+    public function downloadTemplate()
+    {
+        return Excel::download(new GuruTemplateExport, 'Template_Import_Guru.xlsx');
+    }
+
+    // ==========================================
+    // FITUR EXCEL: IMPORT DATA GURU
+    // ==========================================
+    public function importExcel(Request $request)
+    {
+        $request->validate([
+            'file_excel' => 'required|mimes:xlsx,xls,csv|max:5120',
+        ]);
+
+        try {
+            Excel::import(new GuruImport, $request->file('file_excel'));
+            
+            return redirect()->back()->with('success', 'Data Guru dari Excel berhasil di-import!');
+            
+        } catch (\Maatwebsite\Excel\Validators\ValidationException $e) {
+            $failures = $e->failures();
+            $pesanError = "Gagal Import! ";
+            
+            foreach ($failures as $failure) {
+                $pesanError .= "Baris ke-{$failure->row()}: " . implode(', ', $failure->errors()) . " ";
+            }
+
+            return redirect()->back()->with('error', $pesanError);
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
+        }
     }
 }

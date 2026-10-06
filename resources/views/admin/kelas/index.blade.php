@@ -77,6 +77,7 @@
                                 <tr class="text-gray-400 text-xs uppercase tracking-widest border-b border-gray-100">
                                     <th class="pb-4 font-black px-4">Nama Kelas</th>
                                     <th class="pb-4 font-black">Jurusan</th>
+                                    <th class="pb-4 font-black text-center">Grup WhatsApp</th>
                                     <th class="pb-4 font-black text-right px-4">Aksi</th>
                                 </tr>
                             </thead>
@@ -89,6 +90,18 @@
                                             {{ $k->jurusan->nama }}
                                         </span>
                                     </td>
+                                    <td class="py-5 text-center">
+                                        @if($k->id_grup_wa)
+                                        <span class="inline-flex items-center px-3 py-1 bg-green-50 text-green-700 rounded-full text-xs font-bold ring-1 ring-green-200" title="{{ $k->id_grup_wa }}">
+                                            <span class="w-1.5 h-1.5 bg-green-500 rounded-full mr-1.5"></span>
+                                            Terhubung
+                                        </span>
+                                        @else
+                                        <span class="inline-flex items-center px-3 py-1 bg-gray-50 text-gray-400 rounded-full text-xs font-semibold">
+                                            Belum Terhubung
+                                        </span>
+                                        @endif
+                                    </td>
                                     <td class="py-5 px-4 text-right">
                                         <div class="flex justify-end gap-3">
                                             <a href="{{ route('admin.kelas.edit', $k->id) }}" class="p-2 bg-orange-100 text-orange-600 rounded-lg hover:bg-orange-600 hover:text-white transition-all shadow-sm" title="Edit">
@@ -96,7 +109,7 @@
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
                                                 </svg>
                                             </a>
-                                            <form action="{{ route('admin.kelas.destroy', $k->id) }}" method="POST" onsubmit="return confirm('Hapus kelas ini?')">
+                                            <form action="{{ route('admin.kelas.destroy', $k->id) }}" method="POST" onsubmit="confirmDelete(event, 'Menghapus kelas ini juga akan ikut menghapus plotting guru, jadwal pelajaran, dan seluruh riwayat presensi siswa di kelas ini. Lanjutkan?')">
                                                 @csrf @method('DELETE')
                                                 <button type="submit" class="p-2 bg-red-100 text-red-600 rounded-lg hover:bg-red-500 hover:text-white transition-all shadow-sm" title="Hapus">
                                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
