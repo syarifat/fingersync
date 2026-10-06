@@ -24,3 +24,7 @@ Homestead.yaml
 Thumbs.db
 /baileys-service/node_modules
 /baileys-service/auth_info_baileys
+
+# opencode skills + graphify knowledge graph (local tooling artifacts)
+/.opencode
+/graphify-out
